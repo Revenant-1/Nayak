@@ -1,0 +1,13 @@
+# Ignore the virtual environment directory
+.venv/
+.env
+chat_history.json
+__pycache__/
+*.pyc
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSSharedFileList
+# Editor settings
+.vscode/
+.idea/
