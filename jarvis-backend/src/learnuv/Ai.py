@@ -11,7 +11,6 @@ except ImportError:
     print("[AI WARN] llama-cpp-python not found. Local Llama models will be unavailable.")
 
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
-
 HISTORY_FILE = Path(__file__).resolve().parent / "chat_history.json"
 
 gemini_key = os.getenv("GEMINI_API_KEY")
@@ -192,6 +191,7 @@ def ask_ai(prompt: str, debug: bool = False):
 if __name__ == "__main__":
     # When running AI.py directly, pass debug=True to see exact errors
     while True:
+        print(Path(__file__).resolve().parent.parent / ".env")
         question = input("You: ")
         if question.lower() == "exit":
             break
