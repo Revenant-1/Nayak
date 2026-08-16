@@ -1,19 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-// Talks directly to the Flask backend described in INTEGRATION.md.
+// Talks directly to the FastAPI backend described in INTEGRATION.md.
 // Override with VITE_API_BASE_URL in a .env file for other environments.
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? ''
-const WAKE_WORD = 'jarvis'
+const WAKE_WORD = 'nayak'
 const SILENCE_TIMEOUT_MS = 1400 // pause length that closes out a captured command
 
 /**
- * useJarvis
- * ---------
- * Owns the entire voice pipeline:
- *   1. Continuous Web Speech API recognition, watching for "jarvis".
+ * useNayak
+ * --------
+ * Owns the entire voice & command pipeline:
+ *   1. Continuous Web Speech API recognition, watching for "nayak".
  *   2. Once heard, buffers the following speech until a pause, then
  *      treats that buffer as the command.
- *   3. POSTs the command to the Flask backend and speaks the reply back
+ *   3. POSTs the command to the FastAPI backend and speaks the reply back
  *      with SpeechSynthesis.
  *   4. Also exposes `sendTextCommand` so the InputBar fallback shares the
  *      exact same pipeline.
@@ -22,7 +22,7 @@ const SILENCE_TIMEOUT_MS = 1400 // pause length that closes out a captured comma
  * successful (or failed) round trip so the parent can append it to the
  * transcript.
  */
-export function useJarvis({ onExchange } = {}) {
+export function useNayak({ onExchange } = {}) {
   const [status, setStatus] = useState('sleeping') // 'sleeping' | 'listening' | 'processing'
   const [micOn, setMicOn] = useState(false)
   const [interimText, setInterimText] = useState('')
@@ -44,7 +44,7 @@ export function useJarvis({ onExchange } = {}) {
     statusRef.current = status
   }, [status])
 
-  // ---- send a finished command to the Flask backend --------------------
+  // ---- send a finished command to the backend --------------------
   const sendCommand = useCallback(
     async (text) => {
       if (!text?.trim()) return
@@ -73,11 +73,11 @@ export function useJarvis({ onExchange } = {}) {
           setStatus('sleeping')
         }
       } catch (err) {
-        console.error('[useJarvis] command failed:', err)
-        setError(`Could not reach the Jarvis backend at ${API_BASE}`)
+        console.error('[useNayak] command failed:', err)
+        setError(`Could not reach the Nayak backend at ${API_BASE}`)
         onExchange?.({
           userText: text,
-          assistantText: `Could not reach the backend (${err.message}). Is Flask running on ${API_BASE}?`,
+          assistantText: `Could not reach the backend (${err.message}). Is Nayak backend running on ${API_BASE}?`,
           isError: true,
         })
         setStatus('sleeping')
@@ -106,8 +106,7 @@ export function useJarvis({ onExchange } = {}) {
       }
       tick()
     } catch (err) {
-      // Non-fatal — SiriOrb falls back to a simulated amplitude.
-      console.warn('[useJarvis] mic level metering unavailable:', err.message)
+      console.warn('[useNayak] mic level metering unavailable:', err.message)
     }
   }, [])
 
@@ -168,7 +167,7 @@ export function useJarvis({ onExchange } = {}) {
     }
 
     recognition.onerror = (event) => {
-      console.warn('[useJarvis] recognition error:', event.error)
+      console.warn('[useNayak] recognition error:', event.error)
       if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
         setError('Microphone access was blocked — check your browser permissions.')
         setMicOn(false)

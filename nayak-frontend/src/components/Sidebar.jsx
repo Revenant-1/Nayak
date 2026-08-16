@@ -27,7 +27,10 @@ export default function Sidebar({ history, status, onNewChat, activeIndex, onSel
       {/* Wordmark */}
       <div className="flex items-center gap-2 px-5 pt-6 pb-4">
         <div className="h-2 w-2 rounded-full bg-iris shadow-[0_0_10px_2px_rgba(139,92,246,0.7)]" />
-        <span className="font-display text-lg font-semibold tracking-wide text-ink">JARVIS</span>
+        <div>
+          <span className="font-display text-lg font-semibold tracking-wide text-ink block leading-none">NAYAK</span>
+          <span className="font-mono text-[10px] text-mist tracking-wider uppercase">Legal Assistant</span>
+        </div>
       </div>
 
       {/* New chat */}
@@ -56,7 +59,7 @@ export default function Sidebar({ history, status, onNewChat, activeIndex, onSel
       <div className="mt-5 flex-1 overflow-y-auto scroll-thin px-3 pb-3">
         <p className="px-2 pb-2 font-mono text-[10px] uppercase tracking-widest text-mist">History</p>
         {entries.length === 0 && (
-          <p className="px-2 py-4 text-sm text-mist">No conversations yet. Say “Jarvis” or type a command to begin.</p>
+          <p className="px-2 py-4 text-sm text-mist">No conversations yet. Say “Nayak” or ask a legal query to begin.</p>
         )}
         <ul className="space-y-1">
           {entries.map((entry) => (

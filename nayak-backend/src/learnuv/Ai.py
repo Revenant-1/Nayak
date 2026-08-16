@@ -29,6 +29,7 @@ LEGAL_SYSTEM_PROMPT = (
     "— BNS, BNSS, and BSA 2023."
 )
 
+
 # Set to False if you want to skip loading the general local model to save
 # RAM/VRAM (two local GGUF models loaded at once can be heavy).
 LOAD_GENERAL_LOCAL_FALLBACK = True
@@ -275,4 +276,4 @@ if __name__ == "__main__":
                 print(f"[AI] Unknown model '{choice}'. Choose from: {', '.join(AVAILABLE_MODELS)}, auto\n")
             continue
 
-        print("\nJarvis:", ask_ai(question, debug=True, force_model=current_model))
+        print("\nNayak:", ask_ai(question, debug=True, force_model=current_model))

@@ -76,7 +76,7 @@ export default function InputBar({ onSend, micActive, onToggleMic, micSupported,
       <input
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        placeholder={disabled ? 'Jarvis is thinking…' : 'Type a command…'}
+        placeholder={disabled ? 'Nayak is processing…' : 'Ask a legal question or type a query…'}
         disabled={disabled}
         className="flex-1 rounded-full border border-line bg-panel-hi px-4 py-2.5 text-sm text-ink placeholder:text-mist focus-visible:outline-cyan disabled:opacity-50"
       />

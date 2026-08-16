@@ -13,7 +13,7 @@ import { useEffect, useRef } from 'react'
  *
  * Props:
  *  - state: 'sleeping' | 'listening' | 'processing'
- *  - level: 0..1 optional live mic amplitude (from useJarvis). When
+ *  - level: 0..1 optional live mic amplitude (from useNayak). When
  *           omitted, an internal simulated amplitude is used so the orb
  *           still feels alive without microphone access.
  *  - size:  diameter in CSS pixels (default 220)

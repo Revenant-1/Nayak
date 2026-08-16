@@ -3,7 +3,7 @@ import Sidebar from './components/Sidebar.jsx'
 import SiriOrb from './components/SiriOrb.jsx'
 import ChatView from './components/ChatView.jsx'
 import InputBar from './components/InputBar.jsx'
-import { useJarvis } from './hooks/useJarvis.jsx'
+import { useNayak } from './hooks/useNayak.jsx'
 import VoiceInput from './components/voiceinput.jsx'
 
 // Empty default uses Vite's /api proxy in dev (see vite.config.js).
@@ -34,7 +34,7 @@ export default function App() {
   }, [])
 
   const { status, micOn, micSupported, micLevel, interimText, error, toggleMic, sendTextCommand } =
-    useJarvis({ onExchange: appendExchange })
+    useNayak({ onExchange: appendExchange })
 
   // ---- load chat_history.json from the backend on mount ------------------
   useEffect(() => {
@@ -44,8 +44,6 @@ export default function App() {
         const res = await fetch(`${API_BASE}/api/history`)
         if (!res.ok) throw new Error(`status ${res.status}`)
         const data = await res.json()
-        // Accept either a bare array (chat_history.json's own shape) or
-        // { history: [...] } — see INTEGRATION.md for the exact contract.
         const list = Array.isArray(data) ? data : data.history ?? []
         if (!cancelled) {
           setMessages(list)
@@ -64,14 +62,12 @@ export default function App() {
     }
   }, [])
 
-  // Reflect live backend errors surfaced by useJarvis in the connection pill.
+  // Reflect live backend errors surfaced by useNayak in the connection pill.
   useEffect(() => {
     if (error) setBackendOnline(false)
   }, [error])
 
   const handleNewChat = useCallback(async () => {
-    // Best-effort: ask the backend to start a fresh log if it implements
-    // this optional endpoint. Either way, the visible transcript resets.
     try {
       await fetch(`${API_BASE}/api/new-chat`, { method: 'POST' })
     } catch {
@@ -100,7 +96,7 @@ export default function App() {
         {/* Header */}
         <header className="flex items-center justify-between border-b border-line px-6 py-3">
           <div>
-            <p className="font-display text-sm font-medium text-ink">Session</p>
+            <p className="font-display text-sm font-medium text-ink">Legal Assistant Session</p>
             <p className="font-mono text-[11px] text-mist">
               {loading ? 'syncing chat_history.json…' : `${messages.length} messages`}
             </p>
@@ -112,7 +108,7 @@ export default function App() {
 
         {!backendOnline && (
           <div className="border-b border-magenta/30 bg-magenta/10 px-6 py-2 text-center font-mono text-xs text-magenta">
-            Can’t reach the backend. Start the Flask API with `python api_server.py` — see INTEGRATION.md.
+            Can’t reach the backend. Start the Nayak FastAPI server with `uv run uvicorn learnuv.api_server:app --reload`.
           </div>
         )}
 

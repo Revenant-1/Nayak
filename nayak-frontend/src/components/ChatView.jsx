@@ -29,9 +29,9 @@ export default function ChatView({ messages, focusIndex, interimText }) {
     return (
       <div className="flex flex-1 items-center justify-center px-6">
         <div className="max-w-sm text-center">
-          <p className="font-display text-lg text-ink">Say “Jarvis” to begin</p>
+          <p className="font-display text-lg text-ink">Say “Nayak” or ask a legal question</p>
           <p className="mt-1 text-sm text-mist">
-            Or type a command below — the orb will pulse while I listen and think.
+            Type your query below or tap the microphone — the orb will pulse while Nayak listens and processes.
           </p>
         </div>
       </div>
@@ -59,7 +59,7 @@ export default function ChatView({ messages, focusIndex, interimText }) {
             >
               <p className="whitespace-pre-wrap">{m.content}</p>
               <p className="mt-1 font-mono text-[10px] text-mist">
-                {m.role === 'user' ? 'you' : 'jarvis'} · {m.time || timestamp()}
+                {m.role === 'user' ? 'you' : 'nayak'} · {m.time || timestamp()}
               </p>
             </div>
           </motion.div>

@@ -15,13 +15,18 @@ load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 # FastAPI app
 # --------------------------------------------------
 
-app = FastAPI()
+app = FastAPI(
+    title="Nayak Legal Assistant API",
+    description="Backend API for Nayak - AI-Powered Legal Assistant",
+    version="0.1.0"
+)
 
 
 # --------------------------------------------------
 # CORS
 # --------------------------------------------------
 # https://fastapi.tiangolo.com/tutorial/cors/  read this to understand the below code
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -79,11 +84,11 @@ async def post_command(payload: CommandRequest):
     # Run your existing pipeline
     reply = processCommand(text) or "Done."
 
-    history = read_history()
-
     # ask_ai already appends to chat_history.json
     # Normalize the user line so the frontend
     # shows the raw command.
+    history = read_history()
+
     if (
         history
         and history[-1].get("role") == "assistant"
@@ -92,7 +97,6 @@ async def post_command(payload: CommandRequest):
         and history[-2].get("role") == "user"
     ):
         history[-2]["content"] = text
-
     else:
         history.append({
             "role": "user",
@@ -121,12 +125,15 @@ async def new_chat():
 # Run server
 # --------------------------------------------------
 
-if __name__ == "__main__":
+def main():
     import uvicorn
-
     uvicorn.run(
-        app,
+        "learnuv.api_server:app",
         host="127.0.0.1",
         port=8000,
         reload=True
     )
+
+
+if __name__ == "__main__":
+    main()
