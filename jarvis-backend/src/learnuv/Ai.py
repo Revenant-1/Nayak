@@ -10,7 +10,8 @@ except ImportError:
     Llama = None
     print("[AI WARN] llama-cpp-python not found. Local Llama models will be unavailable.")
 
-load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+# Ai.py lives in src/learnuv; the project .env is three levels up.
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 HISTORY_FILE = Path(__file__).resolve().parent / "chat_history.json"
 
 gemini_key = os.getenv("GEMINI_API_KEY")

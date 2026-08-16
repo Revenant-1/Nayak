@@ -1,4 +1,4 @@
-from Ai import ask_ai, new_chat
+from learnuv.Ai import ask_ai, new_chat
 
 def processCommand(command):
     print(command)

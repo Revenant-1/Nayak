@@ -3,12 +3,12 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from ProcessCommands import processCommand
+from learnuv.ProcessCommands import processCommand
 import json
 
 
-# Load API keys from the repo-root .env
-load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+# api_server.py lives in src/learnuv; load keys from the backend root.
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
 
 # --------------------------------------------------
