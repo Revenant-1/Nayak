@@ -63,8 +63,8 @@ Ensure you have the following installed:
 Open your terminal or command prompt and run:
 
 ```bash
-git clone https://github.com/Danish-khan-coder/Jarvis-2.0.git # Use your actual repository URL
-cd Jarvis-2.0
+git clone https://github.com/Revenant-1/Nayak # Use your actual repository URL
+cd Nayak
 ```
 
 ### Step 3: Backend Setup and Run
