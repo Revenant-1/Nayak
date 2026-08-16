@@ -259,7 +259,7 @@ Open separate terminal windows for the stack:
 3. **Dispatch:** Formatted text payload is dispatched to `/api/command`.
 4. **Backend Processing:**
 * Handled by `processCommand(text)` in `src/learnuv/ProcessCommands.py`.
-* Passes query to `ask_ai(prompt)` cascading: **Local Llama** → **Gemini** → **Groq**.
+* Passes query to `ask_ai(prompt)`, which cascades through four tiers until one succeeds: **Indian Legal Llama (local, primary)** → **General Llama (local fallback)** → **Gemini (cloud)** → **Groq (cloud fallback)**.
 
 
 5. **Assistant Reply:** Clean string returned to frontend JSON client.
@@ -329,4 +329,3 @@ Open separate terminal windows for the stack:
 This project is licensed under the repository's main LICENSE file. Check individual sub-directories for third-party component licenses.
 
 ---
-

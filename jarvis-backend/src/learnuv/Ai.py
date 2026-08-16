@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 from dotenv import load_dotenv
 from google import genai
+from google.genai import types
 from groq import Groq
 try:
     from llama_cpp import Llama
@@ -35,6 +36,11 @@ LOAD_GENERAL_LOCAL_FALLBACK = True
 if Llama:
     # --- Primary local model: Indian Legal Llama ---
     try:
+        # NOTE: verify this repo/filename still exists on Hugging Face before
+        # deploying (huggingface.co/GSMS-B/Indian-Legal-Llama-3.2-3B-GGUF).
+        # If it's missing or renamed, this call fails silently here and the
+        # app quietly falls through to the general model below — you won't
+        # notice unless you run this file directly with debug=True.
         legal_llm_client = Llama.from_pretrained(
             repo_id="GSMS-B/Indian-Legal-Llama-3.2-3B-GGUF",
             filename="*Q4_K_M.gguf",   # recommended quant
@@ -79,12 +85,25 @@ def new_chat():
     save_history([])
 
 
-def _call_gemini(prompt):
+def _call_gemini(system_instruction, history, prompt):
     if not gemini_client:
         raise ValueError("GEMINI_API_KEY is missing from .env")
+
+    # Gemini needs the conversation rebuilt turn-by-turn as Content objects,
+    # and it calls the assistant's role "model" instead of "assistant".
+    # (The previous version flattened everything into one string and passed
+    # only the latest prompt — that silently dropped all prior chat history
+    # whenever a request fell through to Gemini.)
+    contents = []
+    for msg in history:
+        role = "model" if msg.get("role") == "assistant" else "user"
+        contents.append(types.Content(role=role, parts=[types.Part(text=msg["content"])]))
+    contents.append(types.Content(role="user", parts=[types.Part(text=prompt)]))
+
     response = gemini_client.models.generate_content(
         model="gemini-3.5-flash",
-        contents=prompt
+        contents=contents,
+        config=types.GenerateContentConfig(system_instruction=system_instruction),
     )
     return response.text
 
@@ -93,7 +112,9 @@ def _call_groq(messages):
     if not groq_client:
         raise ValueError("GROQ_API_KEY is missing from .env")
     response = groq_client.chat.completions.create(
-        model="llama-3.1-8b-instant",
+        # llama-3.1-8b-instant was retired by Groq on 08/16/2026;
+        # openai/gpt-oss-20b is Groq's official recommended replacement.
+        model="openai/gpt-oss-20b",
         messages=messages
     )
     return response.choices[0].message.content
@@ -130,7 +151,7 @@ def ask_ai(prompt: str, debug: bool = False):
         else "Provide a detailed, comprehensive response."
     )
 
-    # Standard messages, used for the general local model, Gemini, and Groq
+    # Standard messages, used for the general local model and Groq
     messages = [{"role": "system", "content": system_instruction}]
     for msg in history:
         messages.append(msg)
@@ -165,7 +186,7 @@ def ask_ai(prompt: str, debug: bool = False):
     # 3) Fallback to Gemini
     if not response_text:
         try:
-            response_text = _call_gemini(f"{system_instruction}\n\nPrompt: {prompt}")
+            response_text = _call_gemini(system_instruction, history, prompt)
         except Exception as e:
             if debug:
                 print(f"[AI Debug] Gemini failed: {e}")
@@ -190,9 +211,13 @@ def ask_ai(prompt: str, debug: bool = False):
 
 
 if __name__ == "__main__":
-    # When running AI.py directly, pass debug=True to see exact errors
+    # When running AI.py directly, pass debug=True to see exact errors.
+    # This path matches the one load_dotenv() actually uses above
+    # (three levels up from this file, i.e. the jarvis-backend/ folder).
+    env_path = Path(__file__).resolve().parents[2] / ".env"
+    print(f"Loading environment variables from: {env_path}")
+
     while True:
-        print(Path(__file__).resolve().parent.parent / ".env")
         question = input("You: ")
         if question.lower() == "exit":
             break
