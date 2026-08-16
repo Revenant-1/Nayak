@@ -12,6 +12,7 @@ dependencies = [
     "google>=3.0.0",
     "google-genai>=2.18.1",
     "groq>=1.6.0",
+    "huggingface-hub>=1.27.0",
     "llama-cpp-python>=0.3.34",
 ]
 
