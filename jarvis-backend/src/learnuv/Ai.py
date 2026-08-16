@@ -36,11 +36,7 @@ LOAD_GENERAL_LOCAL_FALLBACK = True
 if Llama:
     # --- Primary local model: Indian Legal Llama ---
     try:
-        # NOTE: verify this repo/filename still exists on Hugging Face before
-        # deploying (huggingface.co/GSMS-B/Indian-Legal-Llama-3.2-3B-GGUF).
-        # If it's missing or renamed, this call fails silently here and the
-        # app quietly falls through to the general model below — you won't
-        # notice unless you run this file directly with debug=True.
+        
         legal_llm_client = Llama.from_pretrained(
             repo_id="GSMS-B/Indian-Legal-Llama-3.2-3B-GGUF",
             filename="*Q4_K_M.gguf",   # recommended quant
@@ -89,11 +85,6 @@ def _call_gemini(system_instruction, history, prompt):
     if not gemini_client:
         raise ValueError("GEMINI_API_KEY is missing from .env")
 
-    # Gemini needs the conversation rebuilt turn-by-turn as Content objects,
-    # and it calls the assistant's role "model" instead of "assistant".
-    # (The previous version flattened everything into one string and passed
-    # only the latest prompt — that silently dropped all prior chat history
-    # whenever a request fell through to Gemini.)
     contents = []
     for msg in history:
         role = "model" if msg.get("role") == "assistant" else "user"
@@ -142,7 +133,12 @@ def _call_local_llama(messages):
     return response["choices"][0]["message"]["content"]
 
 
-def ask_ai(prompt: str, debug: bool = False):
+# Names usable with ask_ai(..., force_model=...) for debugging a single
+# backend in isolation (bypasses the normal fallback cascade entirely).
+AVAILABLE_MODELS = ("legal", "local", "gemini", "groq")
+
+
+def ask_ai(prompt: str, debug: bool = False, force_model: str | None = None):
     history = load_history()
 
     system_instruction = (
@@ -166,41 +162,71 @@ def ask_ai(prompt: str, debug: bool = False):
     legal_messages.append({"role": "user", "content": prompt})
 
     response_text = None
+    used_model = None
 
-    # 1) Try Indian Legal Llama first (primary)
-    if legal_llm_client:
+    if force_model is not None:
+        # --- Debug mode: call exactly one backend, no fallback ---
+        if force_model not in AVAILABLE_MODELS:
+            return (
+                f"[AI Debug] Unknown model '{force_model}'. "
+                f"Choose from: {', '.join(AVAILABLE_MODELS)}."
+            )
         try:
-            response_text = _call_legal_llama(legal_messages)
+            if force_model == "legal":
+                response_text = _call_legal_llama(legal_messages)
+            elif force_model == "local":
+                response_text = _call_local_llama(messages)
+            elif force_model == "gemini":
+                response_text = _call_gemini(system_instruction, history, prompt)
+            elif force_model == "groq":
+                response_text = _call_groq(messages)
+            used_model = force_model
         except Exception as e:
-            if debug:
-                print(f"[AI Debug] Indian Legal Llama failed: {e}")
+            return f"[AI Debug] '{force_model}' failed: {e}"
+    else:
+        # --- Normal mode: cascade through backends in priority order ---
 
-    # 2) Fallback to the general local Llama model
-    if not response_text and local_llm_client:
-        try:
-            response_text = _call_local_llama(messages)
-        except Exception as e:
-            if debug:
-                print(f"[AI Debug] General local Llama failed: {e}")
+        # 1) Try Indian Legal Llama first (primary)
+        if legal_llm_client:
+            try:
+                response_text = _call_legal_llama(legal_messages)
+                used_model = "legal"
+            except Exception as e:
+                if debug:
+                    print(f"[AI Debug] Indian Legal Llama failed: {e}")
 
-    # 3) Fallback to Gemini
-    if not response_text:
-        try:
-            response_text = _call_gemini(system_instruction, history, prompt)
-        except Exception as e:
-            if debug:
-                print(f"[AI Debug] Gemini failed: {e}")
+        # 2) Fallback to the general local Llama model
+        if not response_text and local_llm_client:
+            try:
+                response_text = _call_local_llama(messages)
+                used_model = "local"
+            except Exception as e:
+                if debug:
+                    print(f"[AI Debug] General local Llama failed: {e}")
 
-    # 4) Fallback to Groq
-    if not response_text:
-        try:
-            response_text = _call_groq(messages)  # Groq uses the 'messages' format
-        except Exception as e:
-            if debug:
-                print(f"[AI Debug] Groq failed: {e}")
+        # 3) Fallback to Gemini
+        if not response_text:
+            try:
+                response_text = _call_gemini(system_instruction, history, prompt)
+                used_model = "gemini"
+            except Exception as e:
+                if debug:
+                    print(f"[AI Debug] Gemini failed: {e}")
+
+        # 4) Fallback to Groq
+        if not response_text:
+            try:
+                response_text = _call_groq(messages)  # Groq uses the 'messages' format
+                used_model = "groq"
+            except Exception as e:
+                if debug:
+                    print(f"[AI Debug] Groq failed: {e}")
 
     if not response_text:
         return "Sorry, all AI services are currently unavailable."
+
+    if debug and used_model:
+        print(f"[AI Debug] Response served by: {used_model}")
 
     # Save state
     history.append({"role": "user", "content": prompt})
@@ -211,14 +237,42 @@ def ask_ai(prompt: str, debug: bool = False):
 
 
 if __name__ == "__main__":
-    # When running AI.py directly, pass debug=True to see exact errors.
-    # This path matches the one load_dotenv() actually uses above
-    # (three levels up from this file, i.e. the jarvis-backend/ folder).
+
     env_path = Path(__file__).resolve().parents[2] / ".env"
     print(f"Loading environment variables from: {env_path}")
 
+    current_model = None  # None = normal cascade/fallback behavior
+
+    def _print_model_help():
+        print(
+            "\n[AI] Model switch commands:\n"
+            f"  model <{'|'.join(AVAILABLE_MODELS)}|auto>  - switch backend\n"
+            "  model                              - show current backend\n"
+            "  exit                                - quit\n"
+        )
+
+    _print_model_help()
+    print(f"[AI] Currently: {current_model or 'auto (cascade fallback)'}\n")
+
     while True:
-        question = input("You: ")
+        question = input("You: ").strip()
         if question.lower() == "exit":
             break
-        print("\nJarvis:", ask_ai(question, debug=True))
+
+        if question.lower() == "model":
+            print(f"[AI] Currently: {current_model or 'auto (cascade fallback)'}\n")
+            continue
+
+        if question.lower().startswith("model "):
+            choice = question.split(" ", 1)[1].strip().lower()
+            if choice == "auto":
+                current_model = None
+                print("[AI] Switched to: auto (cascade fallback)\n")
+            elif choice in AVAILABLE_MODELS:
+                current_model = choice
+                print(f"[AI] Switched to: {choice}\n")
+            else:
+                print(f"[AI] Unknown model '{choice}'. Choose from: {', '.join(AVAILABLE_MODELS)}, auto\n")
+            continue
+
+        print("\nJarvis:", ask_ai(question, debug=True, force_model=current_model))
