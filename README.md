@@ -1,386 +1,332 @@
-# Jarvis Backend Setup Guide
+# Jarvis Voice Assistant 🎙️
 
-This folder is the Python backend for the Jarvis project.
+Unified React-Vite + FastAPI voice-first interface with Python AI back-end.
 
-Important: the app is not at the project root as `api_server.py`. The real module is inside the package folder:
+**GitHub:** [https://github.com/Revenant-1/Nayak](https://www.google.com/search?q=https://github.com/Revenant-1/Nayak)
 
-- `src/learnuv/api_server.py`
+---
+### Quick-Start One-Liners
 
-Because of that, the correct UV command for this repo is:
-
+**Clone & navigate to backend directory:**
 ```bash
-uv run uvicorn learnuv.api_server:app --reload
+git clone https://github.com/Revenant-1/Nayak.git
+cd Nayak/jarvis-backend
+
 ```
 
-This is the command you should use from inside `jarvis-backend`.
+```bash
+# Run Backend
+cd Nayak/jarvis-backend && uv sync && uv run uvicorn learnuv.api_server:app --reload
+
+# Run Frontend
+cd Nayak/jarvis-frontend && npm install && npm run dev
+
+```
+
+### Table of Contents
+
+* [Overview](https://www.google.com/search?q=%23overview)
+* [Tech Stack](https://www.google.com/search?q=%23tech-stack)
+* [Prerequisites](https://www.google.com/search?q=%23prerequisites)
+* [Repository Layout](https://www.google.com/search?q=%23repository-layout)
+* [Backend Setup](https://www.google.com/search?q=%23backend-setup)
+* [Frontend Setup](https://www.google.com/search?q=%23frontend-setup)
+* [Running the Stack](https://www.google.com/search?q=%23running-the-stack)
+* [API Contract](https://www.google.com/search?q=%23api-contract)
+* [Voice Pipeline](https://www.google.com/search?q=%23voice-pipeline)
+* [Environment Variables](https://www.google.com/search?q=%23environment-variables)
+* [Development Workflow](https://www.google.com/search?q=%23development-workflow)
+* [Troubleshooting](https://www.google.com/search?q=%23troubleshooting)
+* [Contributing](https://www.google.com/search?q=%23contributing)
+* [License](https://www.google.com/search?q=%23license)
+* [Quick-Start One-Liners](https://www.google.com/search?q=%23quick-start-one-liners)
 
 ---
 
-## 1. Folder structure
+### Overview
+
+This repository contains a full voice assistant stack split into two workspaces:
+
+| Part | Language / Framework | Primary Function |
+| --- | --- | --- |
+| **Backend** (`jarvis-backend/`) | Python 3.13+, FastAPI, UV, Llama-CPP | Serves REST API endpoints, runs AI models, and persists conversation history (`chat_history.json`). |
+| **Frontend** (`jarvis-frontend/`) | React 18+, Vite, TailwindCSS, Web APIs | UI for wake-word detection, speech-to-text, visual orb, and transcript display. All voice processing happens in-browser. |
+
+The two services communicate through a Vite development proxy (or configurable HTTP base URL in production) to eliminate CORS issues.
+
+---
+
+### Tech Stack
+
+* **Backend:** Python 3.13+, FastAPI, `uv`, `fastapi[standard]`, `google-genai`, `groq`, `llama-cpp-python`
+* **Frontend:** React 18+, Vite, TypeScript, TailwindCSS, Web Speech API, Web Audio API, SpeechSynthesis
+* **AI Models:**
+1. Local Indian-Legal Llama *(primary)*
+2. Local General-Purpose Llama *(fallback)*
+3. Google Gemini *(cloud)*
+4. Groq *(cloud fallback)*
+
+
+* **Containerisation / Dev:** `uv`, `npm`, `uvicorn`
+
+---
+
+### Prerequisites
+
+| Tool | Minimum Version | Note |
+| --- | --- | --- |
+| **Python** | 3.13+ | Required for backend dependencies |
+| **Node.js** | 18+ | Required for frontend build tools |
+| **UV** | 0.2.x | Fast Python package installer |
+| **Git** | 2.30+ | Version control |
+| **Browser** | Chrome / Edge (≥ 115) | Required for Web Speech API support |
+
+> **Tip:** On Windows, use PowerShell as the preferred terminal.
+
+---
+
+### Repository Layout
 
 ```text
-jarvis-backend/
-├── pyproject.toml
-├── uv.lock
-├── README.md
-├── .env
-├── src/
-│   └── learnuv/
-│       ├── __init__.py
-│       ├── Ai.py
-│       ├── ProcessCommands.py
-│       ├── api_server.py
-│       └── chat_history.json
-└── .venv/
-```
+Nayak/
+├─ jarvis-backend/          # Python backend workspace
+│   ├─ src/
+│   │   └─ learnuv/
+│   │       ├─ __init__.py
+│   │       ├─ Ai.py
+│   │       ├─ ProcessCommands.py
+│   │       ├─ api_server.py
+│   │       └─ chat_history.json
+│   ├─ .env
+│   ├─ .gitignore
+│   ├─ .python-version
+│   ├─ pyproject.toml
+│   ├─ uv.lock
+│   └─ README.md
+└─ jarvis-frontend/         # React frontend workspace
+    ├─ src/
+    │   ├─ components/
+    │   │   ├─ Sidebar.jsx
+    │   │   ├─ ChatView.jsx
+    │   │   ├─ InputBar.jsx
+    │   │   └─ SiriOrb.jsx
+    │   ├─ hooks/
+    │   │   └─ useJarvis.jsx
+    │   ├─ App.jsx
+    │   ├─ main.jsx
+    │   └─ index.css
+    ├─ index.html
+    ├─ package.json
+    ├─ vite.config.js
+    └─ README.md
 
-The app entry is the FastAPI app object named `app` inside `learnuv.api_server`.
+```
 
 ---
 
-## 2. Install UV
+### Backend Setup
 
-Official docs:
+1. **Clone & navigate to backend directory:**
+```bash
+git clone https://github.com/Revenant-1/Nayak.git
+cd Nayak/jarvis-backend
 
-- https://docs.astral.sh/uv/
-- https://docs.astral.sh/uv/getting-started/installation/
-- https://github.com/astral-sh/uv/releases
+```
 
-Linux:
 
+2. **Install UV** *(skip if already installed)*:
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
+# or: brew install uv (macOS) / choco install uv (Windows)
+
 ```
 
-macOS:
 
-```bash
-brew install uv
-```
-
-Windows PowerShell:
-
-```powershell
-irm https://astral.sh/uv/install.ps1 | iex
-```
-
-Then verify:
-
-```bash
-uv --version
-```
-
----
-
-## 3. Setup the backend
-
-From inside `jarvis-backend`:
-
+3. **Create virtual environment & sync dependencies:**
 ```bash
 uv sync
+
 ```
 
-Create a `.env` file in the same folder as `pyproject.toml`:
 
+4. **(Optional) Activate the environment:**
+```bash
+source .venv/bin/activate        # Linux / macOS
+# or: .venv\Scripts\Activate.ps1 # Windows PowerShell
+
+```
+
+
+5. **Configure environment variables:**
+Create a `.env` file in `jarvis-backend/` (next to `pyproject.toml`):
 ```env
 GEMINI_API_KEY=your_key_here
 GROQ_API_KEY=your_key_here
+
 ```
 
-The app loads the file from the backend root. In this project, the code uses:
 
-```python
-load_dotenv(Path(__file__).resolve().parent.parent / ".env")
-```
-
-So the `.env` file belongs in:
-
-- `jarvis-backend/.env`
-
-Not inside `src`.
-
----
-
-## 4. Run the backend
-
-From `jarvis-backend`:
-
+6. **Run the API server:**
 ```bash
 uv run uvicorn learnuv.api_server:app --reload
+
 ```
 
-This is the correct repo-specific command.
 
-Do not use:
+* Server runs at: `[http://127.0.0.1:8000](http://127.0.0.1:8000)`
+* Swagger UI documentation: `[http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)`
 
-```bash
-uv run python src/learnuv/api_server.py
-```
 
-That path is not the normal app import pattern for this package layout and can fail in this repo.
 
 ---
 
-## 5. Expected URL
+### Frontend Setup
 
-The app in the current code listens on:
+1. **Navigate to frontend directory:**
+```bash
+cd ../jarvis-frontend
 
-```text
-http://127.0.0.1:8000
 ```
 
-The Uvicorn config in the app file uses port `8000`.
+
+2. **Install dependencies:**
+```bash
+npm install
+
+```
+
+
+3. **Start the development server:**
+```bash
+npm run dev
+
+```
+
+
+* Vite dev server runs at `http://localhost:5173`.
+* Automatically proxies `/api/*` requests to backend at `[http://127.0.0.1:8000](http://127.0.0.1:8000)`.
+
+
+4. **Production build (optional):**
+```bash
+npm run build
+
+```
+
+
+* Builds production assets to `./dist`.
+
+
 
 ---
 
-## 6. OS-specific commands
+### Running the Stack
 
-### Linux / macOS
+Open separate terminal windows for the stack:
 
-```bash
-cd /path/to/jarvis-backend
-uv sync
-uv run uvicorn learnuv.api_server:app --reload
-```
+| Terminal | Command | Description |
+| --- | --- | --- |
+| **1️⃣ Backend** | `cd Nayak/jarvis-backend && uv run uvicorn learnuv.api_server:app --reload` | Starts FastAPI backend server |
+| **2️⃣ Frontend** | `cd Nayak/jarvis-frontend && npm run dev` | Starts Vite frontend dev server |
+| **3️⃣ Environment** | *(Background)* | Keep `.env` keys updated and loaded |
 
-### Windows PowerShell
+**Runtime behavior:**
 
-```powershell
-cd C:\path\to\jarvis-backend
-uv sync
-uv run uvicorn learnuv.api_server:app --reload
-```
-
-### Windows CMD
-
-```cmd
-cd C:\path\to\jarvis-backend
-uv sync
-uv run uvicorn learnuv.api_server:app --reload
-```
+* Open `http://localhost:5173` in Chrome or Edge.
+* Loads chat history from `/api/history`.
+* Detects the wake-word **"jarvis"** via Web Speech API.
+* Buffers audio, translates speech to text, and posts to `/api/command`.
+* Speaks response via SpeechSynthesis and visualizes audio on the orb.
 
 ---
 
-## 7. Quick start
+### API Contract
 
-If you just want the shortest correct version:
+| Method | Endpoint | Request Body | Response Body | Error Response |
+| --- | --- | --- | --- | --- |
+| `GET` | `/api/history` | *None* | `[{"role": "user" | "assistant", "content": "...", "timestamp": "HH:MM"}, ...]` | `4xx` / `5xx` JSON error |
+| `POST` | `/api/command` | `{"text": "your command"}` | `{"response": "assistant reply"}` | `400` (empty text) / `4xx` / `5xx` |
+| `POST` | `/api/new-chat` | *None* | `{"status": "cleared"}` | `4xx` / `5xx` JSON error |
 
-```bash
-cd jarvis-backend
-uv sync
-uv run uvicorn learnuv.api_server:app --reload
-```
-
-Then open:
-
-```text
-http://127.0.0.1:8000
-```
+> **Note:** The frontend expects these exact response signatures. Deviations will display an error banner in the UI.
 
 ---
 
-## 8. Important note
+### Voice Pipeline
 
-This repo uses a package-style import path, not a direct file run path.
+1. **Wake-Word Detection:** `webkitSpeechRecognition` listens continuously for `"jarvis"`.
+2. **Speech-to-Text (STT):** Captures spoken input following the wake-word until silence threshold (`SILENCE_TIMEOUT_MS = 1400ms`).
+3. **Dispatch:** Formatted text payload is dispatched to `/api/command`.
+4. **Backend Processing:**
+* Handled by `processCommand(text)` in `src/learnuv/ProcessCommands.py`.
+* Passes query to `ask_ai(prompt)` cascading: **Local Llama** → **Gemini** → **Groq**.
 
-So the correct command is:
 
-```bash
-uv run uvicorn learnuv.api_server:app --reload
-```
+5. **Assistant Reply:** Clean string returned to frontend JSON client.
+6. **Text-to-Speech (TTS):** Native `SpeechSynthesis` voices response aloud.
+7. **Visual Feedback:** `SiriOrb.jsx` reacts dynamically to mic input amplitude via Web Audio API.
 
-not:
-
-```bash
-uv run uvicorn api_server:app --reload
-```
-
-and not:
-
-```bash
-uv run python src/learnuv/api_server.py
-```
-
-Use the package module path and run it from the backend folder.
-
-FastAPI automatically provides Swagger UI docs at the `/docs` endpoint.
-
-You can also check the API manually with curl:
-
-```bash
-curl http://127.0.0.1:5000/api/history
-```
-
-This should return JSON, usually an empty list or existing history from `chat_history.json`.
+> **Privacy Note:** All voice processing runs client-side in the browser; the backend only receives plain text.
 
 ---
 
-## 12. Environment and AI behavior
+### Environment Variables
 
-This backend tries AI providers in the following order:
-
-1. Local legal Llama model
-2. Local general-purpose Llama model
-3. Gemini
-4. Groq
-
-This logic is defined in `src/learnuv/Ai.py`.
-
-If the local model fails to load, the code prints warnings but continues with the fallback models. This is expected and not a fatal error.
-
-Example log:
-
-```text
-[AI WARN] Failed to load Indian Legal Llama model...
-[AI INFO] Falling back to cloud-based AI services.
-```
-
-This means the app is still meant to work, as long as one of the configured cloud keys is valid.
+| Variable | Scope | Description |
+| --- | --- | --- |
+| `GEMINI_API_KEY` | Backend | Google Gemini API key (cloud inference). |
+| `GROQ_API_KEY` | Backend | Groq Cloud API key (fast fallback inference). |
+| `VITE_API_BASE_URL` | Frontend | *(Optional)* Override backend API target (`[http://127.0.0.1:8000](http://127.0.0.1:8000)`) in production. |
 
 ---
 
-## 13. Important file structure
+### Development Workflow
 
-Inside `jarvis-backend`, the important files are:
+1. **Task Planning:** Create/assign an issue in the project tracker.
+2. **Branching:** Create a feature branch matching `feat/<short-description>` or `fix/<issue-name>`.
+3. **Lint & Test:** Run `npm run lint` (frontend) and `uv run pytest` (backend).
+4. **Pull Request:** Open a PR against `main` for review.
+5. **Deployment:**
+* Build frontend (`npm run build`).
+* Serve static build via FastAPI static mount or CDN.
+* Run backend with production Uvicorn/Gunicorn workers.
 
-```text
-jarvis-backend/
-├── .venv/
-├── .gitignore
-├── .python-version
-├── pyproject.toml
-├── uv.lock
-├── README.md
-├── src/
-│   └|── learnuv/
-│       ├── __init__.py
-│       ├── Ai.py
-│       ├── ProcessCommands.py
-│       ├── api_server.py
-│       └── chat_history.json
-└── .env
-```
 
-The project root is `jarvis-backend`, and the `.env` file belongs there.
 
 ---
 
-## 14. Troubleshooting
+### Troubleshooting
 
-### UV command not found
-
-Install UV then restart the terminal.
-
-```bash
-uv --version
-```
-
-### Python version mismatch
-
-This project requires Python 3.13 or newer. Check:
-
-```bash
-python --version
-```
-
-If the version is lower, install Python 3.13 or use a version manager such as `pyenv`.
-
-### `ModuleNotFoundError` or package issues
-
-Run:
-
-```bash
-uv sync
-```
-
-If the environment is stale, recreate it:
-
-```bash
-rm -rf .venv
-uv sync
-```
-
-### Local model warnings
-
-Warnings about `llama-cpp-python` or local model loading are not always fatal. The app intentionally falls back to cloud services if needed.
-
-### App starts but cannot talk to the frontend
-
-Check that the frontend is sending requests to:
-
-```text
-http://127.0.0.1:8000
-```
-
-and that the backend is still running.
+| Symptom | Likely Cause | Fix |
+| --- | --- | --- |
+| Red **"backend offline"** banner | Backend server not running or wrong port | Start backend (`uv run uvicorn learnuv.api_server:app --reload`) and verify it runs on `[http://127.0.0.1:8000](http://127.0.0.1:8000)`. |
+| No transcription after "jarvis" | Browser incompatible or mic blocked | Use Chrome/Edge (≥ 115) and enable mic permissions in browser settings. |
+| CORS errors in dev | Proxy misconfigured | Check `vite.config.js` to ensure the proxy points to `[http://127.0.0.1:8000](http://127.0.0.1:8000)`. |
+| Empty response from `/api/command` | Missing return field in backend | Ensure `ProcessCommands.py` returns a dictionary containing a valid `"response"` key. |
+| AI model fails to load | Missing API keys or invalid Python version | Ensure Python 3.13+ is installed, run `uv sync`, and verify keys in `.env`. |
+| Port conflict (`8000` or `5173`) | Port in use by another app | Change backend port via `uvicorn --port <port>` or frontend port in `vite.config.js`. |
+| `.env` variables not read | File in wrong directory | Place `.env` inside `jarvis-backend/` alongside `pyproject.toml`. |
 
 ---
 
-## 15. Recommended development workflow
+### Contributing
 
-For daily use, this is the normal flow:
+1. Fork the repository.
+2. Create your feature branch (`git checkout -b feat/your-feature`).
+3. Install dependencies (`uv sync` and `npm install`).
+4. Commit your changes following standard guidelines.
+5. Verify locally and open a Pull Request.
 
-```bash
-cd jarvis-backend
-uv sync
-source .venv/bin/activate   # Linux/macOS
-# or .venv\Scripts\Activate.ps1   # PowerShell
-uv run uvicorn api_server:app --reload
-```
+**Style Guides:**
 
-Then open:
-
-```text
-http://127.0.0.1:8000/docs
-```
-
-Use the frontend as the client, or call the API directly with curl or Postman.
+* **Backend:** PEP-8 guidelines with strict type hinting.
+* **Frontend:** ESLint + Prettier rules defined in `package.json`.
 
 ---
 
-## 16. Download UV
+### License
 
-Use these links to get UV:
-
-- Official docs: https://docs.astral.sh/uv/
-- Install guide: https://docs.astral.sh/uv/getting-started/installation/
-- GitHub releases: https://github.com/astral-sh/uv/releases
+This project is licensed under the repository's main LICENSE file. Check individual sub-directories for third-party component licenses.
 
 ---
-
-## 17. Final quick start command
-
-If you just want the shortest working sequence:
-
-```bash
-cd jarvis-backend
-uv sync
-source .venv/bin/activate
-uv run uvicorn api_server:app --reload
-```
-
-Then open:
-
-```text
-http://127.0.0.1:5000/docs
-```
-
-This is the recommended start path for Linux and macOS. On Windows, use the equivalent activation command and keep the same `uv run uvicorn api_server:app --reload` command.
-
----
-
-## 18. Summary
-
-This backend is a FastAPI app that uses UV, loads environment variables from `.env`, and runs locally on port 5000.
-
-The most important commands are:
-
-```bash
-uv sync
-uv run uvicorn api_server:app --reload
-```
-
-Once running, the app listens on `http://127.0.0.1:8000` and the frontend can interact with it through the API routes defined in `api_server.py`.
-
-If you want to run this backend properly across Linux, macOS, and Windows, the only changing part is how you activate the environment. The actual server start command remains the same.
 
