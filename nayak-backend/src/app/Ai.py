@@ -33,35 +33,37 @@ LEGAL_SYSTEM_PROMPT = (
 # Set to False if you want to skip loading the general local model to save
 # RAM/VRAM (two local GGUF models loaded at once can be heavy).
 LOAD_GENERAL_LOCAL_FALLBACK = True
+LEGAL_MODEL_PATH = Path("models/Indian-Legal-Llama.gguf")
+LOCAL_MODEL_PATH = Path("models/modelName.gguf")
 
 if Llama:
-    # --- Primary local model: Indian Legal Llama ---
-    try:
-        
-        legal_llm_client = Llama.from_pretrained(
-            repo_id="GSMS-B/Indian-Legal-Llama-3.2-3B-GGUF",
-            filename="*Q4_K_M.gguf",   # recommended quant
-            n_ctx=2048,
-            verbose=False
-        )
-        print("[AI INFO] Indian Legal Llama model loaded successfully.")
-    except Exception as e:
-        print(f"[AI WARN] Failed to load Indian Legal Llama model: {e}")
+    if LEGAL_MODEL_PATH.exists():
+        try:
+            legal_llm_client = Llama(
+                model_path=str(LEGAL_MODEL_PATH),
+                n_ctx=2048,
+                verbose=False
+            )
+            print("[AI INFO] Legal Llama loaded.")
+        except Exception as e:
+            print(f"[AI WARN] Legal Llama failed: {e}")
+        else:
+            print("[AI INFO] Legal Llama not installed. Using fallback.")
 
     # --- Secondary local model: general-purpose fallback ---
-    if LOAD_GENERAL_LOCAL_FALLBACK:
+    if LOCAL_MODEL_PATH.exists():
         try:
-            local_llm_client = Llama.from_pretrained(
-                repo_id="QuantFactory/Meta-Llama-3.1-8B-Instruct-GGUF",
-                filename="*Q4_K_M.gguf",
-                n_ctx=4096,      # Context window size
-                verbose=False    # Set to True for detailed loading output
+            local_llm_client = Llama(
+                model_path=str(LEGAL_MODEL_PATH),
+                n_ctx=2048,
+                verbose=False
             )
-            print("[AI INFO] General local Llama model loaded successfully.")
+            print("[AI INFO] Local Llama loaded.")
         except Exception as e:
-            print(f"[AI WARN] Failed to load general local Llama model: {e}")
-            print("[AI INFO] Falling back to cloud-based AI services.")
-
+            print(f"[AI WARN] Local Llama failed: {e}")
+        else:
+            print("[AI INFO] Local Llama not installed. Using fallback.")
+        
 
 def load_history():
     if HISTORY_FILE.exists():
