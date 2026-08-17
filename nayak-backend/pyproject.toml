@@ -19,6 +19,7 @@ dependencies = [
     "sqlalchemy>=2.0.52",
     "qdrant-client>=1.19.0",
     "fastembed>=0.8.0",
+    "pypdf>=6.16.1",
 ]
 
 [tool.uv.extra-build-dependencies]

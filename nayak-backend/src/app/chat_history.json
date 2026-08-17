@@ -102,5 +102,13 @@
     {
         "role": "assistant",
         "content": "Section 303 of BNS 2023 imposes imprisonment up to 7 years and a fine for theft. If the offender is caught with the stolen property, the imprisonment is reduced to 3 years. [Source: Section 303, BNS 2023]"
+    },
+    {
+        "role": "user",
+        "content": "Relevant Legal Context:\n[bns - Sec Page 80]: 304. (1) Theft is snatching if, in order to commit theft, the offender suddenly or quickly or forcibly seizes or secures or grabs or takes away from any person or from his possession any movable property. (2) Whoever commits snatching, shall be punished with imprisonment of either description for a term which may extend to three years, and shall also be liable to fine. 305.Whoever commits theft— (a) in any building, tent or vessel used as a human dwelling or used for the custody of property; or (b) of any means of transport used for the transport of goods or passengers; or (c) of any article or goods from any means of transport used for the transport of goods or passengers; or (d) of idol or\n[bnss - Sec Page 66]: 66 the subject of the offence was possessed by any person committing it or by any person who received or retained such property knowing or having reason to believe it to be stolen property. (4) Any offence of criminal misappropriation or of criminal breach of trust may be inquired into or tried by a Court within whose local jurisdiction the offence was committed or any part of the property which is the subject of the offence was received or retained, or was required to be returned or accounted for, by the accused person. (5) Any offence which includes the possession of stolen property may be inquired into or tried by a Court within whose local jurisdiction the offence was committed or the st\n\nUser Query: What does the law say about theft?\n(Please provide a concise, short legal summary response. Base your answer on the legal context above if applicable.)"
+    },
+    {
+        "role": "assistant",
+        "content": "Under Section 304 of the BNS, \"snatching\" is defined as suddenly, quickly, or forcibly seizing movable property from a person, carrying a punishment of up to three years of imprisonment and a fine. Additionally, Section 305 addresses specific categories of theft, including theft inside a human dwelling, theft of or from transport vehicles, and theft of an idol. [Source: Sections 304 and 305, BNS]"
     }
 ]

@@ -9,7 +9,8 @@ class QdrantService:
     def __init__(self, collection_name: str = "nayak_legal", vector_size: int = 384):
         self.client = QdrantClient(
             url=os.getenv("QDRANT_URL"),
-            api_key=os.getenv("QDRANT_API_KEY")
+            api_key=os.getenv("QDRANT_API_KEY"),
+            timeout=60.0  # Increased timeout from default to prevent dropouts
         )
         self.collection_name = collection_name
         self.embedder = EmbeddingService()
@@ -26,10 +27,11 @@ class QdrantService:
                 )
             )
 
-    def upsert_points(self, points: list):
+    def upsert_points(self, points: list, wait: bool = False):
         return self.client.upsert(
             collection_name=self.collection_name,
-            points=points
+            points=points,
+            wait=wait  # Do not block the network socket waiting for full disk commit
         )
 
     def search(self, query: str, limit: int = 3):
