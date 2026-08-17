@@ -3,11 +3,11 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from learnuv.ProcessCommands import processCommand
+from app.ProcessCommands import processCommand
 import json
 
 
-# api_server.py lives in src/learnuv; load keys from the backend root.
+# api_server.py lives in src/app; load keys from the backend root.
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
 
@@ -128,7 +128,7 @@ async def new_chat():
 def main():
     import uvicorn
     uvicorn.run(
-        "learnuv.api_server:app",
+        "app.api_server:app",
         host="127.0.0.1",
         port=8000,
         reload=True

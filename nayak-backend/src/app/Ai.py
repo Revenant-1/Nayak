@@ -11,7 +11,7 @@ except ImportError:
     Llama = None
     print("[AI WARN] llama-cpp-python not found. Local Llama models will be unavailable.")
 
-# Ai.py lives in src/learnuv; the project .env is three levels up.
+# Ai.py lives in src/app; the project .env is three levels up.
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 HISTORY_FILE = Path(__file__).resolve().parent / "chat_history.json"
 

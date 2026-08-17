@@ -16,7 +16,7 @@ cd Nayak/nayak-backend
 
 ```bash
 # Run Backend
-cd Nayak/nayak-backend && uv sync && uv run uvicorn learnuv.api_server:app --reload
+cd Nayak/nayak-backend && uv sync && uv run uvicorn app.api_server:app --reload
 
 # Run Frontend
 cd Nayak/nayak-frontend && npm install && npm run dev
@@ -91,7 +91,7 @@ The two services communicate through a Vite development proxy (or configurable H
 Nayak/
 ├─ nayak-backend/          # Python backend workspace
 │   ├─ src/
-│   │   └─ learnuv/
+│   │   └─ app/
 │   │       ├─ __init__.py
 │   │       ├─ Ai.py
 │   │       ├─ ProcessCommands.py
@@ -168,7 +168,7 @@ GROQ_API_KEY=your_key_here
 
 6. **Run the API server:**
 ```bash
-uv run uvicorn learnuv.api_server:app --reload
+uv run uvicorn app.api_server:app --reload
 
 ```
 
@@ -226,7 +226,7 @@ Open separate terminal windows for the stack:
 
 | Terminal | Command | Description |
 | --- | --- | --- |
-| **1️⃣ Backend** | `cd Nayak/nayak-backend && uv run uvicorn learnuv.api_server:app --reload` | Starts FastAPI backend server |
+| **1️⃣ Backend** | `cd Nayak/nayak-backend && uv run uvicorn app.api_server:app --reload` | Starts FastAPI backend server |
 | **2️⃣ Frontend** | `cd Nayak/nayak-frontend && npm run dev` | Starts Vite frontend dev server |
 | **3️⃣ Environment** | *(Background)* | Keep `.env` keys updated and loaded |
 
@@ -258,7 +258,7 @@ Open separate terminal windows for the stack:
 2. **Speech-to-Text (STT):** Captures spoken input following the wake-word until silence threshold (`SILENCE_TIMEOUT_MS = 1400ms`).
 3. **Dispatch:** Formatted text payload is dispatched to `/api/command`.
 4. **Backend Processing:**
-* Handled by `processCommand(text)` in `src/learnuv/ProcessCommands.py`.
+* Handled by `processCommand(text)` in `src/app/ProcessCommands.py`.
 * Passes query to `ask_ai(prompt)`, which cascades through four tiers until one succeeds: **Indian Legal Llama (local, primary)** → **General Llama (local fallback)** → **Gemini (cloud)** → **Groq (cloud fallback)**.
 
 
@@ -299,7 +299,7 @@ Open separate terminal windows for the stack:
 
 | Symptom | Likely Cause | Fix |
 | --- | --- | --- |
-| Red **"backend offline"** banner | Backend server not running or wrong port | Start backend (`uv run uvicorn learnuv.api_server:app --reload`) and verify it runs on `[http://127.0.0.1:8000](http://127.0.0.1:8000)`. |
+| Red **"backend offline"** banner | Backend server not running or wrong port | Start backend (`uv run uvicorn app.api_server:app --reload`) and verify it runs on `[http://127.0.0.1:8000](http://127.0.0.1:8000)`. |
 | No transcription after "nayak" | Browser incompatible or mic blocked | Use Chrome/Edge (≥ 115) and enable mic permissions in browser settings. |
 | CORS errors in dev | Proxy misconfigured | Check `vite.config.js` to ensure the proxy points to `[http://127.0.0.1:8000](http://127.0.0.1:8000)`. |
 | Empty response from `/api/command` | Missing return field in backend | Ensure `ProcessCommands.py` returns a dictionary containing a valid `"response"` key. |

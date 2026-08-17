@@ -1,29 +1,30 @@
 [project]
-name = "learnuv"
+name = "app"
 version = "0.1.0"
-description = "Nayak - AI Legal Assistant Backend"
+description = "Nayak your legal Sahayak"
 readme = "README.md"
 authors = [
-    { name = "Nayak Team" }
+    { name = "Revenant", email = "Revenat@gmail.com" }
 ]
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 dependencies = [
     "fastapi[standard]>=0.141.1",
     "uvicorn>=0.30.0",
     "google-genai>=2.18.1",
     "groq>=1.6.0",
-    "qdrant-client>=1.8.0",
-    "fastembed>=0.2.5",
     "huggingface-hub>=1.27.0",
     "llama-cpp-python>=0.3.34",
     "python-dotenv>=1.0.0",
     "pydantic>=2.0.0",
+    "sqlalchemy>=2.0.52",
 ]
 
+[tool.uv.extra-build-dependencies]
+app = ["setuptools"]
+
 [project.scripts]
-learnuv = "learnuv.api_server:main"
+app = "app:main"
 
 [build-system]
 requires = ["uv_build>=0.12.3,<0.13.0"]
-build-backend = "uv_build"
-
+app = "uv_build"

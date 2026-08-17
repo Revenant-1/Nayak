@@ -1,6 +1,6 @@
 # Connecting to the Nayak Python Backend
 
-This frontend communicates with the FastAPI backend located in `nayak-backend/src/learnuv/api_server.py`.
+This frontend communicates with the FastAPI backend located in `nayak-backend/src/app/api_server.py`.
 
 ## 1. What the frontend expects
 
@@ -15,13 +15,13 @@ This frontend communicates with the FastAPI backend located in `nayak-backend/sr
 From `nayak-backend`:
 
 ```bash
-uv run uvicorn learnuv.api_server:app --reload
+uv run uvicorn app.api_server:app --reload
 ```
 
 or:
 
 ```bash
-python -m learnuv.api_server
+python -m app.api_server
 ```
 
 ## 3. Running the Frontend

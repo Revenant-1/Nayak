@@ -1,6 +1,6 @@
 try:
-    from learnuv.Ai import ask_ai, new_chat
-    from learnuv.vector_db import QdrantService
+    from app.Ai import ask_ai, new_chat
+    from app.vector_db import QdrantService
 except ImportError:
     from Ai import ask_ai, new_chat
     from vector_db import QdrantService
