@@ -102,21 +102,5 @@
     {
         "role": "assistant",
         "content": "Section 303 of BNS 2023 imposes imprisonment up to 7 years and a fine for theft. If the offender is caught with the stolen property, the imprisonment is reduced to 3 years. [Source: Section 303, BNS 2023]"
-    },
-    {
-        "role": "user",
-        "content": "hii"
-    },
-    {
-        "role": "assistant",
-        "content": "Hello! How can I assist you with your legal queries today?"
-    },
-    {
-        "role": "user",
-        "content": "/bye"
-    },
-    {
-        "role": "assistant",
-        "content": "Goodbye! Feel free to reach out if you have any more questions in the future. Have a great day!"
     }
 ]
