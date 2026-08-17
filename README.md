@@ -16,7 +16,7 @@ cd Nayak/nayak-backend
 
 ```bash
 # Run Backend
-cd Nayak/nayak-backend && uv sync && uv run uvicorn app.api_server:app --reload
+cd Nayak/nayak-backend && 
 
 # Run Frontend
 cd Nayak/nayak-frontend && npm install && npm run dev
@@ -97,7 +97,7 @@ Nayak/
 │   │       ├─ ProcessCommands.py
 │   │       ├─ api_server.py
 │   │       └─ chat_history.json
-│   ├─ .env
+│   ├─ .envuv sync && uv run uvicorn app.api_server:app --reload
 │   ├─ .gitignore
 │   ├─ .python-version
 │   ├─ pyproject.toml

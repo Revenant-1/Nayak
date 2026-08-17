@@ -2,35 +2,35 @@ try:
     from app.Ai import ask_ai, new_chat
     from app.vector_db import QdrantService
 except ImportError:
-    from Ai import ask_ai, new_chat
+    from Ai import ask_ai,new_chat
     from vector_db import QdrantService
 
-vector_db = QdrantService()  #[cite: 6]
+vector_db = QdrantService()   
 
 
-def retrieve_legal_context(user_query: str) -> str:  #[cite: 6]
-    try:  #[cite: 6]
-        search_results = vector_db.search(query=user_query, limit=2)  #[cite: 6]
-        context_chunks = [  #[cite: 6]
-            f"[{hit.payload.get('source')} - Sec {hit.payload.get('section')}]: {hit.payload.get('text')}"  #[cite: 6]
-            for hit in search_results  #[cite: 6]
-        ]  #[cite: 6]
-        return "\n".join(context_chunks)  #[cite: 6]
-    except Exception as e:  #[cite: 6]
-        print(f"[VectorDB Warning] Retrieval failed: {e}")  #[cite: 6]
-        return ""  #[cite: 6]
+def retrieve_legal_context(user_query: str) -> str:   
+    try:   
+        search_results = vector_db.search(query=user_query, limit=2)   
+        context_chunks = [   
+            f"[{hit.payload.get('source')} - Sec {hit.payload.get('section')}]: {hit.payload.get('text')}"   
+            for hit in search_results   
+        ]   
+        return "\n".join(context_chunks)   
+    except Exception as e:   
+        print(f"[VectorDB Warning] Retrieval failed: {e}")   
+        return ""   
 
 
 def processCommand(command: str) -> str:
-    print(f"[Command]: {command}")  #[cite: 6]
-    if any(word in command.lower() for word in ["new chat", "clear memory", "forget conversation", "reset chat"]):  #[cite: 6]
-        new_chat()  #[cite: 6]
-        return "Conversation cleared."  #[cite: 6]
+    print(f"[Command]: {command}")   
+    if any(word in command.lower() for word in ["new chat", "clear memory", "forget conversation", "reset chat"]):   
+        new_chat()   
+        return "Conversation cleared."   
 
     legal_context = retrieve_legal_context(command)
     detail_instruction = (
-        "Please provide a concise, short legal summary response."  #[cite: 6]
-        if "in detail" not in command.lower()  #[cite: 6]
+        "Please provide a concise, short legal summary response."   
+        if "in detail" not in command.lower()   
         else "Please provide a detailed, comprehensive response."
     )
 
@@ -41,11 +41,11 @@ def processCommand(command: str) -> str:
             f"({detail_instruction} Base your answer on the legal context above if applicable.)"
         )
     else:
-        prompt = f"{command} ({detail_instruction})"  #[cite: 6]
+        prompt = f"{command} ({detail_instruction})"   
 
-    response = ask_ai(prompt)  #[cite: 6]
-    print(f"[Nayak Response]: {response}")  #[cite: 6]
-    return response  #[cite: 6]
+    response = ask_ai(prompt)   
+    print(f"[Nayak Response]: {response}")   
+    return response   
 
 
 if __name__ == "__main__":
