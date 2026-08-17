@@ -1,4 +1,4 @@
-# Jarvis Voice Assistant 🎙️
+# Nayak Voice Assistant 🎙️
 
 Unified React-Vite + FastAPI voice-first interface with Python AI back-end.
 
@@ -10,16 +10,16 @@ Unified React-Vite + FastAPI voice-first interface with Python AI back-end.
 **Clone & navigate to backend directory:**
 ```bash
 git clone https://github.com/Revenant-1/Nayak.git
-cd Nayak/jarvis-backend
+cd Nayak/nayak-backend
 
 ```
 
 ```bash
 # Run Backend
-cd Nayak/jarvis-backend && uv sync && uv run uvicorn learnuv.api_server:app --reload
+cd Nayak/nayak-backend && uv sync && uv run uvicorn app.api_server:app --reload
 
 # Run Frontend
-cd Nayak/jarvis-frontend && npm install && npm run dev
+cd Nayak/nayak-frontend && npm install && npm run dev
 
 ```
 
@@ -49,8 +49,8 @@ This repository contains a full voice assistant stack split into two workspaces:
 
 | Part | Language / Framework | Primary Function |
 | --- | --- | --- |
-| **Backend** (`jarvis-backend/`) | Python 3.13+, FastAPI, UV, Llama-CPP | Serves REST API endpoints, runs AI models, and persists conversation history (`chat_history.json`). |
-| **Frontend** (`jarvis-frontend/`) | React 18+, Vite, TailwindCSS, Web APIs | UI for wake-word detection, speech-to-text, visual orb, and transcript display. All voice processing happens in-browser. |
+| **Backend** (`nayak-backend/`) | Python 3.13+, FastAPI, UV, Llama-CPP | Serves REST API endpoints, runs AI models, and persists conversation history (`chat_history.json`). |
+| **Frontend** (`nayak-frontend/`) | React 18+, Vite, TailwindCSS, Web APIs | UI for wake-word detection, speech-to-text, visual orb, and transcript display. All voice processing happens in-browser. |
 
 The two services communicate through a Vite development proxy (or configurable HTTP base URL in production) to eliminate CORS issues.
 
@@ -89,9 +89,9 @@ The two services communicate through a Vite development proxy (or configurable H
 
 ```text
 Nayak/
-├─ jarvis-backend/          # Python backend workspace
+├─ nayak-backend/          # Python backend workspace
 │   ├─ src/
-│   │   └─ learnuv/
+│   │   └─ app/
 │   │       ├─ __init__.py
 │   │       ├─ Ai.py
 │   │       ├─ ProcessCommands.py
@@ -103,7 +103,7 @@ Nayak/
 │   ├─ pyproject.toml
 │   ├─ uv.lock
 │   └─ README.md
-└─ jarvis-frontend/         # React frontend workspace
+└─ nayak-frontend/         # React frontend workspace
     ├─ src/
     │   ├─ components/
     │   │   ├─ Sidebar.jsx
@@ -111,7 +111,7 @@ Nayak/
     │   │   ├─ InputBar.jsx
     │   │   └─ SiriOrb.jsx
     │   ├─ hooks/
-    │   │   └─ useJarvis.jsx
+    │   │   └─ usenayak.jsx
     │   ├─ App.jsx
     │   ├─ main.jsx
     │   └─ index.css
@@ -129,7 +129,7 @@ Nayak/
 1. **Clone & navigate to backend directory:**
 ```bash
 git clone https://github.com/Revenant-1/Nayak.git
-cd Nayak/jarvis-backend
+cd Nayak/nayak-backend
 
 ```
 
@@ -158,7 +158,7 @@ source .venv/bin/activate        # Linux / macOS
 
 
 5. **Configure environment variables:**
-Create a `.env` file in `jarvis-backend/` (next to `pyproject.toml`):
+Create a `.env` file in `nayak-backend/` (next to `pyproject.toml`):
 ```env
 GEMINI_API_KEY=your_key_here
 GROQ_API_KEY=your_key_here
@@ -168,7 +168,7 @@ GROQ_API_KEY=your_key_here
 
 6. **Run the API server:**
 ```bash
-uv run uvicorn learnuv.api_server:app --reload
+uv run uvicorn app.api_server:app --reload
 
 ```
 
@@ -184,7 +184,7 @@ uv run uvicorn learnuv.api_server:app --reload
 
 1. **Navigate to frontend directory:**
 ```bash
-cd ../jarvis-frontend
+cd ../nayak-frontend
 
 ```
 
@@ -226,15 +226,15 @@ Open separate terminal windows for the stack:
 
 | Terminal | Command | Description |
 | --- | --- | --- |
-| **1️⃣ Backend** | `cd Nayak/jarvis-backend && uv run uvicorn learnuv.api_server:app --reload` | Starts FastAPI backend server |
-| **2️⃣ Frontend** | `cd Nayak/jarvis-frontend && npm run dev` | Starts Vite frontend dev server |
+| **1️⃣ Backend** | `cd Nayak/nayak-backend && uv run uvicorn app.api_server:app --reload` | Starts FastAPI backend server |
+| **2️⃣ Frontend** | `cd Nayak/nayak-frontend && npm run dev` | Starts Vite frontend dev server |
 | **3️⃣ Environment** | *(Background)* | Keep `.env` keys updated and loaded |
 
 **Runtime behavior:**
 
 * Open `http://localhost:5173` in Chrome or Edge.
 * Loads chat history from `/api/history`.
-* Detects the wake-word **"jarvis"** via Web Speech API.
+* Detects the wake-word **"nayak"** via Web Speech API.
 * Buffers audio, translates speech to text, and posts to `/api/command`.
 * Speaks response via SpeechSynthesis and visualizes audio on the orb.
 
@@ -254,11 +254,11 @@ Open separate terminal windows for the stack:
 
 ### Voice Pipeline
 
-1. **Wake-Word Detection:** `webkitSpeechRecognition` listens continuously for `"jarvis"`.
+1. **Wake-Word Detection:** `webkitSpeechRecognition` listens continuously for `"nayak"`.
 2. **Speech-to-Text (STT):** Captures spoken input following the wake-word until silence threshold (`SILENCE_TIMEOUT_MS = 1400ms`).
 3. **Dispatch:** Formatted text payload is dispatched to `/api/command`.
 4. **Backend Processing:**
-* Handled by `processCommand(text)` in `src/learnuv/ProcessCommands.py`.
+* Handled by `processCommand(text)` in `src/app/ProcessCommands.py`.
 * Passes query to `ask_ai(prompt)`, which cascades through four tiers until one succeeds: **Indian Legal Llama (local, primary)** → **General Llama (local fallback)** → **Gemini (cloud)** → **Groq (cloud fallback)**.
 
 
@@ -299,13 +299,13 @@ Open separate terminal windows for the stack:
 
 | Symptom | Likely Cause | Fix |
 | --- | --- | --- |
-| Red **"backend offline"** banner | Backend server not running or wrong port | Start backend (`uv run uvicorn learnuv.api_server:app --reload`) and verify it runs on `[http://127.0.0.1:8000](http://127.0.0.1:8000)`. |
-| No transcription after "jarvis" | Browser incompatible or mic blocked | Use Chrome/Edge (≥ 115) and enable mic permissions in browser settings. |
+| Red **"backend offline"** banner | Backend server not running or wrong port | Start backend (`uv run uvicorn app.api_server:app --reload`) and verify it runs on `[http://127.0.0.1:8000](http://127.0.0.1:8000)`. |
+| No transcription after "nayak" | Browser incompatible or mic blocked | Use Chrome/Edge (≥ 115) and enable mic permissions in browser settings. |
 | CORS errors in dev | Proxy misconfigured | Check `vite.config.js` to ensure the proxy points to `[http://127.0.0.1:8000](http://127.0.0.1:8000)`. |
 | Empty response from `/api/command` | Missing return field in backend | Ensure `ProcessCommands.py` returns a dictionary containing a valid `"response"` key. |
 | AI model fails to load | Missing API keys or invalid Python version | Ensure Python 3.13+ is installed, run `uv sync`, and verify keys in `.env`. |
 | Port conflict (`8000` or `5173`) | Port in use by another app | Change backend port via `uvicorn --port <port>` or frontend port in `vite.config.js`. |
-| `.env` variables not read | File in wrong directory | Place `.env` inside `jarvis-backend/` alongside `pyproject.toml`. |
+| `.env` variables not read | File in wrong directory | Place `.env` inside `nayak-backend/` alongside `pyproject.toml`. |
 
 ---
 

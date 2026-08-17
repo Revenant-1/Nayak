@@ -51,7 +51,7 @@ email-validator==2.3.0
     #   fastapi
     #   pydantic
 fastapi==0.141.1
-    # via learnuv
+    # via app
 fastapi-cli==0.0.32
     # via fastapi
 fastapi-cloud-cli==0.23.0
@@ -61,13 +61,13 @@ fastar==0.11.0
     #   fastapi
     #   fastapi-cloud-cli
 google==3.0.0
-    # via learnuv
+    # via app
 google-auth==2.56.3
     # via google-genai
 google-genai==2.18.1
-    # via learnuv
+    # via app
 groq==1.6.0
-    # via learnuv
+    # via app
 h11==0.16.0
     # via
     #   httpcore
@@ -93,7 +93,7 @@ jinja2==3.1.6
     #   fastapi
     #   llama-cpp-python
 llama-cpp-python==0.3.34
-    # via learnuv
+    # via app
 markdown-it-py==4.2.0
     # via rich
 markupsafe==3.0.3

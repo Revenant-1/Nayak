@@ -126,7 +126,7 @@ export default function App() {
 
         {!backendOnline && (
           <div className="border-b border-magenta/30 bg-magenta/10 px-6 py-2 text-center font-mono text-xs text-magenta">
-            Can’t reach the backend. Start the Nayak FastAPI server with `uv run uvicorn learnuv.api_server:app --reload`.
+            Can’t reach the backend. Start the Nayak FastAPI server with `uv run uvicorn app.api_server:app --reload`.
           </div>
         )}
 
