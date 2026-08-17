@@ -12,11 +12,12 @@ dependencies = [
     "uvicorn>=0.30.0",
     "google-genai>=2.18.1",
     "groq>=1.6.0",
+    "qdrant-client>=1.8.0",
+    "fastembed>=0.2.5",
     "huggingface-hub>=1.27.0",
     "llama-cpp-python>=0.3.34",
     "python-dotenv>=1.0.0",
     "pydantic>=2.0.0",
-    "sqlalchemy>=2.0.52",
 ]
 
 [project.scripts]
@@ -25,5 +26,4 @@ learnuv = "learnuv.api_server:main"
 [build-system]
 requires = ["uv_build>=0.12.3,<0.13.0"]
 build-backend = "uv_build"
-
 
