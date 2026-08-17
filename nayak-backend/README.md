@@ -7,13 +7,13 @@ This folder contains the Python FastAPI backend for **Nayak - AI-Powered Legal A
 Run the server with `uv`:
 
 ```bash
-uv run uvicorn learnuv.api_server:app --reload
+uv run uvicorn app.api_server:app --reload
 ```
 
 or using python directly:
 
 ```bash
-python -m learnuv.api_server
+python -m app.api_server
 ```
 
 ---
@@ -27,7 +27,7 @@ nayak-backend/
 ├── README.md
 ├── .env
 ├── src/
-│   └── learnuv/
+│   └── app/
 │       ├── __init__.py
 │       ├── Ai.py
 │       ├── ProcessCommands.py
@@ -36,7 +36,7 @@ nayak-backend/
 └── .venv/
 ```
 
-The app entry point is the FastAPI app object named `app` inside `learnuv.api_server`.
+The app entry point is the FastAPI app object named `app` inside `app.api_server`.
 
 ---
 

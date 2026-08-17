@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
+import { User } from 'lucide-react'
 import Sidebar from './components/Sidebar.jsx'
 import SiriOrb from './components/SiriOrb.jsx'
 import ChatView from './components/ChatView.jsx'
 import InputBar from './components/InputBar.jsx'
 import { useNayak } from './hooks/useNayak.jsx'
 import VoiceInput from './components/voiceinput.jsx'
+import Profile from './components/Profile.jsx'
 
 // Empty default uses Vite's /api proxy in dev (see vite.config.js).
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? ''
@@ -20,6 +22,7 @@ export default function App() {
   const [backendOnline, setBackendOnline] = useState(true)
   const [loading, setLoading] = useState(true)
   const [focusIndex, setFocusIndex] = useState(null)
+  const [showProfile, setShowProfile] = useState(false)
 
   const appendExchange = useCallback(({ userText, assistantText }) => {
     setMessages((prev) => [
@@ -92,6 +95,11 @@ export default function App() {
         backendOnline={backendOnline}
       />
 
+      {showProfile && (
+        <Profile onClose={() => setShowProfile(false)} />
+      )}
+
+
       <main className="flex min-w-0 flex-1 flex-col">
         {/* Header */}
         <header className="flex items-center justify-between border-b border-line px-6 py-3">
@@ -101,14 +109,24 @@ export default function App() {
               {loading ? 'syncing chat_history.json…' : `${messages.length} messages`}
             </p>
           </div>
-          <span className="rounded-full border border-line px-3 py-1 font-mono text-[11px] uppercase tracking-widest text-mist">
-            state:{stateLabel}
-          </span>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowProfile(true)}
+              title="My Profile"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-violet-500/30 bg-[#17163A] text-violet-300 transition hover:border-violet-400 hover:bg-violet-600 hover:text-white"
+            >
+              <User size={18} />
+            </button>
+
+            <span className="rounded-full border border-line px-3 py-1 font-mono text-[11px] uppercase tracking-widest text-mist">
+              state:{stateLabel}
+            </span>
+          </div>
         </header>
 
         {!backendOnline && (
           <div className="border-b border-magenta/30 bg-magenta/10 px-6 py-2 text-center font-mono text-xs text-magenta">
-            Can’t reach the backend. Start the Nayak FastAPI server with `uv run uvicorn learnuv.api_server:app --reload`.
+            Can’t reach the backend. Start the Nayak FastAPI server with `uv run uvicorn app.api_server:app --reload`.
           </div>
         )}
 
