@@ -1,6 +1,4 @@
-from sqlalchemy import create_engine
-
-DATABASE_URL = "sqlite:///./nayak.db"
-
-engine = create_engine(DATABASE_URL)
-
+from app.Model.models import Base, engine, SessionLocal
+Base.metadata.create_all(bind=engine)
+ 
+db = SessionLocal()
