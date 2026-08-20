@@ -2,7 +2,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, UploadFile
 from app.ProcessCommands import processCommand
 from app.microService.auth import (
     authenticate_user,
@@ -89,7 +89,6 @@ class LoginResponse(BaseModel):
 class CommandRequest(BaseModel):
     text: str
 
-
 # --------------------------------------------------
 # Routes
 # --------------------------------------------------
@@ -146,7 +145,9 @@ async def new_chat():
 
     return {"ok": True}
 
-
+@app.post("/upload-document")
+async def upload_document(file: UploadFile):
+    ...
 # --------------------------------------------------
 # Authentication Routes
 # --------------------------------------------------

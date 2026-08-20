@@ -115,16 +115,6 @@ def _dict_to_user_data(data: Dict) -> SQLUser:
 # --- Public Token Generation Function ---
 
 def generate_token(user_id: str, guest: bool = False) -> Tuple[str, datetime]:
-    """
-    Public wrapper function to generate JWT token for user
-    
-    Args:
-        user_id: The user ID to encode in the token
-        guest: Whether this is a guest token
-    
-    Returns:
-        Tuple of (token, expiry_time)
-    """
     return _generate_token(user_id, guest)
 
 def verify_token(token: str) -> Optional[Dict]:
