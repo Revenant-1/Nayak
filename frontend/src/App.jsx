@@ -1,14 +1,13 @@
 import { useCallback, useEffect, useState } from 'react'
-import { User } from 'lucide-react'
+import { User, LogOut } from 'lucide-react'
 import Sidebar from './components/Sidebar.jsx'
-import SiriOrb from './components/SiriOrb.jsx'
 import ChatView from './components/ChatView.jsx'
 import InputBar from './components/InputBar.jsx'
 import { useNayak } from './hooks/useNayak.jsx'
 import VoiceInput from './components/voiceinput.jsx'
 import Profile from './components/Profile.jsx'
+import Login from './components/Login.jsx'
 
-// Empty default uses Vite's /api proxy in dev (see vite.config.js).
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? ''
 
 function nowLabel() {
@@ -16,8 +15,9 @@ function nowLabel() {
 }
 
 export default function App() {
-  // `messages` mirrors chat_history.json's shape: [{ role, content }].
-  // We keep a local `time` alongside each entry purely for display.
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return Boolean(localStorage.getItem('auth_token'))
+  })
   const [messages, setMessages] = useState([])
   const [backendOnline, setBackendOnline] = useState(true)
   const [loading, setLoading] = useState(true)
@@ -36,15 +36,19 @@ export default function App() {
     setMessages((prev) => [...prev, { role: 'user', content: userText, time: nowLabel() }])
   }, [])
 
-  const { status, micOn, micSupported, micLevel, interimText, error, toggleMic, sendTextCommand } =
+  const { status, micOn, micSupported, interimText, error, toggleMic, sendTextCommand } =
     useNayak({ onExchange: appendExchange })
 
-  // ---- load chat_history.json from the backend on mount ------------------
   useEffect(() => {
+    if (!isAuthenticated) return
+
     let cancelled = false
     async function loadHistory() {
       try {
-        const res = await fetch(`${API_BASE}/api/history`)
+        const token = localStorage.getItem('auth_token')
+        const res = await fetch(`${API_BASE}/api/history`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        })
         if (!res.ok) throw new Error(`status ${res.status}`)
         const data = await res.json()
         const list = Array.isArray(data) ? data : data.history ?? []
@@ -63,26 +67,36 @@ export default function App() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [isAuthenticated])
 
-  // Reflect live backend errors surfaced by useNayak in the connection pill.
   useEffect(() => {
     if (error) setBackendOnline(false)
   }, [error])
 
+  const handleLogout = () => {
+    localStorage.removeItem('auth_token')
+    setIsAuthenticated(false)
+    setMessages([])
+  }
+
   const handleNewChat = useCallback(async () => {
     try {
-      await fetch(`${API_BASE}/api/new-chat`, { method: 'POST' })
-    } catch {
-      /* optional endpoint — safe to ignore if it isn't implemented */
-    }
+      const token = localStorage.getItem('auth_token')
+      await fetch(`${API_BASE}/api/new-chat`, {
+        method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      })
+    } catch {}
     setMessages([])
     setFocusIndex(null)
   }, [])
 
   const handleSelectEntry = useCallback((index) => setFocusIndex(index), [])
-
   const stateLabel = { sleeping: 'idle', listening: 'listening', processing: 'processing' }[status]
+
+  if (!isAuthenticated) {
+    return <Login onLoginSuccess={() => setIsAuthenticated(true)} />
+  }
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-void font-body text-ink">
@@ -95,13 +109,9 @@ export default function App() {
         backendOnline={backendOnline}
       />
 
-      {showProfile && (
-        <Profile onClose={() => setShowProfile(false)} />
-      )}
-
+      {showProfile && <Profile onClose={() => setShowProfile(false)} />}
 
       <main className="flex min-w-0 flex-1 flex-col">
-        {/* Header */}
         <header className="flex items-center justify-between border-b border-line px-6 py-3">
           <div>
             <p className="font-display text-sm font-medium text-ink">Legal Assistant Session</p>
@@ -117,7 +127,13 @@ export default function App() {
             >
               <User size={18} />
             </button>
-
+            <button
+              onClick={handleLogout}
+              title="Log out"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-[#17163A] text-mist transition hover:border-red-500/40 hover:bg-red-500/20 hover:text-red-300"
+            >
+              <LogOut size={16} />
+            </button>
             <span className="rounded-full border border-line px-3 py-1 font-mono text-[11px] uppercase tracking-widest text-mist">
               state:{stateLabel}
             </span>
@@ -130,15 +146,12 @@ export default function App() {
           </div>
         )}
 
-        {/* Orb hero */}
         <div className="flex shrink-0 items-center justify-center pb-2 pt-6">
           <VoiceInput status={status} sendTextCommand={sendTextCommand} addUserMessage={addUserMessage} />
         </div>
 
-        {/* Transcript */}
         <ChatView messages={messages} focusIndex={focusIndex} interimText={interimText} />
 
-        {/* Input */}
         <InputBar
           onSend={sendTextCommand}
           micActive={micOn}
