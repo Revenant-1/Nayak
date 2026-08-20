@@ -121,6 +121,10 @@ Nayak/
     └─ README.md
 
 ```
+Tree command to get repo layout: 
+```bash
+tree -a -I '.git|.agents|.codex|node_modules|dist|build|coverage|.venv|__pycache__|*.pyc|*.egg-info|.env'
+```
 
 ---
 
