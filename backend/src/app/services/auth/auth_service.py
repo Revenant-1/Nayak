@@ -17,14 +17,14 @@ from passlib.hash import bcrypt
 from jose import JWTError, jwt
 
 # Import database session and models
-from app.Model.models import User as SQLUser, SessionLocal, gen_uuid
+from app.models.models import User as SQLUser, SessionLocal, gen_uuid
 
 # Configuration
 CONFIG_DIR = Path("/mnt/shared/Nayak/backend/config")
 CONFIG_DIR.mkdir(exist_ok=True)
 
 # Load configuration
-CONFIG_FILE = CONFIG_DIR / "auth_config.json"
+CONFIG_FILE = CONFIG_DIR / "auth_config1.json"
 
 DEFAULT_CONFIG = {
     "jwt_secret": secrets.token_hex(32),

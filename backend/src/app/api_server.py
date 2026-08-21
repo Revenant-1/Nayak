@@ -1,11 +1,12 @@
 from pathlib import Path
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, UploadFile
+from pydantic import BaseModel
 from app.ProcessCommands import processCommand
-from app.microService.auth import (
+from app.services.auth import (
     authenticate_user,
+    register_user,
     create_guest_user,
     verify_token,
     get_user_info,
@@ -67,6 +68,11 @@ def write_history(history):
 # --------------------------------------------------
 # Request/Response models for authentication
 # --------------------------------------------------
+
+class NewLoginRequest(BaseModel):
+    username: str
+    password: str
+    email: str
 
 class LoginRequest(BaseModel):
     username: str
@@ -153,20 +159,19 @@ async def upload_document(file: UploadFile):
 # --------------------------------------------------
 
 @app.post("/api/auth/login", response_model=LoginResponse)
+# Authenticate user with username and password.
 async def login(payload: LoginRequest):
-    """
-    Authenticate user with username and password.
-    Returns JWT token and user info.
-    """
+    
     try:
         user_info = authenticate_user(payload.username, payload.password)
         token, expiry = generate_token(user_info["user_id"], guest=user_info["user_type"] == "guest")
 
         expires_in = int((expiry - datetime.utcnow()).total_seconds())
 
+# Returns JWT token and user info.
         return LoginResponse(
             token=token,
-            user_id=user_info["user_id"],
+            user_id=user_info["id"],
             username=user_info["username"],
             user_type=user_info["user_type"],
             expires_in=expires_in
@@ -177,6 +182,13 @@ async def login(payload: LoginRequest):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=str(e)
         )
+
+
+@app.post("/api/auth/register", response_model=LoginResponse)
+# Authenticate user to register.
+async def register(data: NewLoginRequest):
+    User = register_user(data.username, data.password, data.email)
+    return login(data.username, data.password)
 
 
 @app.post("/api/auth/guest-login", response_model=LoginResponse)
@@ -191,7 +203,7 @@ async def guest_login():
 
         username, password = create_guest_user()
         import jwt as jwt_lib
-        from app.microService.auth import config
+        from app.services.auth import config
 
         token, expiry = generate_token(username, guest=True)
         expires_in = int((expiry - datetime.utcnow()).total_seconds())

@@ -83,6 +83,7 @@ class TimestampMixin:
 # ============================================================================
 # USERS
 # ============================================================================
+
 class User(Base, TimestampMixin):
     __tablename__ = "users"
 
@@ -92,6 +93,10 @@ class User(Base, TimestampMixin):
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     user_type: Mapped[str] = mapped_column(String(100))
+    created_at: Mapped[datetime] = mapped_column(DateTime)
+    last_login: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    login_count: Mapped[int] = mapped_column(Integer, default=0)
+    
     profile: Mapped["Profile | None"] = relationship(
         back_populates="user", uselist=False, cascade="all, delete-orphan"
     )
@@ -107,6 +112,7 @@ class User(Base, TimestampMixin):
     user_schemes: Mapped[list["UserScheme"]] = relationship(
         back_populates="user", cascade="all, delete-orphan", passive_deletes=True
     )
+
 
 
 class Profile(Base):
