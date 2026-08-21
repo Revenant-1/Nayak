@@ -20,7 +20,7 @@ from jose import JWTError, jwt
 from app.models.models import User as SQLUser, SessionLocal, gen_uuid
 
 # Configuration
-CONFIG_DIR = Path("/mnt/shared/Nayak/backend/config")
+CONFIG_DIR = Path(__file__).resolve().parents[4] / "config"
 CONFIG_DIR.mkdir(exist_ok=True)
 
 # Load configuration

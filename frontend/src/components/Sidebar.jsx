@@ -56,7 +56,6 @@ export default function Sidebar({
             {statusLabel}
           </span>
 
-          <Moon size={18} className="text-indigo-500 dark:text-indigo-300" />
         </div>
       </div>
 

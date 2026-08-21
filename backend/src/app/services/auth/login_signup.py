@@ -7,9 +7,8 @@ from jose import jwt
 import secrets
 import json
 
-Config_Dir = Path("/mnt/shared/Nayak/backend/src/config")
-Config_Dir.mkdir(exist_ok=True)
-
+Config_Dir = Path(__file__).resolve().parents[4] / "src" / "config"
+Config_Dir.mkdir(parents=True, exist_ok=True)
 Config_File = Config_Dir / "auth_config.json"
 
 DEFAULT_CONFIG = {
