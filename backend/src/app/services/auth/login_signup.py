@@ -128,14 +128,23 @@ def authenticate_user(username: str, password: str) -> Optional[Dict]:
         _close_db(db)
 
 # Register a new user.
+def get_user_by_email(email: str) -> Optional[SQLUser]:
+    db = _get_db()
+    try:
+        return db.query(SQLUser).filter(SQLUser.email == email).first()
+    finally:
+        _close_db(db)
+
 def register_user(username: str, password: str, email: str) -> SQLUser:
     db = _get_db()
 
     try:
-        existing_user = get_user(username)
+        # Check if username or email already exists
+        if get_user(username):
+            raise ValueError("Username is already taken")
 
-        if existing_user:
-            raise ValueError("Username or email already exists")
+        if get_user_by_email(email):
+            raise ValueError("Email is already registered")
 
         new_user = SQLUser(
             id=f"usr_{secrets.token_hex(8)}",
@@ -143,7 +152,7 @@ def register_user(username: str, password: str, email: str) -> SQLUser:
             email=email,
             password_hash=_hash_password(password),
             user_type="regular",
-            is_active=False,
+            is_active=True,  # Set to True so user is active upon registration
             created_at=datetime.utcnow(),
             last_login=None,
             login_count=0,

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Lock, Mail, User, ArrowRight, UserCheck, AlertCircle, Loader2 } from 'lucide-react'
+import { Lock, Mail, User, ArrowRight, UserCheck, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? ''
 
@@ -8,6 +8,7 @@ export default function Login({ onLoginSuccess }) {
     const [username, setUsername] = useState('')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [showPassword, setShowPassword] = useState(false)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
 
@@ -205,13 +206,22 @@ export default function Login({ onLoginSuccess }) {
                         <div className="relative">
                             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-mist" size={16} />
                             <input
-                                type="password"
+                                type={showPassword ? 'text' : 'password'}
                                 required
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="••••••••"
-                                className="w-full rounded-lg border border-line bg-[#17163A]/40 py-2.5 pl-10 pr-3 text-sm text-ink outline-none transition placeholder:text-mist/50 focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+                                className="w-full rounded-lg border border-line bg-[#17163A]/40 py-2.5 pl-10 pr-10 text-sm text-ink outline-none transition placeholder:text-mist/50 focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
                             />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword((prev) => !prev)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-mist transition hover:text-ink focus:outline-none"
+                                tabIndex={-1}
+                                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                            >
+                                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                            </button>
                         </div>
                     </div>
 

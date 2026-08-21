@@ -134,5 +134,13 @@
   {
     "role": "assistant",
     "content": "Under the Constitution of India, labour laws are guided by Articles 42 and 43, which direct the State to secure just and humane conditions of work, maternity relief, and a living wage for workers. Additionally, under the Seventh Schedule (Concurrent List, Entries 22, 23, and 24), both Parliament and State Legislatures have the power to enact laws regarding trade unions, industrial disputes, social security, employment, and labour welfare (including provident funds and workmen's compensation). [Source: Articles 42, 43, and Seventh Schedule, Constitution of India]"
+  },
+  {
+    "role": "user",
+    "content": "what is my name"
+  },
+  {
+    "role": "assistant",
+    "content": "The provided legal context does not contain your personal name. It is a blank template of the certificate required under the Schedule [Section 63(4)(c)] of the Bharatiya Sakshya Adhiniyam (BSA), 2023, where the party submitting electronic evidence must fill in their own name and device details. [Source: The Schedule, BSA]"
   }
 ]

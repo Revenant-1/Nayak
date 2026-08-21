@@ -167,13 +167,23 @@ async def upload_document(file: UploadFile):
 @app.post("/api/auth/login", response_model=LoginResponse)
 # Authenticate user with username and password.
 async def login(payload: LoginRequest):
+    user_info = authenticate_user(payload.username, payload.password)
     
+    # Check if authentication failed
+    if not user_info:
+        from fastapi import HTTPException, status
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid username or password"
+        )
+
     try:
-        user_info = authenticate_user(payload.username, payload.password)
-        
-        token, expiry = generate_token(user_info["user_id"], guest=user_info["user_type"] == "guest")
+        token, expiry = generate_token(
+            user_info["user_id"], 
+            guest=user_info.get("user_type") == "guest"
+        )
         expires_in = int((expiry - datetime.utcnow()).total_seconds())
-# Returns JWT token and user info.
+
         return LoginResponse(
             token=token,
             user_id=user_info["user_id"],
@@ -183,9 +193,8 @@ async def login(payload: LoginRequest):
         )
     except Exception as e:
         from fastapi import HTTPException, status
-        print(e)
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e)
         )
 
@@ -193,29 +202,41 @@ async def login(payload: LoginRequest):
 @app.post("/api/auth/register", response_model=LoginResponse)
 # Authenticate user to register.
 async def register(data: NewLoginRequest):
+    try:
+        user = register_user(
+            data.username,
+            data.password,
+            data.email
+        )
 
-    user = register_user(
-        data.username,
-        data.password,
-        data.email
-    )
+        token, expiry = generate_token(
+            str(user.id),
+            guest=False
+        )
 
-    token, expiry = generate_token(
-        str(user.id),
-        guest=False
-    )
+        expires_in = int(
+            (expiry - datetime.utcnow()).total_seconds()
+        )
 
-    expires_in = int(
-        (expiry - datetime.utcnow()).total_seconds()
-    )
-
-    return LoginResponse(
-        token=token,
-        user_id=str(user.id),
-        username=user.username,
-        user_type=user.user_type,
-        expires_in=expires_in
-    )
+        return LoginResponse(
+            token=token,
+            user_id=str(user.id),
+            username=user.username,
+            user_type=user.user_type,
+            expires_in=expires_in
+        )
+    except ValueError as e:
+        from fastapi import HTTPException, status
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        from fastapi import HTTPException, status
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Registration failed. Please try again."
+        )
 
 
 @app.post("/api/auth/guest-login", response_model=LoginResponse)
