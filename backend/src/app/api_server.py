@@ -14,7 +14,7 @@ from app.services.auth import (
 )
 from datetime import datetime
 import json
-
+from app.models.models import Base, engine
 
 # api_server.py lives in src/app; load keys from the backend root.
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
@@ -29,6 +29,12 @@ app = FastAPI(
     description="Backend API for Nayak - AI-Powered Legal Assistant",
     version="0.1.0"
 )
+
+# --------------------------------------------------
+# Create tables if they do not exist on launch
+# --------------------------------------------------
+
+Base.metadata.create_all(bind=engine)
 
 
 # --------------------------------------------------

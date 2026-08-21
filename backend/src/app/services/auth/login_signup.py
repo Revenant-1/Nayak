@@ -8,7 +8,7 @@ import secrets
 import bcrypt
 import json
 
-Config_Dir = Path("/mnt/shared/Nayak/backend/src/config")
+Config_Dir = Path("/home/riyaz-khan/Desktop/Nayak/backend/config")
 Config_Dir.mkdir(exist_ok=True)
 
 Config_File = Config_Dir / "auth_config.json"

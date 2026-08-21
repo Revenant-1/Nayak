@@ -1,11 +1,15 @@
 import { useState } from 'react'
-import { Lock, Mail, User, ArrowRight, UserCheck } from 'lucide-react'
+import { Lock, Mail, User, ArrowRight, UserCheck, AlertCircle, Loader2 } from 'lucide-react'
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? ''
 
 export default function Login({ onLoginSuccess }) {
     const [isRegister, setIsRegister] = useState(false)
-    const [name, setName] = useState('')
+    const [username, setUsername] = useState('')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState('')
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -15,34 +19,55 @@ export default function Login({ onLoginSuccess }) {
         try {
             if (isRegister) {
                 // Register route
-                const res = await fetch(`${API_BASE}/api/register`, {
+                const res = await fetch(`${API_BASE}/api/auth/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email, password }),
-                })
-                if (!res.ok) {
-                    const data = await res.json()
-                    throw new Error(data.detail || 'Registration failed')
-                }
-                setIsRegister(false) // Switch to sign-in tab after successful registration
-            } else {
-                // Login route (FastAPI standard OAuth2 form payload)
-                const formData = new URLSearchParams()
-                formData.append('username', email)
-                formData.append('password', password)
-
-                const res = await fetch(`${API_BASE}/api/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: formData.toString(),
+                    body: JSON.stringify({
+                        username,
+                        email,
+                        password,
+                    }),
                 })
 
                 const data = await res.json()
-                if (!res.ok) throw new Error(data.detail || 'Invalid email or password')
+                if (!res.ok) {
+                    throw new Error(data.detail || 'Registration failed')
+                }
 
-                localStorage.setItem('auth_token', data.access_token)
-                localStorage.setItem('nayak_user', JSON.stringify(data.user))
-                onLoginSuccess(data.user)
+                // Automatically log in after registration
+                const userObj = {
+                    user_id: data.user_id,
+                    username: data.username,
+                    user_type: data.user_type,
+                    email: email,
+                }
+                localStorage.setItem('auth_token', data.token)
+                localStorage.setItem('nayak_user', JSON.stringify(userObj))
+                onLoginSuccess(userObj)
+            } else {
+                // Login route
+                const res = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username,
+                        password,
+                    }),
+                })
+
+                const data = await res.json()
+                if (!res.ok) {
+                    throw new Error(data.detail || 'Invalid username or password')
+                }
+
+                const userObj = {
+                    user_id: data.user_id,
+                    username: data.username,
+                    user_type: data.user_type,
+                }
+                localStorage.setItem('auth_token', data.token)
+                localStorage.setItem('nayak_user', JSON.stringify(userObj))
+                onLoginSuccess(userObj)
             }
         } catch (err) {
             setError(err.message)
@@ -51,16 +76,36 @@ export default function Login({ onLoginSuccess }) {
         }
     }
 
-    const handleGuestLogin = () => {
-        const guestUser = {
-            name: 'Guest User',
-            email: 'guest@nayak.local',
-            isGuest: true,
-        }
+    const handleGuestLogin = async () => {
+        setLoading(true)
+        setError('')
 
-        localStorage.setItem('auth_token', 'guest_session_token')
-        localStorage.setItem('nayak_user', JSON.stringify(guestUser))
-        onLoginSuccess(guestUser)
+        try {
+            const res = await fetch(`${API_BASE}/api/auth/guest-login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+            })
+
+            const data = await res.json()
+            if (!res.ok) {
+                throw new Error(data.detail || 'Guest login failed')
+            }
+
+            const guestUser = {
+                user_id: data.user_id,
+                username: data.username,
+                user_type: data.user_type || 'guest',
+                isGuest: true,
+            }
+
+            localStorage.setItem('auth_token', data.token)
+            localStorage.setItem('nayak_user', JSON.stringify(guestUser))
+            onLoginSuccess(guestUser)
+        } catch (err) {
+            setError(err.message)
+        } finally {
+            setLoading(false)
+        }
     }
 
     return (
@@ -85,7 +130,10 @@ export default function Login({ onLoginSuccess }) {
                 <div className="mb-6 flex rounded-lg border border-line bg-[#17163A]/40 p-1">
                     <button
                         type="button"
-                        onClick={() => setIsRegister(false)}
+                        onClick={() => {
+                            setIsRegister(false)
+                            setError('')
+                        }}
                         className={`flex-1 rounded-md py-1.5 text-xs font-medium transition ${!isRegister ? 'bg-violet-600 text-white shadow-sm' : 'text-mist hover:text-ink'
                             }`}
                     >
@@ -93,7 +141,10 @@ export default function Login({ onLoginSuccess }) {
                     </button>
                     <button
                         type="button"
-                        onClick={() => setIsRegister(true)}
+                        onClick={() => {
+                            setIsRegister(true)
+                            setError('')
+                        }}
                         className={`flex-1 rounded-md py-1.5 text-xs font-medium transition ${isRegister ? 'bg-violet-600 text-white shadow-sm' : 'text-mist hover:text-ink'
                             }`}
                     >
@@ -101,43 +152,51 @@ export default function Login({ onLoginSuccess }) {
                     </button>
                 </div>
 
+                {/* Error Banner */}
+                {error && (
+                    <div className="mb-4 flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-400">
+                        <AlertCircle size={16} className="shrink-0" />
+                        <span>{error}</span>
+                    </div>
+                )}
+
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                        <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-mist">
+                            Username
+                        </label>
+                        <div className="relative">
+                            <User className="absolute left-3 top-1/2 -translate-y-1/2 text-mist" size={16} />
+                            <input
+                                type="text"
+                                required
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                placeholder="username"
+                                className="w-full rounded-lg border border-line bg-[#17163A]/40 py-2.5 pl-10 pr-3 text-sm text-ink outline-none transition placeholder:text-mist/50 focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+                            />
+                        </div>
+                    </div>
+
                     {isRegister && (
                         <div>
                             <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-mist">
-                                Full Name
+                                Email Address
                             </label>
                             <div className="relative">
-                                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-mist" size={16} />
+                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-mist" size={16} />
                                 <input
-                                    type="text"
+                                    type="email"
                                     required
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                    placeholder="Alex Morgan"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    placeholder="name@example.com"
                                     className="w-full rounded-lg border border-line bg-[#17163A]/40 py-2.5 pl-10 pr-3 text-sm text-ink outline-none transition placeholder:text-mist/50 focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
                                 />
                             </div>
                         </div>
                     )}
-
-                    <div>
-                        <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-mist">
-                            Email Address
-                        </label>
-                        <div className="relative">
-                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-mist" size={16} />
-                            <input
-                                type="email"
-                                required
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                placeholder="name@example.com"
-                                className="w-full rounded-lg border border-line bg-[#17163A]/40 py-2.5 pl-10 pr-3 text-sm text-ink outline-none transition placeholder:text-mist/50 focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
-                            />
-                        </div>
-                    </div>
 
                     <div>
                         <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-mist">
@@ -158,10 +217,17 @@ export default function Login({ onLoginSuccess }) {
 
                     <button
                         type="submit"
-                        className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-violet-600 py-2.5 text-sm font-medium text-white transition hover:bg-violet-500"
+                        disabled={loading}
+                        className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-violet-600 py-2.5 text-sm font-medium text-white transition hover:bg-violet-500 disabled:opacity-50"
                     >
-                        <span>{isRegister ? 'Register & Enter' : 'Sign In'}</span>
-                        <ArrowRight size={16} />
+                        {loading ? (
+                            <Loader2 size={16} className="animate-spin" />
+                        ) : (
+                            <>
+                                <span>{isRegister ? 'Register & Enter' : 'Sign In'}</span>
+                                <ArrowRight size={16} />
+                            </>
+                        )}
                     </button>
                 </form>
 
@@ -179,7 +245,8 @@ export default function Login({ onLoginSuccess }) {
                 <button
                     type="button"
                     onClick={handleGuestLogin}
-                    className="flex w-full items-center justify-center gap-2 rounded-lg border border-line bg-[#17163A]/30 py-2.5 text-sm font-medium text-mist transition hover:border-violet-500/40 hover:bg-[#17163A]/70 hover:text-ink"
+                    disabled={loading}
+                    className="flex w-full items-center justify-center gap-2 rounded-lg border border-line bg-[#17163A]/30 py-2.5 text-sm font-medium text-mist transition hover:border-violet-500/40 hover:bg-[#17163A]/70 hover:text-ink disabled:opacity-50"
                 >
                     <UserCheck size={16} />
                     <span>Continue as Guest</span>
