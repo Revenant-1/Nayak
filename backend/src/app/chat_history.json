@@ -118,5 +118,21 @@
   {
     "role": "assistant",
     "content": "Under the Constitution of India, the \"right to work\" is recognized as a Directive Principle of State Policy under Article 41, which directs the State to secure the right to work within its economic capacity. Additionally, Article 19(1)(g) guarantees citizens the fundamental right to practice any profession, or to carry on any occupation, trade, or business, subject to reasonable restrictions. [Source: Constitution of India]"
+  },
+  {
+    "role": "user",
+    "content": "hello"
+  },
+  {
+    "role": "assistant",
+    "content": "Hello! How can I assist you with your legal queries today?"
+  },
+  {
+    "role": "user",
+    "content": "what are the labour laws"
+  },
+  {
+    "role": "assistant",
+    "content": "Under the Constitution of India, labour laws are guided by Articles 42 and 43, which direct the State to secure just and humane conditions of work, maternity relief, and a living wage for workers. Additionally, under the Seventh Schedule (Concurrent List, Entries 22, 23, and 24), both Parliament and State Legislatures have the power to enact laws regarding trade unions, industrial disputes, social security, employment, and labour welfare (including provident funds and workmen's compensation). [Source: Articles 42, 43, and Seventh Schedule, Constitution of India]"
   }
 ]
