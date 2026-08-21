@@ -87,7 +87,7 @@ class TimestampMixin:
 class User(Base, TimestampMixin):
     __tablename__ = "users"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[str] = mapped_column(String(100), primary_key=True)
     username: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
     email: Mapped[str | None] = mapped_column(String(255), nullable=True, unique=True)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)

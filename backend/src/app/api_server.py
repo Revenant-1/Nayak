@@ -164,20 +164,20 @@ async def login(payload: LoginRequest):
     
     try:
         user_info = authenticate_user(payload.username, payload.password)
+        
         token, expiry = generate_token(user_info["user_id"], guest=user_info["user_type"] == "guest")
-
         expires_in = int((expiry - datetime.utcnow()).total_seconds())
-
 # Returns JWT token and user info.
         return LoginResponse(
             token=token,
-            user_id=user_info["id"],
+            user_id=user_info["user_id"],
             username=user_info["username"],
             user_type=user_info["user_type"],
             expires_in=expires_in
         )
     except Exception as e:
         from fastapi import HTTPException, status
+        print(e)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=str(e)
@@ -187,8 +187,29 @@ async def login(payload: LoginRequest):
 @app.post("/api/auth/register", response_model=LoginResponse)
 # Authenticate user to register.
 async def register(data: NewLoginRequest):
-    User = register_user(data.username, data.password, data.email)
-    return login(data.username, data.password)
+
+    user = register_user(
+        data.username,
+        data.password,
+        data.email
+    )
+
+    token, expiry = generate_token(
+        str(user.id),
+        guest=False
+    )
+
+    expires_in = int(
+        (expiry - datetime.utcnow()).total_seconds()
+    )
+
+    return LoginResponse(
+        token=token,
+        user_id=str(user.id),
+        username=user.username,
+        user_type=user.user_type,
+        expires_in=expires_in
+    )
 
 
 @app.post("/api/auth/guest-login", response_model=LoginResponse)

@@ -2,9 +2,10 @@ from typing import Optional, Dict, Tuple
 from app.models.models import SessionLocal, User as SQLUser
 from passlib.hash import bcrypt
 from datetime import datetime, timedelta
-from pathlib import Path
 from jose import jwt
+from pathlib import Path
 import secrets
+import bcrypt
 import json
 
 Config_Dir = Path("/mnt/shared/Nayak/backend/src/config")
@@ -38,14 +39,21 @@ def _close_db(db):
     db.close()
 
 # Create a Hash password
+import bcrypt
+
 def _hash_password(password: str) -> str:
-    return bcrypt(password, rounds=config["bcrypt_rounds"])
-
-
+    salt = bcrypt.gensalt(rounds=config["bcrypt_rounds"])
+    hashed = bcrypt.hashpw(
+        password.encode("utf-8"),
+        salt
+    )
+    return hashed.decode("utf-8")
 # Verify password against stored hash
 def _verify_password(password: str, hashed: str) -> bool:
-    return bcrypt.verify(password, hashed)
- 
+    return bcrypt.checkpw(
+        password.encode("utf-8"),
+        hashed.encode("utf-8")
+    ) 
 # Get user from SQLite database
 def get_user(username: str) -> Optional[SQLUser]:
     db = _get_db()
@@ -93,9 +101,6 @@ def authenticate_user(username: str, password: str) -> Optional[Dict]:
         # if user not exist doesnt mean anything
         if not user:
             return None
-        # if the user is active anywhere it doesnt work
-        if not user.is_active:
-            return None
 
         # if password is wrong 
         if not _verify_password(password, user.password_hash):
@@ -138,7 +143,7 @@ def register_user(username: str, password: str, email: str) -> SQLUser:
             email=email,
             password_hash=_hash_password(password),
             user_type="regular",
-            is_active=True,
+            is_active=False,
             created_at=datetime.utcnow(),
             last_login=None,
             login_count=0,
