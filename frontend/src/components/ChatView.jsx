@@ -1,8 +1,11 @@
-import { useEffect, useRef } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 function timestamp() {
-  return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  return new Date().toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 /**
@@ -10,32 +13,47 @@ function timestamp() {
  * --------
  * Renders the full transcript (chat_history.json + anything appended this
  * session). Auto-scrolls to the newest message unless the parent has
- * asked us to focus a specific historical entry (via `focusIndex`, set
- * when the user clicks a sidebar item).
+ * asked us to focus a specific historical entry.
  */
 export default function ChatView({ messages, focusIndex, interimText }) {
-  const bottomRef = useRef(null)
-  const itemRefs = useRef({})
+  const bottomRef = useRef(null);
+  const itemRefs = useRef({});
 
   useEffect(() => {
     if (focusIndex != null && itemRefs.current[focusIndex]) {
-      itemRefs.current[focusIndex].scrollIntoView({ behavior: 'smooth', block: 'center' })
+      itemRefs.current[focusIndex].scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
     } else {
-      bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+      bottomRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+      });
     }
-  }, [messages, focusIndex, interimText])
+  }, [messages, focusIndex, interimText]);
 
   if (messages.length === 0 && !interimText) {
     return (
       <div className="flex flex-1 items-center justify-center px-6">
         <div className="max-w-sm text-center">
-          <p className="font-display text-lg text-ink">Say “Nayak” or ask a legal question</p>
-          <p className="mt-1 text-sm text-mist">
-            Type your query below or tap the microphone — the orb will pulse while Nayak listens and processes.
+          <p
+            className="font-display text-lg font-semibold"
+            style={{ color: "rgb(var(--ink))" }}
+          >
+            Say “Nayak” or ask a legal question
+          </p>
+
+          <p
+            className="mt-2 text-sm"
+            style={{ color: "rgb(var(--mist))" }}
+          >
+            Type your query below or tap the microphone — the orb will pulse
+            while Nayak listens and processes.
           </p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -48,28 +66,55 @@ export default function ChatView({ messages, focusIndex, interimText }) {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25 }}
-            className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
           >
             <div
-              className={`max-w-[70%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
-                m.role === 'user'
-                  ? 'bg-iris/20 text-ink border border-iris/30 rounded-br-sm'
-                  : 'bg-panel-hi text-ink border border-line rounded-bl-sm'
+              className={`max-w-[70%] rounded-2xl px-4 py-3 ${
+                m.role === "user"
+                  ? "user-bubble rounded-br-sm"
+                  : "assistant-bubble rounded-bl-sm"
               }`}
             >
-              <p className="whitespace-pre-wrap">{m.content}</p>
-              <p className="mt-1 font-mono text-[10px] text-mist">
-                {m.role === 'user' ? 'you' : 'nayak'} · {m.time || timestamp()}
+              <p
+                className="whitespace-pre-wrap text-sm leading-relaxed"
+                style={{
+                  color:
+                    m.role === "user"
+                      ? "#ffffff"
+                      : "rgb(var(--ink))",
+                }}
+              >
+                {m.content}
+              </p>
+
+              <p
+                className="mt-2 font-mono text-[10px]"
+                style={{
+                  color:
+                    m.role === "user"
+                      ? "rgba(255,255,255,.75)"
+                      : "rgb(var(--mist))",
+                }}
+              >
+                {m.role === "user" ? "you" : "nayak"} ·{" "}
+                {m.time || timestamp()}
               </p>
             </div>
           </motion.div>
         ))}
       </AnimatePresence>
 
-      {/* Live interim speech-to-text preview while the mic is capturing */}
+      {/* Live speech preview */}
       {interimText && (
         <div className="flex justify-end">
-          <div className="max-w-[70%] rounded-2xl rounded-br-sm border border-dashed border-magenta/40 bg-magenta/10 px-4 py-2.5 text-sm italic text-mist">
+          <div
+            className="max-w-[70%] rounded-2xl rounded-br-sm px-4 py-3 text-sm italic"
+            style={{
+              background: "rgb(var(--panel-hi))",
+              border: "1px dashed rgb(var(--iris))",
+              color: "rgb(var(--mist))",
+            }}
+          >
             {interimText}
           </div>
         </div>
@@ -77,5 +122,5 @@ export default function ChatView({ messages, focusIndex, interimText }) {
 
       <div ref={bottomRef} />
     </div>
-  )
+  );
 }

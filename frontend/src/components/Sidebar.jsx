@@ -1,93 +1,143 @@
-import { motion } from 'framer-motion'
-import { Plus, MessageSquare, Circle } from 'lucide-react'
+import {
+  Plus,
+  Moon,
+  MessageSquare,
+  Wifi,
+  WifiOff,
+} from "lucide-react";
 
-const STATUS_COPY = {
-  sleeping: { label: 'Sleeping', color: 'bg-mist', text: 'text-mist' },
-  listening: { label: 'Listening', color: 'bg-magenta', text: 'text-magenta' },
-  processing: { label: 'Processing', color: 'bg-cyan', text: 'text-cyan' },
-}
-
-/**
- * Sidebar
- * -------
- * ChatGPT-style history panel. `history` is the array read straight out
- * of chat_history.json: [{ role: 'user' | 'assistant', content }, ...].
- * We surface every user turn as a clickable entry — clicking one scrolls
- * the transcript to that turn (handled by the parent via onSelectEntry).
- */
-export default function Sidebar({ history, status, onNewChat, activeIndex, onSelectEntry, backendOnline }) {
-  const entries = history
-    .map((msg, i) => ({ ...msg, index: i }))
-    .filter((msg) => msg.role === 'user')
-
-  const pill = STATUS_COPY[status] || STATUS_COPY.sleeping
+export default function Sidebar({
+  history = [],
+  status = "sleeping",
+  onNewChat,
+  activeIndex,
+  onSelectEntry,
+  backendOnline,
+}) {
+  const statusLabel = {
+    sleeping: "SLEEPING",
+    listening: "LISTENING",
+    processing: "PROCESSING",
+  }[status] || "SLEEPING";
 
   return (
-    <aside className="flex h-full w-[280px] shrink-0 flex-col border-r border-line bg-panel">
-      {/* Wordmark */}
-      <div className="flex items-center gap-2 px-5 pt-6 pb-4">
-        <div className="h-2 w-2 rounded-full bg-iris shadow-[0_0_10px_2px_rgba(139,92,246,0.7)]" />
-        <div>
-          <span className="font-display text-lg font-semibold tracking-wide text-ink block leading-none">NAYAK</span>
-          <span className="font-mono text-[10px] text-mist tracking-wider uppercase">Legal Assistant</span>
+    <aside className="sidebar-shell flex h-screen w-72 flex-col rounded-r-3xl">
+      {/* Logo */}
+      <div className="px-6 pt-8 pb-6">
+        <div className="flex items-center gap-3">
+          <div className="h-3 w-3 rounded-full bg-violet-500 shadow-[0_0_15px_#8b5cf6]" />
+          <div>
+            <h1 className="text-3xl font-black tracking-wide sidebar-text">
+              NAYAK
+            </h1>
+            <p className="mt-1 text-xs uppercase tracking-[0.25em] sidebar-muted">
+              Legal Assistant
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* New chat */}
-      <div className="px-4">
+      {/* New Chat */}
+      <div className="px-5">
         <button
           onClick={onNewChat}
-          className="flex w-full items-center justify-center gap-2 rounded-lg border border-iris/40 bg-iris/10 px-3 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-iris/20 focus-visible:outline-cyan"
+          className="gradient-btn flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-base font-semibold transition hover:scale-[1.02]"
         >
-          <Plus size={16} />
+          <Plus size={20} />
           New chat
         </button>
       </div>
 
-      {/* Status pill */}
-      <div className="px-4 pt-3">
-        <div className="flex items-center gap-2 rounded-md border border-line bg-panel-hi px-3 py-2">
-          <span className={`relative flex h-2 w-2`}>
-            <span className={`absolute inline-flex h-full w-full animate-ping rounded-full ${pill.color} opacity-60`} />
-            <span className={`relative inline-flex h-2 w-2 rounded-full ${pill.color}`} />
+      {/* Status */}
+      <div className="px-5 pt-4">
+        <div className="sidebar-card flex items-center justify-between rounded-2xl px-4 py-3">
+          <span className="flex items-center gap-2 font-semibold sidebar-text">
+            <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
+            {statusLabel}
           </span>
-          <span className={`font-mono text-xs uppercase tracking-widest ${pill.text}`}>{pill.label}</span>
+
+          <Moon size={18} className="text-indigo-500 dark:text-indigo-300" />
         </div>
       </div>
 
       {/* History */}
-      <div className="mt-5 flex-1 overflow-y-auto scroll-thin px-3 pb-3">
-        <p className="px-2 pb-2 font-mono text-[10px] uppercase tracking-widest text-mist">History</p>
-        {entries.length === 0 && (
-          <p className="px-2 py-4 text-sm text-mist">No conversations yet. Say “Nayak” or ask a legal query to begin.</p>
+      <div className="flex-1 overflow-y-auto scroll-thin px-4 pt-6">
+        <p className="mb-3 px-2 text-xs font-bold uppercase tracking-[0.25em] sidebar-muted">
+          History
+        </p>
+
+        {history.length ? (
+          <div className="space-y-3">
+            {history
+              .filter((msg) => msg.role === "user")
+              .map((msg, index) => (
+                <button
+                  key={index}
+                  onClick={() => onSelectEntry(index)}
+                  className={`sidebar-card w-full rounded-xl px-4 py-3 text-left transition hover:scale-[1.02] ${
+                    activeIndex === index
+                      ? "ring-2 ring-violet-500"
+                      : ""
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <MessageSquare
+                      size={16}
+                      className="mt-1 text-violet-500"
+                    />
+
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm sidebar-text">
+                        {msg.content}
+                      </p>
+                      <p className="mt-1 text-xs sidebar-muted">
+                        {msg.time}
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              ))}
+          </div>
+        ) : (
+          <div className="px-2 pt-4">
+            <p className="sidebar-muted text-sm leading-6">
+              No conversations yet. Say <strong>"Nayak"</strong> or ask a
+              legal query to begin.
+            </p>
+          </div>
         )}
-        <ul className="space-y-1">
-          {entries.map((entry) => (
-            <motion.li key={entry.index} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              <button
-                onClick={() => onSelectEntry(entry.index)}
-                className={`flex w-full items-start gap-2 rounded-md px-2 py-2 text-left text-sm transition-colors hover:bg-panel-hi ${
-                  activeIndex === entry.index ? 'bg-panel-hi text-ink' : 'text-mist'
-                }`}
-              >
-                <MessageSquare size={14} className="mt-0.5 shrink-0 opacity-60" />
-                <span className="line-clamp-2">{entry.content}</span>
-              </button>
-            </motion.li>
-          ))}
-        </ul>
       </div>
 
-      {/* Backend connection indicator */}
-      <div className="flex items-center gap-2 border-t border-line px-5 py-3">
-        <Circle
-          size={8}
-          className={backendOnline ? 'fill-jade text-jade' : 'fill-mist text-mist'}
-        />
-        <span className="font-mono text-[11px] text-mist">
-          {backendOnline ? 'backend connected' : 'backend offline'}
-        </span>
+      {/* Backend Status */}
+      <div className="px-4 pb-4">
+        <div className="sidebar-card rounded-2xl p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span
+                className={`h-2.5 w-2.5 rounded-full ${
+                  backendOnline ? "bg-emerald-400" : "bg-red-400"
+                }`}
+              />
+
+              <span className="font-semibold sidebar-text">
+                {backendOnline ? "Backend Online" : "Backend Offline"}
+              </span>
+            </div>
+
+            {backendOnline ? (
+              <Wifi size={18} className="text-emerald-400" />
+            ) : (
+              <WifiOff size={18} className="text-red-400" />
+            )}
+          </div>
+
+          <p className="mt-1 text-sm sidebar-muted">
+            {backendOnline
+              ? "All systems operational"
+              : "Connection unavailable"}
+          </p>
+        </div>
       </div>
     </aside>
-  )
+  );
 }

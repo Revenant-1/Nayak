@@ -2,49 +2,282 @@
 @tailwind components;
 @tailwind utilities;
 
+/* =========================
+   THEME VARIABLES
+========================= */
+
+:root {
+  /* Light Theme */
+  --void: 248 250 255;
+  --panel: 255 255 255;
+  --panel-hi: 244 247 255;
+  --line: 214 223 245;
+
+  --ink: 22 28 45;
+  --mist: 110 122 148;
+
+  --iris: 124 58 237;
+  --cyan: 34 211 238;
+  --jade: 16 185 129;
+}
+
+.dark {
+  /* Dark Theme */
+  --void: 6 8 25;
+  --panel: 18 22 50;
+  --panel-hi: 28 34 72;
+  --line: 54 65 115;
+
+  --ink: 239 242 255;
+  --mist: 158 168 206;
+
+  --iris: 168 85 247;
+  --cyan: 45 212 232;
+  --jade: 20 201 165;
+}
+
+/* =========================
+   BASE
+========================= */
+
 @layer base {
   * {
     @apply border-line;
   }
+
   html,
+  body,
+  #root {
+    height: 100%;
+  }
+
   body {
-    @apply bg-void text-ink;
-    font-family: 'Inter', sans-serif;
+    @apply text-ink;
+    font-family: "Inter", sans-serif;
+    transition: background 0.45s ease, color 0.35s ease;
+
+    background:
+      radial-gradient(circle at 25% 20%, rgba(168, 85, 247, 0.18), transparent 30%),
+      radial-gradient(circle at 75% 70%, rgba(34, 211, 238, 0.15), transparent 30%),
+      radial-gradient(circle at 100% 40%, rgba(16, 185, 129, 0.12), transparent 30%),
+      linear-gradient(135deg, #f8fbff 0%, #eef5ff 45%, #f9fff2 100%);
   }
+
+  .dark body {
+    background:
+      radial-gradient(circle at 20% 20%, rgba(124, 58, 237, 0.28), transparent 28%),
+      radial-gradient(circle at 80% 75%, rgba(34, 211, 238, 0.12), transparent 30%),
+      linear-gradient(145deg, #050714 0%, #0b1030 55%, #070b1d 100%);
+  }
+
   ::selection {
-    @apply bg-iris/40 text-ink;
+    background: rgba(124, 58, 237, 0.35);
   }
-  /* Visible keyboard focus everywhere — never removed, just restyled */
+
   :focus-visible {
-    outline: 2px solid theme('colors.cyan');
+    outline: 2px solid rgb(var(--cyan));
     outline-offset: 2px;
   }
 }
 
+/* =========================
+   COMPONENTS
+========================= */
+
+@layer components {
+
+  /* ---------- Glass ---------- */
+
+  .glass {
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(18px);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    box-shadow: 0 10px 35px rgba(73, 94, 148, 0.1);
+  }
+
+  .dark .glass {
+    background: rgba(18, 22, 50, 0.72);
+    border-color: rgba(110, 120, 255, 0.18);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  }
+
+  /* ---------- Sidebar ---------- */
+
+  .sidebar-shell {
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(22px);
+    border-right: 1px solid rgba(200, 215, 240, 0.85);
+    box-shadow: 8px 0 30px rgba(120, 140, 180, 0.12);
+  }
+
+  .dark .sidebar-shell {
+    background: linear-gradient(180deg, #06083c 0%, #17135b 100%);
+    border-right: 1px solid rgba(120, 110, 255, 0.18);
+    box-shadow: 8px 0 30px rgba(0, 0, 0, 0.35);
+  }
+
+  .sidebar-card {
+    background: rgba(255, 255, 255, 0.75);
+    border: 1px solid rgba(210, 220, 245, 0.8);
+    backdrop-filter: blur(14px);
+  }
+
+  .dark .sidebar-card {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .sidebar-text {
+    color: rgb(var(--ink));
+  }
+
+  .sidebar-muted {
+    color: rgb(var(--mist));
+  }
+
+  /* ---------- Buttons ---------- */
+
+  /* Light Mode */
+  .gradient-btn {
+    background: linear-gradient(135deg, #a197f5, #d895e2);
+    color: white;
+    box-shadow: 0 12px 28px rgba(124, 58, 237, 0.35);
+    transition: all 0.25s ease;
+  }
+
+  .gradient-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 38px rgba(124, 58, 237, 0.45);
+  }
+
+  /* Dark Mode */
+  .dark .gradient-btn {
+    background: linear-gradient(135deg, #39009c, #8c019fef);
+    color: white;
+    box-shadow:
+      0 12px 30px rgba(124, 58, 237, 0.45),
+      0 0 24px rgba(192, 38, 211, 0.25);
+  }
+
+  .dark .gradient-btn:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 18px 42px rgba(124, 58, 237, 0.55),
+      0 0 36px rgba(192, 38, 211, 0.35);
+  }
+
+  .status-pill {
+    background: rgba(16, 185, 129, 0.14);
+    color: rgb(5 150 105);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+  }
+
+  .dark .status-pill {
+    background: rgba(20, 201, 165, 0.14);
+    color: rgb(110 231 183);
+    border-color: rgba(20, 201, 165, 0.22);
+  }
+
+  /* ---------- Chat ---------- */
+
+  .user-bubble {
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    color: white;
+    box-shadow: 0 10px 24px rgba(124, 58, 237, 0.3);
+  }
+
+  .assistant-bubble {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(14px);
+    border: 1px solid rgba(96, 165, 250, 0.25);
+    box-shadow: 0 10px 26px rgba(70, 100, 170, 0.1);
+  }
+
+  .dark .assistant-bubble {
+    background: rgba(18, 22, 50, 0.85);
+    border-color: rgba(110, 120, 255, 0.18);
+  }
+
+
+  /* ---------- Menu ---------- */
+
+  .menu-dropdown {
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(18px);
+    border: 1px solid rgba(220, 225, 245, 0.8);
+    box-shadow: 0 20px 45px rgba(50, 60, 100, 0.18);
+  }
+
+  .dark .menu-dropdown {
+    background: rgba(18, 22, 50, 0.92);
+    border-color: rgba(110, 120, 255, 0.18);
+  }
+
+  .menu-item {
+    color: rgb(var(--ink));
+    transition: background-color 0.2s ease;
+  }
+
+  .menu-item:hover {
+    background: rgba(148, 163, 184, 0.12);
+  }
+
+  .dark .menu-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .menu-dropdown {
+    background: rgb(var(--panel) / 0.92);
+    border: 1px solid rgb(var(--line));
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    /* Edge/Safari */
+  }
+
+  /* ---------- Orb Glow ---------- */
+
+  .orb-glow {
+    box-shadow:
+      0 0 30px rgba(124, 58, 237, 0.35),
+      0 0 80px rgba(34, 211, 238, 0.12);
+  }
+}
+
+/* =========================
+   UTILITIES
+========================= */
+
 @layer utilities {
-  /* Slim, dark scrollbars that match the panel chrome */
+  .scroll-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(120, 130, 170, 0.45) transparent;
+  }
+
   .scroll-thin::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
+
   .scroll-thin::-webkit-scrollbar-track {
     background: transparent;
   }
+
   .scroll-thin::-webkit-scrollbar-thumb {
-    background-color: theme('colors.line');
+    background: rgba(120, 130, 170, 0.45);
     border-radius: 999px;
   }
+
   .scroll-thin::-webkit-scrollbar-thumb:hover {
-    background-color: theme('colors.panel-hi');
-  }
-  .scroll-thin {
-    scrollbar-width: thin;
-    scrollbar-color: theme('colors.line') transparent;
+    background: rgba(120, 130, 170, 0.7);
   }
 }
 
-/* Respect users who've asked for reduced motion at the OS level */
+/* =========================
+   REDUCED MOTION
+========================= */
+
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {
