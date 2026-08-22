@@ -25,7 +25,7 @@ CONFIG_DIR = BACKEND_DIR / "config"
 CONFIG_DIR.mkdir(exist_ok=True)
 
 # Load configuration
-CONFIG_FILE = CONFIG_DIR / "auth_config1.json"
+CONFIG_FILE = CONFIG_DIR / "auth_config.json"
 
 DEFAULT_CONFIG = {
     "jwt_secret": secrets.token_hex(32),

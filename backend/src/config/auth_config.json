@@ -1,8 +1,0 @@
-{
-  "jwt_secret": "a67dc3b103e51c871e74645b2d92db209610a25a758f1634edfe77adecc6b196",
-  "jwt_expiry_hours": 24,
-  "guest_expiry_hours": 6,
-  "max_login_attempts": 3,
-  "lockout_duration_minutes": 30,
-  "bcrypt_rounds": 12
-}
