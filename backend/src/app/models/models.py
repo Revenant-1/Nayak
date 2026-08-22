@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import uuid
 from datetime import date, datetime
-
+import os
+from dotenv import load_dotenv
+from pathlib import Path
 from sqlalchemy import (
     Boolean,
     CheckConstraint,
@@ -25,8 +27,12 @@ from sqlalchemy.orm import (
     relationship,
     sessionmaker,
 )
+load_dotenv(Path(__file__).resolve().parents[3] / ".env")
 
-DATABASE_URL = "sqlite:///./nayak.db"
+DATABASE_URL= os.getenv("DATABASE_URL")
+print(DATABASE_URL)
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL is missing")
 
 engine = create_engine(
     DATABASE_URL,
@@ -119,10 +125,10 @@ class Profile(Base):
     __tablename__ = "profiles"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False
+    user_id: Mapped[str | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True, index=True
     )
-
     # date_of_birth instead of a raw age — age computed on read so it never
     # goes stale and you don't need a cron job to bump it every birthday.
     date_of_birth: Mapped[date | None] = mapped_column(Date)
@@ -157,8 +163,9 @@ class Session(Base):
     __tablename__ = "sessions"
 
     session_id: Mapped[str] = mapped_column(String, primary_key=True, default=gen_uuid)
-    user_id: Mapped[int | None] = mapped_column(
-        ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True
+    user_id: Mapped[str | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True, index=True
     )
     started_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     ended_at: Mapped[datetime | None] = mapped_column(DateTime)
@@ -322,8 +329,9 @@ class UserScheme(Base):
     __tablename__ = "user_schemes"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    user_id: Mapped[int | None] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"), nullable=True
+    user_id: Mapped[str | None] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=True,
     )
     session_id: Mapped[str | None] = mapped_column(
         ForeignKey("sessions.session_id", ondelete="SET NULL")
@@ -382,8 +390,9 @@ class Document(Base):
     __tablename__ = "documents"
 
     doc_id: Mapped[str] = mapped_column(String, primary_key=True, default=gen_uuid)
-    user_id: Mapped[int | None] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"), nullable=True, index=True
+    user_id: Mapped[str | None] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=True,
     )
     session_id: Mapped[str | None] = mapped_column(
         ForeignKey("sessions.session_id", ondelete="SET NULL")
@@ -434,8 +443,9 @@ class Feedback(Base):
     msg_id: Mapped[str | None] = mapped_column(
         ForeignKey("messages.msg_id", ondelete="CASCADE")
     )
-    user_id: Mapped[int | None] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE")
+    user_id: Mapped[str | None] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=True,
     )
     rating: Mapped[int | None] = mapped_column(Integer)
     was_helpful: Mapped[bool | None] = mapped_column(Boolean)

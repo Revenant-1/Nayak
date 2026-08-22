@@ -56,3 +56,16 @@ GROQ_API_KEY=your_groq_api_key_here
 - `GET /api/history`: Fetch conversation history.
 - `POST /api/command`: Submit user legal query/command (`{ "text": "..." }`).
 - `POST /api/new-chat`: Clear conversation session history.
+
+---
+
+## 5. Database Schema Changes
+
+Whenever a SQLAlchemy model or database schema changes, create and apply an Alembic migration from the backend directory:
+
+```bash
+uv run alembic revision --autogenerate -m "describe the schema change"
+uv run alembic upgrade head
+```
+
+Always inspect the generated migration before applying it. Do not use `Base.metadata.create_all()` to update an existing schema.

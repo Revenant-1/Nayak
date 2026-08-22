@@ -1,10 +1,10 @@
 import os
-import json
 from pathlib import Path
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 from groq import Groq
+from app.models.models import Message, Session, SessionLocal
 
 try:
     from llama_cpp import Llama
@@ -15,8 +15,6 @@ except ImportError:
 # Resolve paths relative to backend/ (3 levels up from src/app/Ai.py)
 BACKEND_ROOT = Path(__file__).resolve().parents[2]
 load_dotenv(BACKEND_ROOT / ".env")
-HISTORY_FILE = Path(__file__).resolve().parent / "chat_history.json"
-
 gemini_key = os.getenv("GEMINI_API_KEY")
 groq_key = os.getenv("GROQ_API_KEY")
 
@@ -71,23 +69,58 @@ elif Llama and LOAD_GENERAL_LOCAL_FALLBACK and not LOCAL_MODEL_PATH.exists():
     print(f"[AI INFO] General Local Llama not found at {LOCAL_MODEL_PATH.name}.")
 
 
-def load_history():
-    if HISTORY_FILE.exists():
+def create_chat_session(user_id: str | None = None) -> str:
+    db = SessionLocal()
+    try:
+        chat_session = Session(user_id=user_id, lang_used="en", mode="text")
+        db.add(chat_session)
+        db.commit()
+        db.refresh(chat_session)
+        return chat_session.session_id
+    finally:
+        db.close()
+
+
+def load_history(session_id: str) -> list[dict[str, str]]:
+    db = SessionLocal()
+    try:
+        messages = (
+            db.query(Message)
+            .filter(Message.session_id == session_id)
+            .order_by(Message.timestamp, Message.msg_id)
+            .all()
+        )
+        return [{"role": message.role, "content": message.content} for message in messages]
+    finally:
+        db.close()
+
+
+def save_messages(session_id: str, user_content: str, assistant_content: str) -> None:
+    db = SessionLocal()
+    try:
+        db.add_all(
+            [
+                Message(session_id=session_id, role="user", content=user_content),
+                Message(session_id=session_id, role="assistant", content=assistant_content),
+            ]
+        )
+        db.commit()
+    finally:
+        db.close()
+
+
+def new_chat(session_id: str | None = None) -> str:
+    if session_id:
+        db = SessionLocal()
         try:
-            with open(HISTORY_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception:
-            pass
-    return []
-
-
-def save_history(history):
-    with open(HISTORY_FILE, "w", encoding="utf-8") as f:
-        json.dump(history, f, indent=4, ensure_ascii=False)
-
-
-def new_chat():
-    save_history([])
+            chat_session = db.get(Session, session_id)
+            if chat_session:
+                from datetime import datetime
+                chat_session.ended_at = datetime.utcnow()
+                db.commit()
+        finally:
+            db.close()
+    return create_chat_session()
 
 
 def _call_gemini(system_instruction, history, prompt):
@@ -144,8 +177,16 @@ def _call_local_llama(messages):
 AVAILABLE_MODELS = ("legal", "local", "gemini", "groq")
 
 
-def ask_ai(prompt: str, debug: bool = False, force_model: str | None = None):
-    history = load_history()
+def ask_ai(
+    prompt: str,
+    debug: bool = False,
+    force_model: str | None = None,
+    session_id: str | None = None,
+    user_content: str | None = None,
+):
+    if not session_id:
+        session_id = create_chat_session()
+    history = load_history(session_id)
 
     system_instruction = (
         "Provide a concise, short summary response."
@@ -229,10 +270,7 @@ def ask_ai(prompt: str, debug: bool = False, force_model: str | None = None):
     if debug and used_model:
         print(f"[AI Debug] Response served by: {used_model}")
 
-    # Persist interaction history
-    history.append({"role": "user", "content": prompt})
-    history.append({"role": "assistant", "content": response_text})
-    save_history(history)
+    save_messages(session_id, user_content or prompt, response_text)
 
     return response_text
 

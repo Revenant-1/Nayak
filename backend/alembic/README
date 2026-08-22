@@ -1,0 +1,50 @@
+# Nayak Database Migrations
+
+This directory contains the Alembic migrations for the Nayak backend. The
+application uses SQLAlchemy models and Supabase PostgreSQL as the database.
+
+## Configuration
+
+Set the Supabase SQLAlchemy connection string in the backend `.env` file:
+
+```env
+DATABASE_URL=postgresql+psycopg://USER:PASSWORD@HOST:PORT/DATABASE
+```
+
+Alembic loads this value through `alembic/env.py` and uses
+`Base.metadata` from `app.models.models` to compare the models with the
+database schema.
+
+## Apply Migrations
+
+Run these commands from the backend directory:
+
+```bash
+uv run alembic upgrade head
+```
+
+This applies all migrations that have not yet been applied to Supabase.
+
+## After a Schema Change
+
+Whenever a SQLAlchemy model or database schema changes:
+
+```bash
+uv run alembic revision --autogenerate -m "describe the schema change"
+uv run alembic upgrade head
+```
+
+Always inspect the generated file in `alembic/versions/` before applying it.
+Do not use `Base.metadata.create_all()` to update an existing schema.
+
+## Existing Database
+
+If the tables already exist in Supabase and match the models, mark the current
+migration as applied without executing it:
+
+```bash
+uv run alembic stamp head
+```
+
+Use `stamp` only when the existing database has already been checked. It does
+not create or modify tables.

@@ -21,10 +21,10 @@ def retrieve_legal_context(user_query: str) -> str:
         return ""   
 
 
-def processCommand(command: str) -> str:
+def processCommand(command: str, session_id: str | None = None) -> str:
     print(f"[Command]: {command}")   
     if any(word in command.lower() for word in ["new chat", "clear memory", "forget conversation", "reset chat"]):   
-        new_chat()   
+        new_chat(session_id)
         return "Conversation cleared."   
 
     legal_context = retrieve_legal_context(command)
@@ -43,7 +43,7 @@ def processCommand(command: str) -> str:
     else:
         prompt = f"{command} ({detail_instruction})"   
 
-    response = ask_ai(prompt)   
+    response = ask_ai(prompt, session_id=session_id, user_content=command)
     print(f"[Nayak Response]: {response}")   
     return response   
 

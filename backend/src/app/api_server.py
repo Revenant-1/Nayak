@@ -4,6 +4,7 @@ from fastapi import FastAPI, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from app.ProcessCommands import processCommand
+from app.Ai import create_chat_session, load_history
 from app.services.auth import (
     authenticate_user,
     register_user,
@@ -13,7 +14,6 @@ from app.services.auth import (
     generate_token,
 )
 from datetime import datetime
-import json
 from app.models.models import Base, engine
 
 # api_server.py lives in src/app; load keys from the backend root.
@@ -31,13 +31,6 @@ app = FastAPI(
 )
 
 # --------------------------------------------------
-# Create tables if they do not exist on launch
-# --------------------------------------------------
-
-Base.metadata.create_all(bind=engine)
-
-
-# --------------------------------------------------
 # CORS
 # --------------------------------------------------
 # https://fastapi.tiangolo.com/tutorial/cors/  read this to understand the below code
@@ -49,26 +42,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-# --------------------------------------------------
-# Chat history
-# --------------------------------------------------
-
-HISTORY_PATH = Path(__file__).parent / "chat_history.json"
-
-
-def read_history():
-    if not HISTORY_PATH.exists():
-        return []
-
-    with open(HISTORY_PATH, "r", encoding="utf-8") as f:
-        return json.load(f)
-
-
-def write_history(history):
-    with open(HISTORY_PATH, "w", encoding="utf-8") as f:
-        json.dump(history, f, indent=2, ensure_ascii=False)
 
 
 # --------------------------------------------------
@@ -100,14 +73,15 @@ class LoginResponse(BaseModel):
 
 class CommandRequest(BaseModel):
     text: str
+    session_id: str | None = None
 
 # --------------------------------------------------
 # Routes
 # --------------------------------------------------
 
 @app.get("/api/history")
-async def get_history():
-    return read_history()
+async def get_history(session_id: str):
+    return load_history(session_id)
 
 
 @app.post("/api/command")
@@ -118,44 +92,14 @@ async def post_command(payload: CommandRequest):
     if not text:
         return {"error": "empty command"}
 
-    # Run your existing pipeline
-    reply = processCommand(text) or "Done."
-
-    # ask_ai already appends to chat_history.json
-    # Normalize the user line so the frontend
-    # shows the raw command.
-    history = read_history()
-
-    if (
-        history
-        and history[-1].get("role") == "assistant"
-        and history[-1].get("content") == reply
-        and len(history) >= 2
-        and history[-2].get("role") == "user"
-    ):
-        history[-2]["content"] = text
-    else:
-        history.append({
-            "role": "user",
-            "content": text
-        })
-
-        history.append({
-            "role": "assistant",
-            "content": reply
-        })
-
-    write_history(history)
-
-    return {"response": reply}
+    session_id = payload.session_id or create_chat_session()
+    reply = processCommand(text, session_id=session_id) or "Done."
+    return {"response": reply, "session_id": session_id}
 
 
 @app.post("/api/new-chat")
 async def new_chat():
-
-    write_history([])
-
-    return {"ok": True}
+    return {"ok": True, "session_id": create_chat_session()}
 
 @app.post("/upload-document")
 async def upload_document(file: UploadFile):
@@ -237,6 +181,7 @@ async def register(data: NewLoginRequest):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Registration failed. Please try again."
         )
+
 
 
 @app.post("/api/auth/guest-login", response_model=LoginResponse)

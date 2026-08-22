@@ -24,6 +24,8 @@ dependencies = [
     "passlib>=1.7.4",
     "python-jose[cryptography]>=3.5.0",
     "bcrypt>=5.0.0",
+    "psycopg[binary]>=3.3.4",
+    "alembic>=1.19.1",
 ]
 
 [tool.uv.extra-build-dependencies]
