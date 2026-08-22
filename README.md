@@ -10,16 +10,16 @@ Unified React-Vite + FastAPI voice-first interface with Python AI back-end.
 **Clone & navigate to backend directory:**
 ```bash
 git clone https://github.com/Revenant-1/Nayak.git
-cd Nayak/nayak-backend
+cd Nayak/backend
 
 ```
 
 ```bash
 # Run Backend
-cd Nayak/nayak-backend && 
+cd Nayak/backend && 
 
 # Run Frontend
-cd Nayak/nayak-frontend && npm install && npm run dev
+cd Nayak/frontend && npm install && npm run dev
 
 ```
 
@@ -49,8 +49,8 @@ This repository contains a full voice assistant stack split into two workspaces:
 
 | Part | Language / Framework | Primary Function |
 | --- | --- | --- |
-| **Backend** (`nayak-backend/`) | Python 3.13+, FastAPI, UV, Llama-CPP | Serves REST API endpoints, runs AI models, and persists conversation history (`chat_history.json`). |
-| **Frontend** (`nayak-frontend/`) | React 18+, Vite, TailwindCSS, Web APIs | UI for wake-word detection, speech-to-text, visual orb, and transcript display. All voice processing happens in-browser. |
+| **Backend** (`backend/`) | Python 3.13+, FastAPI, UV, Llama-CPP | Serves REST API endpoints, runs AI models, and persists conversation history (`chat_history.json`). |
+| **Frontend** (`frontend/`) | React 18+, Vite, TailwindCSS, Web APIs | UI for wake-word detection, speech-to-text, visual orb, and transcript display. All voice processing happens in-browser. |
 
 The two services communicate through a Vite development proxy (or configurable HTTP base URL in production) to eliminate CORS issues.
 
@@ -89,7 +89,7 @@ The two services communicate through a Vite development proxy (or configurable H
 
 ```text
 Nayak/
-├─ nayak-backend/          # Python backend workspace
+├─ backend/          # Python backend workspace
 │   ├─ src/
 │   │   └─ app/
 │   │       ├─ __init__.py
@@ -103,7 +103,7 @@ Nayak/
 │   ├─ pyproject.toml
 │   ├─ uv.lock
 │   └─ README.md
-└─ nayak-frontend/         # React frontend workspace
+└─ frontend/         # React frontend workspace
     ├─ src/
     │   ├─ components/
     │   │   ├─ Sidebar.jsx
@@ -133,7 +133,7 @@ tree -a -I '.git|.agents|.codex|node_modules|dist|build|coverage|.venv|__pycache
 1. **Clone & navigate to backend directory:**
 ```bash
 git clone https://github.com/Revenant-1/Nayak.git
-cd Nayak/nayak-backend
+cd Nayak/backend
 
 ```
 
@@ -162,7 +162,7 @@ source .venv/bin/activate        # Linux / macOS
 
 
 5. **Configure environment variables:**
-Create a `.env` file in `nayak-backend/` (next to `pyproject.toml`):
+Create a `.env` file in `backend/` (next to `pyproject.toml`):
 ```env
 GEMINI_API_KEY=your_key_here
 GROQ_API_KEY=your_key_here
@@ -188,7 +188,7 @@ uv run uvicorn app.api_server:app --reload
 
 1. **Navigate to frontend directory:**
 ```bash
-cd ../nayak-frontend
+cd ../frontend
 
 ```
 
@@ -230,8 +230,8 @@ Open separate terminal windows for the stack:
 
 | Terminal | Command | Description |
 | --- | --- | --- |
-| **1️⃣ Backend** | `cd Nayak/nayak-backend && uv run uvicorn app.api_server:app --reload` | Starts FastAPI backend server |
-| **2️⃣ Frontend** | `cd Nayak/nayak-frontend && npm run dev` | Starts Vite frontend dev server |
+| **1️⃣ Backend** | `cd Nayak/backend && uv run uvicorn app.api_server:app --reload` | Starts FastAPI backend server |
+| **2️⃣ Frontend** | `cd Nayak/frontend && npm run dev` | Starts Vite frontend dev server |
 | **3️⃣ Environment** | *(Background)* | Keep `.env` keys updated and loaded |
 
 **Runtime behavior:**
@@ -309,7 +309,7 @@ Open separate terminal windows for the stack:
 | Empty response from `/api/command` | Missing return field in backend | Ensure `ProcessCommands.py` returns a dictionary containing a valid `"response"` key. |
 | AI model fails to load | Missing API keys or invalid Python version | Ensure Python 3.13+ is installed, run `uv sync`, and verify keys in `.env`. |
 | Port conflict (`8000` or `5173`) | Port in use by another app | Change backend port via `uvicorn --port <port>` or frontend port in `vite.config.js`. |
-| `.env` variables not read | File in wrong directory | Place `.env` inside `nayak-backend/` alongside `pyproject.toml`. |
+| `.env` variables not read | File in wrong directory | Place `.env` inside `backend/` alongside `pyproject.toml`. |
 
 ---
 
