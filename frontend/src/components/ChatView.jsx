@@ -1,5 +1,7 @@
 import { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 function timestamp() {
   return new Date().toLocaleTimeString([], {
@@ -69,14 +71,13 @@ export default function ChatView({ messages, focusIndex, interimText }) {
             className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
           >
             <div
-              className={`max-w-[70%] rounded-2xl px-4 py-3 ${
-                m.role === "user"
+              className={`max-w-[70%] rounded-2xl px-4 py-3 ${m.role === "user"
                   ? "user-bubble rounded-br-sm"
                   : "assistant-bubble rounded-bl-sm"
-              }`}
+                }`}
             >
-              <p
-                className="whitespace-pre-wrap text-sm leading-relaxed"
+              <div
+                className="text-sm leading-relaxed"
                 style={{
                   color:
                     m.role === "user"
@@ -84,8 +85,21 @@ export default function ChatView({ messages, focusIndex, interimText }) {
                       : "rgb(var(--ink))",
                 }}
               >
-                {m.content}
-              </p>
+                {m.role === "assistant" ? (
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      p: ({ children }) => (
+                        <p className="whitespace-pre-wrap mb-3">{children}</p>
+                      ),
+                    }}
+                  >
+                    {m.content}
+                  </ReactMarkdown>
+                ) : (
+                  <p className="whitespace-pre-wrap">{m.content}</p>
+                )}
+              </div>
 
               <p
                 className="mt-2 font-mono text-[10px]"

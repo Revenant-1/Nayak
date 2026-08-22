@@ -5,7 +5,15 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? ''
 const WAKE_WORD = 'nayak'
 const SILENCE_TIMEOUT_MS = 1400 // pause length that closes out a captured command
-
+const cleanForSpeech = (text) =>
+  text
+    .replace(/```[\s\S]*?```/g, "")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/[*_~]/g, "")
+    .replace(/^\s*[-+]\s+/gm, "")
+    .replace(/^\s*\d+\.\s+/gm, "")
+    .trim()
 /**
  * useNayak
  * --------
@@ -65,7 +73,7 @@ export function useNayak({ onExchange } = {}) {
 
         // Speak the reply aloud to complete the voice-assistant loop.
         if ('speechSynthesis' in window) {
-          const utter = new SpeechSynthesisUtterance(reply)
+          const utter = new SpeechSynthesisUtterance(cleanForSpeech(reply))
           utter.onend = () => setStatus('sleeping')
           window.speechSynthesis.cancel()
           window.speechSynthesis.speak(utter)
