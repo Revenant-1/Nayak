@@ -142,5 +142,13 @@
   {
     "role": "assistant",
     "content": "The provided legal context does not contain your personal name. It is a blank template of the certificate required under the Schedule [Section 63(4)(c)] of the Bharatiya Sakshya Adhiniyam (BSA), 2023, where the party submitting electronic evidence must fill in their own name and device details. [Source: The Schedule, BSA]"
+  },
+  {
+    "role": "user",
+    "content": "hello"
+  },
+  {
+    "role": "assistant",
+    "content": "Hello! How can I assist you with your queries regarding the Constitution of India or other legal matters today?"
   }
 ]
