@@ -23,7 +23,7 @@ dependencies = [
     "jwt>=1.4.0",
     "passlib>=1.7.4",
     "python-jose[cryptography]>=3.5.0",
-    "bcrypt<5",
+    "bcrypt>=5.0.0",
 ]
 
 [tool.uv.extra-build-dependencies]

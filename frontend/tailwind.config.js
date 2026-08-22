@@ -4,14 +4,13 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Base surfaces — cool, near-black, never pure #000
-        void: '#05060B',
-        panel: '#0D1020',
-        'panel-hi': '#151933',
-        line: '#1E2340',
-        // Text
-        ink: '#EEF0FA',
-        mist: '#868CAA',
+        // Resolve through the active light/dark theme tokens.
+        void: 'rgb(var(--void) / <alpha-value>)',
+        panel: 'rgb(var(--panel) / <alpha-value>)',
+        'panel-hi': 'rgb(var(--panel-hi) / <alpha-value>)',
+        line: 'rgb(var(--line) / <alpha-value>)',
+        ink: 'rgb(var(--ink) / <alpha-value>)',
+        mist: 'rgb(var(--mist) / <alpha-value>)',
         // Signal accents, named after the orb's own palette
         iris: '#8B5CF6',
         magenta: '#EC4899',

@@ -5,14 +5,16 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 from groq import Groq
+
 try:
     from llama_cpp import Llama
 except ImportError:
     Llama = None
     print("[AI WARN] llama-cpp-python not found. Local Llama models will be unavailable.")
 
-# Ai.py lives in src/app; the project .env is three levels up.
-load_dotenv(Path(__file__).resolve().parents[2] / ".env")
+# Resolve paths relative to backend/ (3 levels up from src/app/Ai.py)
+BACKEND_ROOT = Path(__file__).resolve().parents[2]
+load_dotenv(BACKEND_ROOT / ".env")
 HISTORY_FILE = Path(__file__).resolve().parent / "chat_history.json"
 
 gemini_key = os.getenv("GEMINI_API_KEY")
@@ -29,41 +31,45 @@ LEGAL_SYSTEM_PROMPT = (
     "— BNS, BNSS, and BSA 2023."
 )
 
+# Set to False to skip loading a second local GGUF model and save RAM
+LOAD_GENERAL_LOCAL_FALLBACK = False
 
-# Set to False if you want to skip loading the general local model to save
-# RAM/VRAM (two local GGUF models loaded at once can be heavy).
-LOAD_GENERAL_LOCAL_FALLBACK = True
-LEGAL_MODEL_PATH = Path("models/Indian-Legal-Llama.gguf")
-LOCAL_MODEL_PATH = Path("models/modelName.gguf")
+# Model paths pointing to backend/models/
+LEGAL_MODEL_PATH = BACKEND_ROOT / "models" / "llama-3.2-3b-instruct.Q4_K_M.gguf"
+LOCAL_MODEL_PATH = BACKEND_ROOT / "models" / "modelName.gguf"
 
-if Llama:
-    if LEGAL_MODEL_PATH.exists():
-        try:
-            legal_llm_client = Llama(
-                model_path=str(LEGAL_MODEL_PATH),
-                n_ctx=2048,
-                verbose=False
-            )
-            print("[AI INFO] Legal Llama loaded.")
-        except Exception as e:
-            print(f"[AI WARN] Legal Llama failed: {e}")
-        else:
-            print("[AI INFO] Legal Llama not installed. Using fallback.")
+# --- Primary: Indian Legal Llama ---
+if Llama and LEGAL_MODEL_PATH.exists():
+    try:
+        legal_llm_client = Llama(
+            model_path=str(LEGAL_MODEL_PATH),
+            n_ctx=2048,
+            n_gpu_layers=-1,  # Offload all layers to Apple Silicon GPU (Metal)
+            verbose=False
+        )
+        print("[AI INFO] Legal Llama loaded.")
+    except Exception as e:
+        print(f"[AI WARN] Legal Llama failed to initialize: {e}")
+elif not Llama:
+    print("[AI INFO] llama-cpp-python not available. Using cloud fallbacks.")
+else:
+    print(f"[AI INFO] Legal Llama not found at {LEGAL_MODEL_PATH.name}. Using cloud fallbacks.")
 
-    # --- Secondary local model: general-purpose fallback ---
-    if LOCAL_MODEL_PATH.exists():
-        try:
-            local_llm_client = Llama(
-                model_path=str(LEGAL_MODEL_PATH),
-                n_ctx=2048,
-                verbose=False
-            )
-            print("[AI INFO] Local Llama loaded.")
-        except Exception as e:
-            print(f"[AI WARN] Local Llama failed: {e}")
-        else:
-            print("[AI INFO] Local Llama not installed. Using fallback.")
-        
+# --- Secondary: General Local Fallback ---
+if Llama and LOAD_GENERAL_LOCAL_FALLBACK and LOCAL_MODEL_PATH.exists():
+    try:
+        local_llm_client = Llama(
+            model_path=str(LOCAL_MODEL_PATH),
+            n_ctx=2048,
+            n_gpu_layers=-1,
+            verbose=False
+        )
+        print("[AI INFO] Local Llama loaded.")
+    except Exception as e:
+        print(f"[AI WARN] Local Llama failed to initialize: {e}")
+elif Llama and LOAD_GENERAL_LOCAL_FALLBACK and not LOCAL_MODEL_PATH.exists():
+    print(f"[AI INFO] General Local Llama not found at {LOCAL_MODEL_PATH.name}.")
+
 
 def load_history():
     if HISTORY_FILE.exists():
@@ -95,7 +101,7 @@ def _call_gemini(system_instruction, history, prompt):
     contents.append(types.Content(role="user", parts=[types.Part(text=prompt)]))
 
     response = gemini_client.models.generate_content(
-        model="gemini-3.5-flash",
+        model="gemini-2.5-flash",
         contents=contents,
         config=types.GenerateContentConfig(system_instruction=system_instruction),
     )
@@ -106,8 +112,6 @@ def _call_groq(messages):
     if not groq_client:
         raise ValueError("GROQ_API_KEY is missing from .env")
     response = groq_client.chat.completions.create(
-        # llama-3.1-8b-instant was retired by Groq on 08/16/2026;
-        # openai/gpt-oss-20b is Groq's official recommended replacement.
         model="openai/gpt-oss-20b",
         messages=messages
     )
@@ -136,8 +140,7 @@ def _call_local_llama(messages):
     return response["choices"][0]["message"]["content"]
 
 
-# Names usable with ask_ai(..., force_model=...) for debugging a single
-# backend in isolation (bypasses the normal fallback cascade entirely).
+# Available backends for isolation/debugging via force_model
 AVAILABLE_MODELS = ("legal", "local", "gemini", "groq")
 
 
@@ -150,13 +153,13 @@ def ask_ai(prompt: str, debug: bool = False, force_model: str | None = None):
         else "Provide a detailed, comprehensive response."
     )
 
-    # Standard messages, used for the general local model and Groq
+    # Standard messages payload (for general local model and Groq)
     messages = [{"role": "system", "content": system_instruction}]
     for msg in history:
         messages.append(msg)
     messages.append({"role": "user", "content": prompt})
 
-    # Legal-model messages: legal persona + the same length instruction
+    # Legal persona messages payload
     legal_messages = [
         {"role": "system", "content": f"{LEGAL_SYSTEM_PROMPT} {system_instruction}"}
     ]
@@ -168,7 +171,7 @@ def ask_ai(prompt: str, debug: bool = False, force_model: str | None = None):
     used_model = None
 
     if force_model is not None:
-        # --- Debug mode: call exactly one backend, no fallback ---
+        # Debug mode: target specific model explicitly
         if force_model not in AVAILABLE_MODELS:
             return (
                 f"[AI Debug] Unknown model '{force_model}'. "
@@ -187,9 +190,7 @@ def ask_ai(prompt: str, debug: bool = False, force_model: str | None = None):
         except Exception as e:
             return f"[AI Debug] '{force_model}' failed: {e}"
     else:
-        # --- Normal mode: cascade through backends in priority order ---
-
-        # 1) Try Indian Legal Llama first (primary)
+        # Cascade fallback mode: Legal Local -> General Local -> Gemini -> Groq
         if legal_llm_client:
             try:
                 response_text = _call_legal_llama(legal_messages)
@@ -198,7 +199,6 @@ def ask_ai(prompt: str, debug: bool = False, force_model: str | None = None):
                 if debug:
                     print(f"[AI Debug] Indian Legal Llama failed: {e}")
 
-        # 2) Fallback to the general local Llama model
         if not response_text and local_llm_client:
             try:
                 response_text = _call_local_llama(messages)
@@ -207,8 +207,7 @@ def ask_ai(prompt: str, debug: bool = False, force_model: str | None = None):
                 if debug:
                     print(f"[AI Debug] General local Llama failed: {e}")
 
-        # 3) Fallback to Gemini
-        if not response_text:
+        if not response_text and gemini_client:
             try:
                 response_text = _call_gemini(system_instruction, history, prompt)
                 used_model = "gemini"
@@ -216,10 +215,9 @@ def ask_ai(prompt: str, debug: bool = False, force_model: str | None = None):
                 if debug:
                     print(f"[AI Debug] Gemini failed: {e}")
 
-        # 4) Fallback to Groq
-        if not response_text:
+        if not response_text and groq_client:
             try:
-                response_text = _call_groq(messages)  # Groq uses the 'messages' format
+                response_text = _call_groq(messages)
                 used_model = "groq"
             except Exception as e:
                 if debug:
@@ -231,7 +229,7 @@ def ask_ai(prompt: str, debug: bool = False, force_model: str | None = None):
     if debug and used_model:
         print(f"[AI Debug] Response served by: {used_model}")
 
-    # Save state
+    # Persist interaction history
     history.append({"role": "user", "content": prompt})
     history.append({"role": "assistant", "content": response_text})
     save_history(history)
@@ -240,8 +238,7 @@ def ask_ai(prompt: str, debug: bool = False, force_model: str | None = None):
 
 
 if __name__ == "__main__":
-
-    env_path = Path(__file__).resolve().parents[2] / ".env"
+    env_path = BACKEND_ROOT / ".env"
     print(f"Loading environment variables from: {env_path}")
 
     current_model = None  # None = normal cascade/fallback behavior
@@ -259,6 +256,9 @@ if __name__ == "__main__":
 
     while True:
         question = input("You: ").strip()
+        if not question:
+            continue
+
         if question.lower() == "exit":
             break
 

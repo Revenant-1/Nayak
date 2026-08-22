@@ -287,3 +287,19 @@
     scroll-behavior: auto !important;
   }
 }
+/* Fix Edge/Chromium autofill styling in dark theme */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: #fff !important;
+  caret-color: #fff !important;
+
+  -webkit-box-shadow: 0 0 0 1000px #111827 inset !important;
+  box-shadow: 0 0 0 1000px #111827 inset !important;
+
+  background-color: #111827 !important;
+  color: #fff !important;
+
+  transition: background-color 9999s ease-in-out 0s !important;
+}

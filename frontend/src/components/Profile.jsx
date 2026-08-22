@@ -1,938 +1,771 @@
 import { useEffect, useMemo, useState } from "react";
+
 import {
-    User,
-    MapPin,
-    Mail,
-    Phone,
-    Calendar,
-    Briefcase,
-    Languages,
-    X,
-    Pencil,
-    Check,
-    UserRound,
-    MapPinned,
-    ShieldCheck,
-    IndianRupee,
-    Users,
+  User,
+  MapPin,
+  Mail,
+  Phone,
+  Calendar,
+  Briefcase,
+  Languages,
+  X,
+  Pencil,
+  Check,
+  UserRound,
+  MapPinned,
+  ShieldCheck,
+  IndianRupee,
+  Users,
 } from "lucide-react";
+
 import { State, City } from "country-state-city";
 
 const INITIAL_PROFILE = {
-    name: "",
-    dob: "",
-    age: "",
-    gender: "",
-    state: "",
-    district: "",
-    city: "",
-    email: "",
-    phone: "",
-    occupation: "",
-    income: "",
-    category: "",
-    specialStatus: [],
-    language: "",
-    about: "",
+  name: "",
+  dob: "",
+  age: "",
+  gender: "",
+  state: "",
+  district: "",
+  city: "",
+  email: "",
+  phone: "",
+  occupation: "",
+  income: "",
+  category: "",
+  specialStatus: [],
+  language: "",
+  about: "",
 };
 
 const SPECIAL_STATUSES = [
-    "Person with disability",
-    "Student",
-    "Farmer",
-    "Widow / Single Woman",
-    "Senior Citizen",
-    "Ex-Serviceman",
-    "Minority",
-    "Other",
+  "Person with disability",
+  "Student",
+  "Farmer",
+  "Widow / Single Woman",
+  "Senior Citizen",
+  "Ex-Serviceman",
+  "Minority",
+  "Other",
 ];
 
-const styles = {
-    overlay: {
-        position: "fixed",
-        inset: 0,
-        zIndex: 9999,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "20px",
-        background: "rgba(10, 15, 30, .42)",
-        backdropFilter: "blur(10px)",
-        WebkitBackdropFilter: "blur(10px)",
-    },
+const inputClass =
+  "h-11 w-full rounded-lg border border-[rgb(var(--line))] bg-[rgb(var(--panel-hi))] py-2.5 pl-10 pr-3 text-sm text-[rgb(var(--ink))] outline-none transition placeholder:text-[rgb(var(--mist))]/50 focus:border-[rgb(var(--iris))] focus:ring-1 focus:ring-[rgb(var(--iris))] disabled:cursor-not-allowed disabled:opacity-60";
 
-    modal: {
-        width: "min(1100px, 96vw)",
-        height: "min(850px, 92vh)",
-        display: "flex",
-        flexDirection: "column",
-        overflow: "hidden",
-        borderRadius: "22px",
-        /* Fully opaque */
-        background: "rgb(var(--panel))",
-        border: "1px solid rgb(var(--line))",
-        boxShadow: "0 24px 70px rgba(0,0,0,.25)",
-        color: "rgb(var(--ink))",
-    },
+const selectClass =
+  "h-11 w-full rounded-lg border border-[rgb(var(--line))] bg-[rgb(var(--panel-hi))] px-3 py-2.5 text-sm text-[rgb(var(--ink))] outline-none transition focus:border-[rgb(var(--iris))] focus:ring-1 focus:ring-[rgb(var(--iris))] disabled:cursor-not-allowed disabled:opacity-60";
 
-    header: {
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "20px 24px",
-        borderBottom: "1px solid rgb(var(--line))",
-        flexShrink: 0,
-    },
+const labelClass =
+  "mb-1 block text-xs font-medium uppercase tracking-wider text-[rgb(var(--mist))]";
 
-    headerLeft: {
-        display: "flex",
-        alignItems: "center",
-        gap: "12px",
-    },
+function Field({ label, icon: Icon, children }) {
+  return (
+    <div>
+      <label className={labelClass}>{label}</label>
 
-    avatar: {
-        width: "44px",
-        height: "44px",
-        borderRadius: "14px",
-        display: "grid",
-        placeItems: "center",
-        color: "#fff",
-        background: "linear-gradient(135deg, #6d5dfc, #20cfe5)",
-    },
+      <div className="relative">
+        {Icon && (
+          <Icon
+            size={16}
+            className="pointer-events-none absolute left-3 top-1/2 z-10 -translate-y-1/2 text-[rgb(var(--mist))]"
+          />
+        )}
 
-    title: {
-        margin: 0,
-        fontSize: "20px",
-        fontWeight: 700,
-        color: "rgb(var(--ink))",
-    },
+        {children}
+      </div>
+    </div>
+  );
+}
 
-    subtitle: {
-        margin: "3px 0 0",
-        fontSize: "13px",
-        color: "rgb(var(--mist))",
-    },
+function Section({ icon: Icon, title, description, children }) {
+  return (
+    <section>
+      <div className="mb-5 flex items-start gap-3">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-violet-500/30 bg-violet-500/10 text-[rgb(var(--iris))]">
+          <Icon size={18} />
+        </div>
 
-    close: {
-        width: "38px",
-        height: "38px",
-        border: "1px solid rgb(var(--line))",
-        borderRadius: "10px",
-        display: "grid",
-        placeItems: "center",
-        background: "rgb(var(--panel-hi))",
-        color: "rgb(var(--ink))",
-        cursor: "pointer",
-    },
+        <div>
+          <h3 className="text-sm font-bold text-[rgb(var(--ink))]">
+            {title}
+          </h3>
 
-    status: {
-        display: "flex",
-        alignItems: "center",
-        gap: "8px",
-        padding: "10px 24px",
-        fontSize: "12px",
-        color: "rgb(var(--mist))",
-        borderBottom: "1px solid rgb(var(--line))",
-    },
+          <p className="mt-1 text-xs text-[rgb(var(--mist))]">
+            {description}
+          </p>
+        </div>
+      </div>
 
-    dot: {
-        width: "7px",
-        height: "7px",
-        borderRadius: "50%",
-        background: "rgb(var(--iris))",
-    },
-
-    content: {
-        flex: 1,
-        overflowY: "auto",
-        padding: "24px",
-    },
-
-    section: {
-        marginBottom: "24px",
-    },
-
-    sectionTitle: {
-        display: "flex",
-        gap: "10px",
-        alignItems: "flex-start",
-        marginBottom: "18px",
-        color: "rgb(var(--iris))",
-    },
-
-    sectionHeading: {
-        margin: 0,
-        fontSize: "15px",
-        fontWeight: 700,
-        color: "rgb(var(--ink))",
-    },
-
-    sectionText: {
-        margin: "3px 0 0",
-        fontSize: "12px",
-        color: "rgb(var(--mist))",
-    },
-
-    grid2: {
-        display: "grid",
-        gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-        gap: "16px",
-    },
-
-    grid3: {
-        display: "grid",
-        gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-        gap: "16px",
-    },
-
-    field: {
-        minWidth: 0,
-    },
-
-    label: {
-        display: "block",
-        marginBottom: "7px",
-        fontSize: "12px",
-        fontWeight: 600,
-        color: "rgb(var(--ink))",
-    },
-
-    inputWrap: {
-        position: "relative",
-    },
-
-    input: {
-        width: "100%",
-        height: "44px",
-        boxSizing: "border-box",
-        padding: "0 12px 0 40px",
-        border: "1px solid rgb(var(--line))",
-        borderRadius: "10px",
-        outline: "none",
-        background: "rgb(var(--panel-hi))",
-        color: "rgb(var(--ink))",
-        fontFamily: "inherit",
-        fontSize: "13px",
-        opacity: 1,
-        WebkitTextFillColor: "rgb(var(--ink))",
-    },
-
-    select: {
-        width: "100%",
-        height: "44px",
-        boxSizing: "border-box",
-        padding: "0 36px 0 40px",
-        border: "1px solid rgb(var(--line))",
-        borderRadius: "10px",
-        outline: "none",
-        background: "rgb(var(--panel-hi))",
-        color: "rgb(var(--ink))",
-        fontFamily: "inherit",
-        fontSize: "13px",
-        opacity: 1,
-        WebkitTextFillColor: "rgb(var(--ink))",
-    },
-
-    icon: {
-        position: "absolute",
-        left: "12px",
-        top: "13px",
-        color: "rgb(var(--mist))",
-        pointerEvents: "none",
-    },
-
-    textarea: {
-        width: "100%",
-        boxSizing: "border-box",
-        minHeight: "110px",
-        padding: "14px 14px",
-        border: "1px solid rgb(var(--line))",
-        borderRadius: "10px",
-        outline: "none",
-        resize: "vertical",
-        background: "rgb(var(--panel-hi))",
-        color: "rgb(var(--ink))",
-        fontFamily: "inherit",
-        fontSize: "13px",
-        lineHeight: "1.5",
-        opacity: 1,
-        WebkitTextFillColor: "rgb(var(--ink))",
-    },
-
-    divider: {
-        border: 0,
-        borderTop: "1px solid rgb(var(--line))",
-        margin: "0 0 24px",
-    },
-
-    statusLabel: {
-        display: "block",
-        marginBottom: "8px",
-        fontSize: "12px",
-        fontWeight: 600,
-        color: "rgb(var(--ink))",
-    },
-
-    statusGrid: {
-        display: "grid",
-        gridTemplateColumns: "repeat(4, 1fr)",
-        gap: "10px",
-    },
-
-    statusCard: {
-        display: "flex",
-        alignItems: "center",
-        gap: "8px",
-        minHeight: "44px",
-        padding: "8px 10px",
-        border: "1px solid rgb(var(--line))",
-        borderRadius: "10px",
-        background: "rgb(var(--panel))",
-        color: "rgb(var(--ink))",
-        fontFamily: "inherit",
-        fontSize: "12px",
-        textAlign: "left",
-        cursor: "pointer",
-    },
-
-    check: {
-        width: "18px",
-        height: "18px",
-        flexShrink: 0,
-        display: "grid",
-        placeItems: "center",
-        border: "1px solid rgb(var(--line))",
-        borderRadius: "5px",
-    },
-
-    privacy: {
-        display: "flex",
-        gap: "10px",
-        padding: "14px",
-        border: "1px solid rgba(16,185,129,.25)",
-        borderRadius: "12px",
-        background: "rgba(16,185,129,.07)",
-        color: "rgb(var(--ink))",
-    },
-
-    footer: {
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "flex-end",
-        gap: "10px",
-        padding: "14px 24px",
-        borderTop: "1px solid rgb(var(--line))",
-        flexShrink: 0,
-    },
-
-    closeBtn: {
-        height: "40px",
-        padding: "0 16px",
-        border: "1px solid rgb(var(--line))",
-        borderRadius: "10px",
-        background: "rgb(var(--panel))",
-        color: "rgb(var(--ink))",
-        cursor: "pointer",
-    },
-
-    saveBtn: {
-        height: "40px",
-        padding: "0 16px",
-        border: 0,
-        borderRadius: "10px",
-        display: "flex",
-        alignItems: "center",
-        gap: "7px",
-        cursor: "pointer",
-    },
-};
+      {children}
+    </section>
+  );
+}
 
 export default function Profile({ onClose }) {
-    const [profile, setProfile] = useState(INITIAL_PROFILE);
-    const [editing, setEditing] = useState(true);
-    const [saved, setSaved] = useState(false);
+  const [profile, setProfile] = useState(INITIAL_PROFILE);
+  const [editing, setEditing] = useState(true);
+  const [saved, setSaved] = useState(false);
 
-    useEffect(() => {
-        const stored = localStorage.getItem("nayakProfile");
+  useEffect(() => {
+    const stored = localStorage.getItem("nayakProfile");
 
-        if (!stored) return;
+    if (!stored) return;
 
-        try {
-            const data = JSON.parse(stored);
+    try {
+      const parsed = JSON.parse(stored);
 
-            setProfile({
-                ...INITIAL_PROFILE,
-                ...data,
-                specialStatus: Array.isArray(data.specialStatus)
-                    ? data.specialStatus
-                    : [],
-            });
+      setProfile({
+        ...INITIAL_PROFILE,
+        ...parsed,
+        specialStatus: Array.isArray(parsed.specialStatus)
+          ? parsed.specialStatus
+          : [],
+      });
 
-            setEditing(false);
-        } catch {
-            localStorage.removeItem("nayakProfile");
+      setEditing(false);
+    } catch {
+      localStorage.removeItem("nayakProfile");
+    }
+  }, []);
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, []);
+
+  const updateProfile = (name, value) => {
+    setProfile((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    setSaved(false);
+  };
+
+  const handleChange = (e) => {
+    updateProfile(e.target.name, e.target.value);
+  };
+
+  const handleStateChange = (e) => {
+    setProfile((prev) => ({
+      ...prev,
+      state: e.target.value,
+      district: "",
+      city: "",
+    }));
+
+    setSaved(false);
+  };
+
+  const handleSpecialStatus = (status) => {
+    setProfile((prev) => {
+      const exists = prev.specialStatus.includes(status);
+
+      return {
+        ...prev,
+        specialStatus: exists
+          ? prev.specialStatus.filter((item) => item !== status)
+          : [...prev.specialStatus, status],
+      };
+    });
+
+    setSaved(false);
+  };
+
+  const handleSave = () => {
+    localStorage.setItem("nayakProfile", JSON.stringify(profile));
+
+    setSaved(true);
+    setEditing(false);
+  };
+
+  const handleEdit = () => {
+    setEditing(true);
+    setSaved(false);
+  };
+
+  const indiaStates = useMemo(
+    () => State.getStatesOfCountry("IN"),
+    []
+  );
+
+  const selectedState = useMemo(
+    () =>
+      indiaStates.find(
+        (state) => state.name === profile.state
+      ),
+    [indiaStates, profile.state]
+  );
+
+  const cities = useMemo(() => {
+    if (!selectedState) return [];
+
+    return City.getCitiesOfState(
+      "IN",
+      selectedState.isoCode
+    );
+  }, [selectedState]);
+
+  return (
+    <>
+      <style>{`
+        .profile-scrollbar::-webkit-scrollbar {
+          width: 6px;
         }
-    }, []);
 
-    useEffect(() => {
-        const oldOverflow = document.body.style.overflow;
+        .profile-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
 
-        document.body.style.overflow = "hidden";
+        .profile-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(124, 58, 237, .25);
+          border-radius: 999px;
+        }
 
-        return () => {
-            document.body.style.overflow = oldOverflow;
-        };
-    }, []);
+        .profile-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(124, 58, 237, .45);
+        }
 
-    const states = useMemo(
-        () => State.getStatesOfCountry("IN"),
-        []
-    );
+        .profile-date::-webkit-calendar-picker-indicator {
+          opacity: .7;
+          cursor: pointer;
+        }
+      `}</style>
 
-    const selectedState = useMemo(
-        () => states.find((s) => s.name === profile.state),
-        [states, profile.state]
-    );
-
-    const cities = useMemo(() => {
-        if (!selectedState) return [];
-
-        return City.getCitiesOfState(
-            "IN",
-            selectedState.isoCode
-        );
-    }, [selectedState]);
-
-    const update = (name, value) => {
-        setProfile((prev) => ({
-            ...prev,
-            [name]: value,
-        }));
-
-        setSaved(false);
-    };
-
-    const handleChange = (e) => {
-        update(e.target.name, e.target.value);
-    };
-
-    const handleState = (e) => {
-        setProfile((prev) => ({
-            ...prev,
-            state: e.target.value,
-            district: "",
-            city: "",
-        }));
-
-        setSaved(false);
-    };
-
-    const toggleStatus = (status) => {
-        setProfile((prev) => ({
-            ...prev,
-            specialStatus: prev.specialStatus.includes(status)
-                ? prev.specialStatus.filter((x) => x !== status)
-                : [...prev.specialStatus, status],
-        }));
-
-        setSaved(false);
-    };
-
-    const save = () => {
-        localStorage.setItem(
-            "nayakProfile",
-            JSON.stringify(profile)
-        );
-
-        setSaved(true);
-        setEditing(false);
-    };
-
-    return (
-        <div style={styles.overlay}>
-            <div
-                className="glass"
-                style={styles.modal}
-                role="dialog"
-                aria-modal="true"
-            >
-                {/* HEADER */}
-                <header style={styles.header}>
-                    <div style={styles.headerLeft}>
-                        <div style={styles.avatar}>
-                            <UserRound size={22} />
-                        </div>
-
-                        <div>
-                            <h2 style={styles.title}>My Profile</h2>
-
-                            <p style={styles.subtitle}>
-                                Manage your personal information
-                            </p>
-                        </div>
-                    </div>
-
-                    <div style={{ display: "flex", gap: 8 }}>
-                        {!editing && (
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setEditing(true);
-                                    setSaved(false);
-                                }}
-                                style={styles.closeBtn}
-                            >
-                                <Pencil size={15} />{" "}
-                            </button>
-                        )}
-
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            style={styles.close}
-                            aria-label="Close"
-                        >
-                            <X size={20} />
-                        </button>
-                    </div>
-                </header>
-
-                {/* STATUS */}
-                <div style={styles.status}>
-                    <span style={styles.dot} />
-
-                    {editing
-                        ? "Editing your profile"
-                        : "Your profile is up to date"}
+      {/* OVERLAY */}
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[rgba(10,15,30,.55)] p-3 backdrop-blur-md sm:p-5">
+        {/* MODAL */}
+        <div
+          className="glass flex max-h-[94vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl"
+          role="dialog"
+          aria-modal="true"
+        >
+          {/* HEADER */}
+          <header className="shrink-0 border-b border-[rgb(var(--line))]">
+            <div className="flex items-center justify-between px-5 py-4 sm:px-7">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-violet-500/30 bg-violet-500/10 text-[rgb(var(--iris))]">
+                  <UserRound size={21} />
                 </div>
 
-                {/* CONTENT */}
-                <main
-                    className="scroll-thin"
-                    style={styles.content}
+                <div className="min-w-0">
+                  <h2 className="text-lg font-bold tracking-tight text-[rgb(var(--ink))] sm:text-xl">
+                    My Profile
+                  </h2>
+
+                  <p className="mt-0.5 text-xs text-[rgb(var(--mist))] sm:text-sm">
+                    Manage your personal information
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {!editing && (
+                  <button
+                    type="button"
+                    onClick={handleEdit}
+                    className="flex h-9 items-center gap-2 rounded-lg border border-[rgb(var(--line))] bg-[rgb(var(--panel-hi))] px-3 text-xs font-medium text-[rgb(var(--mist))] transition hover:border-[rgb(var(--iris))]/40 hover:text-[rgb(var(--ink))]"
+                  >
+                    <Pencil size={14} />
+                    <span className="hidden sm:inline">
+                      Edit
+                    </span>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={onClose}
+                  aria-label="Close profile"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-[rgb(var(--line))] bg-[rgb(var(--panel-hi))] text-[rgb(var(--mist))] transition hover:border-[rgb(var(--iris))]/40 hover:text-[rgb(var(--ink))]"
                 >
-                    <Section
-                        icon={<UserRound size={18} />}
-                        title="Personal Information"
-                        text="Basic information about you"
-                    >
-                        <div style={styles.grid2}>
-                            <Field
-                                label="Full Name"
-                                icon={<User size={17} />}
-                            >
-                                <input
-                                    name="name"
-                                    value={profile.name}
-                                    onChange={handleChange}
-                                    disabled={!editing}
-                                    placeholder="Enter your full name"
-                                    style={styles.input}
-                                />
-                            </Field>
-
-                            <Field
-                                label="Date of Birth"
-                                icon={<Calendar size={17} />}
-                            >
-                                <input
-                                    type="date"
-                                    name="dob"
-                                    value={profile.dob}
-                                    onChange={handleChange}
-                                    disabled={!editing}
-                                    style={styles.input}
-                                />
-                            </Field>
-
-                            <Field
-                                label="Age"
-                                icon={<Calendar size={17} />}
-                            >
-                                <input
-                                    type="number"
-                                    name="age"
-                                    value={profile.age}
-                                    onChange={handleChange}
-                                    disabled={!editing}
-                                    placeholder="Enter age"
-                                    style={styles.input}
-                                />
-                            </Field>
-
-                            <Field label="Gender">
-                                <select
-                                    name="gender"
-                                    value={profile.gender}
-                                    onChange={handleChange}
-                                    disabled={!editing}
-                                    style={styles.select}
-                                >
-                                    <option value="">Select gender</option>
-                                    <option>Male</option>
-                                    <option>Female</option>
-                                    <option>Other</option>
-                                    <option>Prefer not to say</option>
-                                </select>
-                            </Field>
-
-                            <Field
-                                label="Occupation"
-                                icon={<Briefcase size={17} />}
-                            >
-                                <input
-                                    name="occupation"
-                                    value={profile.occupation}
-                                    onChange={handleChange}
-                                    disabled={!editing}
-                                    placeholder="Student, Farmer..."
-                                    style={styles.input}
-                                />
-                            </Field>
-                        </div>
-                    </Section>
-
-                    <hr style={styles.divider} />
-
-                    <Section
-                        icon={<MapPinned size={18} />}
-                        title="Location"
-                        text="Help Nayak provide location-specific information"
-                    >
-                        <div style={styles.grid3}>
-                            <Field
-                                label="State"
-                                icon={<MapPin size={17} />}
-                            >
-                                <select
-                                    value={profile.state}
-                                    onChange={handleState}
-                                    disabled={!editing}
-                                    style={{
-                                        ...styles.input,
-                                        appearance: "auto",
-                                    }}
-                                >
-                                    <option value="">Select state</option>
-
-                                    {states.map((state) => (
-                                        <option
-                                            key={state.isoCode}
-                                            value={state.name}
-                                        >
-                                            {state.name}
-                                        </option>
-                                    ))}
-                                </select>
-                            </Field>
-
-                            <Field
-                                label="District"
-                                icon={<MapPin size={17} />}
-                            >
-                                <input
-                                    name="district"
-                                    value={profile.district}
-                                    onChange={handleChange}
-                                    disabled={!editing || !profile.state}
-                                    placeholder="Enter district"
-                                    style={styles.input}
-                                />
-                            </Field>
-
-                            <Field
-                                label="City"
-                                icon={<MapPin size={17} />}
-                            >
-                                <select
-                                    value={profile.city}
-                                    onChange={(e) =>
-                                        update("city", e.target.value)
-                                    }
-                                    disabled={!editing || !profile.state}
-                                    style={styles.select}
-                                >
-                                    <option value="">Select city</option>
-
-                                    {cities.map((city, i) => (
-                                        <option
-                                            key={`${city.name}-${i}`}
-                                            value={city.name}
-                                        >
-                                            {city.name}
-                                        </option>
-                                    ))}
-                                </select>
-                            </Field>
-                        </div>
-                    </Section>
-
-                    <hr style={styles.divider} />
-
-                    <Section
-                        icon={<Mail size={18} />}
-                        title="Contact Information"
-                        text="Your communication details"
-                    >
-                        <div style={styles.grid2}>
-                            <Field
-                                label="Email Address"
-                                icon={<Mail size={17} />}
-                            >
-                                <input
-                                    type="email"
-                                    name="email"
-                                    value={profile.email}
-                                    onChange={handleChange}
-                                    disabled={!editing}
-                                    placeholder="you@example.com"
-                                    style={styles.input}
-                                />
-                            </Field>
-
-                            <Field
-                                label="Phone Number"
-                                icon={<Phone size={17} />}
-                            >
-                                <input
-                                    type="tel"
-                                    name="phone"
-                                    value={profile.phone}
-                                    onChange={handleChange}
-                                    disabled={!editing}
-                                    placeholder="Enter phone number"
-                                    style={styles.input}
-                                />
-                            </Field>
-                        </div>
-                    </Section>
-
-                    <hr style={styles.divider} />
-
-                    <Section
-                        icon={<Users size={18} />}
-                        title="Socio-Economic Information"
-                        text="Used for scheme recommendations"
-                    >
-                        <div style={styles.grid2}>
-                            <Field
-                                label="Annual Family Income"
-                                icon={<IndianRupee size={17} />}
-                            >
-                                <select
-                                    name="income"
-                                    value={profile.income}
-                                    onChange={handleChange}
-                                    disabled={!editing}
-                                    style={styles.select}
-                                >
-                                    <option value="">Select income</option>
-                                    <option>Below ₹1 Lakh</option>
-                                    <option>₹1 – ₹2.5 Lakh</option>
-                                    <option>₹2.5 – ₹5 Lakh</option>
-                                    <option>₹5 – ₹10 Lakh</option>
-                                    <option>₹10 – ₹20 Lakh</option>
-                                    <option>Above ₹20 Lakh</option>
-                                    <option>Prefer not to say</option>
-                                </select>
-                            </Field>
-
-                            <Field label="Social Category">
-                                <select
-                                    name="category"
-                                    value={profile.category}
-                                    onChange={handleChange}
-                                    disabled={!editing}
-                                    style={styles.select}
-                                >
-                                    <option value="">Select category</option>
-                                    <option>SC</option>
-                                    <option>ST</option>
-                                    <option>OBC</option>
-                                    <option>General</option>
-                                    <option>Prefer not to say</option>
-                                </select>
-                            </Field>
-                        </div>
-
-                        <div style={{ marginTop: 18 }}>
-                            <label style={styles.statusLabel}>
-                                Special Category / Status
-                            </label>
-
-                            <div style={styles.statusGrid}>
-                                {SPECIAL_STATUSES.map((status) => {
-                                    const active =
-                                        profile.specialStatus.includes(status);
-
-                                    return (
-                                        <button
-                                            key={status}
-                                            type="button"
-                                            disabled={!editing}
-                                            onClick={() => toggleStatus(status)}
-                                            style={{
-                                                ...styles.statusCard,
-                                                borderColor: active
-                                                    ? "rgb(var(--iris))"
-                                                    : "rgb(var(--line))",
-                                                background: active
-                                                    ? "rgba(124,58,237,.10)"
-                                                    : "rgb(var(--panel))",
-                                            }}
-                                        >
-                                            <span
-                                                style={{
-                                                    ...styles.check,
-                                                    background: active
-                                                        ? "rgb(var(--iris))"
-                                                        : "transparent",
-                                                    color: "#fff",
-                                                }}
-                                            >
-                                                {active && <Check size={12} />}
-                                            </span>
-
-                                            {status}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    </Section>
-
-                    <hr style={styles.divider} />
-
-                    <Section
-                        icon={<Languages size={18} />}
-                        title="Preferences"
-                        text="Customize how Nayak communicates with you"
-                    >
-                        <Field label="Preferred Language">
-                            <select
-                                name="language"
-                                value={profile.language}
-                                onChange={handleChange}
-                                disabled={!editing}
-                                style={styles.select}
-                            >
-                                <option value="">Select language</option>
-                                <option>English</option>
-                                <option>Hindi</option>
-                                <option>Urdu</option>
-                                <option>Marathi</option>
-                                <option>Bengali</option>
-                            </select>
-                        </Field>
-                    </Section>
-
-                    <Section
-                        icon={<User size={18} />}
-                        title="About You"
-                        text="Tell Nayak a little more about yourself"
-                    >
-                        <textarea
-                            name="about"
-                            value={profile.about}
-                            onChange={handleChange}
-                            disabled={!editing}
-                            rows={4}
-                            placeholder="Tell Nayak something about yourself..."
-                            style={styles.textarea}
-                        />
-                    </Section>
-
-                    <div style={styles.privacy}>
-                        <ShieldCheck size={20} />
-
-                        <div>
-                            <strong style={{ fontSize: 12 }}>
-                                Your profile stays on this device
-                            </strong>
-
-                            <p
-                                style={{
-                                    margin: "3px 0 0",
-                                    fontSize: 11,
-                                    color: "rgb(var(--mist))",
-                                }}
-                            >
-                                Your profile information is stored locally
-                                in your browser.
-                            </p>
-                        </div>
-                    </div>
-                </main>
-
-                {/* FOOTER */}
-                <footer style={styles.footer}>
-                    {saved && (
-                        <span
-                            style={{
-                                marginRight: "auto",
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 5,
-                                color: "rgb(var(--jade))",
-                                fontSize: 12,
-                            }}
-                        >
-                            <Check size={15} />
-                            Profile saved successfully
-                        </span>
-                    )}
-
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        style={styles.closeBtn}
-                    >
-                        Close
-                    </button>
-
-                    {editing && (
-                        <button
-                            type="button"
-                            onClick={save}
-                            className="gradient-btn"
-                            style={styles.saveBtn}
-                        >
-                            <Check size={16} />
-                            Save Profile
-                        </button>
-                    )}
-                </footer>
+                  <X size={19} />
+                </button>
+              </div>
             </div>
-        </div>
-    );
-}
 
-function Section({ icon, title, text, children }) {
-    return (
-        <section style={styles.section}>
-            <div style={styles.sectionTitle}>
-                {icon}
+            {/* STATUS */}
+            <div className="flex items-center gap-2 border-t border-[rgb(var(--line))] px-5 py-2.5 sm:px-7">
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${
+                  editing
+                    ? "bg-amber-400"
+                    : "bg-[rgb(var(--jade))]"
+                }`}
+              />
+
+              <span className="text-[11px] text-[rgb(var(--mist))]">
+                {editing
+                  ? "Editing your profile"
+                  : "Your profile is up to date"}
+              </span>
+            </div>
+          </header>
+
+          {/* CONTENT */}
+          <main className="profile-scrollbar flex-1 overflow-y-auto">
+            <div className="space-y-7 p-5 sm:p-7">
+              {/* PERSONAL */}
+              <Section
+                icon={UserRound}
+                title="Personal Information"
+                description="Basic information about you"
+              >
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <Field label="Full Name" icon={User}>
+                    <input
+                      type="text"
+                      name="name"
+                      value={profile.name}
+                      onChange={handleChange}
+                      disabled={!editing}
+                      placeholder="Enter your full name"
+                      className={inputClass}
+                    />
+                  </Field>
+
+                  <Field
+                    label="Date of Birth"
+                    icon={Calendar}
+                  >
+                    <input
+                      type="date"
+                      name="dob"
+                      value={profile.dob}
+                      onChange={handleChange}
+                      disabled={!editing}
+                      className={`${inputClass} profile-date`}
+                    />
+                  </Field>
+
+                  <Field label="Age" icon={Calendar}>
+                    <input
+                      type="number"
+                      name="age"
+                      value={profile.age}
+                      onChange={handleChange}
+                      disabled={!editing}
+                      min="1"
+                      max="120"
+                      placeholder="Enter your age"
+                      className={inputClass}
+                    />
+                  </Field>
+
+                  <Field label="Gender">
+                    <select
+                      name="gender"
+                      value={profile.gender}
+                      onChange={handleChange}
+                      disabled={!editing}
+                      className={selectClass}
+                    >
+                      <option value="">
+                        Select gender
+                      </option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                      <option value="Prefer not to say">
+                        Prefer not to say
+                      </option>
+                    </select>
+                  </Field>
+
+                  <Field
+                    label="Occupation"
+                    icon={Briefcase}
+                  >
+                    <input
+                      type="text"
+                      name="occupation"
+                      value={profile.occupation}
+                      onChange={handleChange}
+                      disabled={!editing}
+                      placeholder="Student, Developer, Farmer..."
+                      className={inputClass}
+                    />
+                  </Field>
+                </div>
+              </Section>
+
+              <div className="h-px bg-[rgb(var(--line))]" />
+
+              {/* LOCATION */}
+              <Section
+                icon={MapPinned}
+                title="Location"
+                description="Help Nayak provide location-specific information"
+              >
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                  <Field label="State" icon={MapPin}>
+                    <select
+                      value={profile.state}
+                      disabled={!editing}
+                      onChange={handleStateChange}
+                      className={`${selectClass} pl-10`}
+                    >
+                      <option value="">
+                        Select state
+                      </option>
+
+                      {indiaStates.map((state) => (
+                        <option
+                          key={state.isoCode}
+                          value={state.name}
+                        >
+                          {state.name}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+
+                  <Field label="District" icon={MapPin}>
+                    <input
+                      type="text"
+                      name="district"
+                      value={profile.district}
+                      onChange={handleChange}
+                      disabled={
+                        !editing || !profile.state
+                      }
+                      placeholder={
+                        profile.state
+                          ? "Enter district"
+                          : "Select state first"
+                      }
+                      className={inputClass}
+                    />
+                  </Field>
+
+                  <Field label="City" icon={MapPin}>
+                    <select
+                      value={profile.city}
+                      disabled={
+                        !editing || !profile.state
+                      }
+                      onChange={(e) =>
+                        updateProfile(
+                          "city",
+                          e.target.value
+                        )
+                      }
+                      className={`${selectClass} pl-10`}
+                    >
+                      <option value="">
+                        {profile.state
+                          ? "Select city"
+                          : "Select state first"}
+                      </option>
+
+                      {cities.map((city, index) => (
+                        <option
+                          key={`${city.name}-${index}`}
+                          value={city.name}
+                        >
+                          {city.name}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                </div>
+
+                {profile.state && (
+                  <div className="mt-4 flex items-center gap-2 rounded-lg border border-violet-500/20 bg-violet-500/10 px-3 py-2.5">
+                    <MapPin
+                      size={14}
+                      className="shrink-0 text-[rgb(var(--iris))]"
+                    />
+
+                    <span className="text-[11px] text-[rgb(var(--mist))]">
+                      Your location helps Nayak tailor
+                      information to your area.
+                    </span>
+                  </div>
+                )}
+              </Section>
+
+              <div className="h-px bg-[rgb(var(--line))]" />
+
+              {/* CONTACT */}
+              <Section
+                icon={Mail}
+                title="Contact Information"
+                description="Your communication details"
+              >
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <Field
+                    label="Email Address"
+                    icon={Mail}
+                  >
+                    <input
+                      type="email"
+                      name="email"
+                      value={profile.email}
+                      onChange={handleChange}
+                      disabled={!editing}
+                      placeholder="example@email.com"
+                      className={inputClass}
+                    />
+                  </Field>
+
+                  <Field
+                    label="Phone Number"
+                    icon={Phone}
+                  >
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={profile.phone}
+                      onChange={handleChange}
+                      disabled={!editing}
+                      placeholder="+91 XXXXX XXXXX"
+                      className={inputClass}
+                    />
+                  </Field>
+                </div>
+              </Section>
+
+              <div className="h-px bg-[rgb(var(--line))]" />
+
+              {/* SOCIO-ECONOMIC */}
+              <Section
+                icon={Users}
+                title="Socio-Economic Information"
+                description="This information can help Nayak identify relevant schemes and benefits"
+              >
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <Field
+                    label="Approximate Annual Family Income"
+                    icon={IndianRupee}
+                  >
+                    <select
+                      name="income"
+                      value={profile.income}
+                      onChange={handleChange}
+                      disabled={!editing}
+                      className={`${selectClass} pl-10`}
+                    >
+                      <option value="">
+                        Select income range
+                      </option>
+                      <option value="Below ₹1 Lakh">
+                        Below ₹1 Lakh
+                      </option>
+                      <option value="₹1 – ₹2.5 Lakh">
+                        ₹1 – ₹2.5 Lakh
+                      </option>
+                      <option value="₹2.5 – ₹5 Lakh">
+                        ₹2.5 – ₹5 Lakh
+                      </option>
+                      <option value="₹5 – ₹10 Lakh">
+                        ₹5 – ₹10 Lakh
+                      </option>
+                      <option value="₹10 – ₹20 Lakh">
+                        ₹10 – ₹20 Lakh
+                      </option>
+                      <option value="Above ₹20 Lakh">
+                        Above ₹20 Lakh
+                      </option>
+                      <option value="Prefer not to say">
+                        Prefer not to say
+                      </option>
+                    </select>
+                  </Field>
+
+                  <Field label="Social Category">
+                    <select
+                      name="category"
+                      value={profile.category}
+                      onChange={handleChange}
+                      disabled={!editing}
+                      className={selectClass}
+                    >
+                      <option value="">
+                        Select category
+                      </option>
+                      <option value="SC">SC</option>
+                      <option value="ST">ST</option>
+                      <option value="OBC">OBC</option>
+                      <option value="General">
+                        General
+                      </option>
+                      <option value="Prefer not to say">
+                        Prefer not to say
+                      </option>
+                    </select>
+                  </Field>
+                </div>
+
+                {/* SPECIAL STATUS */}
+                <div className="mt-5">
+                  <label className={labelClass}>
+                    Special Category / Status
+                  </label>
+
+                  <p className="mb-3 text-[11px] text-[rgb(var(--mist))]">
+                    Select all that apply
+                  </p>
+
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    {SPECIAL_STATUSES.map((status) => {
+                      const selected =
+                        profile.specialStatus.includes(
+                          status
+                        );
+
+                      return (
+                        <button
+                          key={status}
+                          type="button"
+                          disabled={!editing}
+                          onClick={() =>
+                            handleSpecialStatus(status)
+                          }
+                          className={`flex items-center gap-3 rounded-lg border px-3 py-3 text-left text-xs transition ${
+                            selected
+                              ? "border-[rgb(var(--iris))] bg-violet-500/10 text-[rgb(var(--ink))]"
+                              : "border-[rgb(var(--line))] bg-[rgb(var(--panel-hi))] text-[rgb(var(--mist))] hover:border-[rgb(var(--iris))]/40 hover:text-[rgb(var(--ink))]"
+                          } disabled:cursor-not-allowed disabled:opacity-60`}
+                        >
+                          <span
+                            className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border ${
+                              selected
+                                ? "border-[rgb(var(--iris))] bg-[rgb(var(--iris))]"
+                                : "border-[rgb(var(--line))] bg-transparent"
+                            }`}
+                          >
+                            {selected && (
+                              <Check
+                                size={12}
+                                className="text-white"
+                              />
+                            )}
+                          </span>
+
+                          {status}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </Section>
+
+              <div className="h-px bg-[rgb(var(--line))]" />
+
+              {/* PREFERENCES */}
+              <Section
+                icon={Languages}
+                title="Preferences"
+                description="Customize how Nayak communicates with you"
+              >
+                <div className="max-w-md">
+                  <Field label="Preferred Language">
+                    <select
+                      name="language"
+                      value={profile.language}
+                      onChange={handleChange}
+                      disabled={!editing}
+                      className={selectClass}
+                    >
+                      <option value="">
+                        Select language
+                      </option>
+                      <option value="English">
+                        English
+                      </option>
+                      <option value="Hindi">Hindi</option>
+                      <option value="Urdu">Urdu</option>
+                      <option value="Marathi">
+                        Marathi
+                      </option>
+                      <option value="Bengali">
+                        Bengali
+                      </option>
+                    </select>
+                  </Field>
+                </div>
+              </Section>
+
+              {/* ABOUT */}
+              <Section
+                icon={User}
+                title="About You"
+                description="Tell Nayak a little more about yourself"
+              >
+                <textarea
+                  name="about"
+                  value={profile.about}
+                  onChange={handleChange}
+                  disabled={!editing}
+                  rows={4}
+                  placeholder="Tell Nayak something about yourself..."
+                  className="w-full resize-none rounded-lg border border-[rgb(var(--line))] bg-[rgb(var(--panel-hi))] px-3 py-3 text-sm leading-6 text-[rgb(var(--ink))] outline-none transition placeholder:text-[rgb(var(--mist))]/50 focus:border-[rgb(var(--iris))] focus:ring-1 focus:ring-[rgb(var(--iris))] disabled:cursor-not-allowed disabled:opacity-60"
+                />
+              </Section>
+
+              {/* PRIVACY */}
+              <div className="flex gap-3 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3">
+                <ShieldCheck
+                  size={18}
+                  className="mt-0.5 shrink-0 text-[rgb(var(--jade))]"
+                />
 
                 <div>
-                    <h3 style={styles.sectionHeading}>{title}</h3>
-                    <p style={styles.sectionText}>{text}</p>
+                  <p className="text-xs font-medium text-[rgb(var(--ink))]">
+                    Your profile stays on this device
+                  </p>
+
+                  <p className="mt-1 text-[11px] leading-5 text-[rgb(var(--mist))]">
+                    Your profile information is currently
+                    stored locally in your browser.
+                  </p>
                 </div>
+              </div>
             </div>
+          </main>
 
-            {children}
-        </section>
-    );
-}
+          {/* FOOTER */}
+          <footer className="shrink-0 border-t border-[rgb(var(--line))] px-5 py-3 sm:px-7">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-h-5">
+                {saved && (
+                  <span className="flex items-center gap-1.5 text-xs font-medium text-[rgb(var(--jade))]">
+                    <Check size={14} />
+                    Profile saved successfully
+                  </span>
+                )}
+              </div>
 
-function Field({ label, icon, children }) {
-    return (
-        <div style={styles.field}>
-            <label style={styles.label}>{label}</label>
+              <div className="flex w-full gap-2 sm:w-auto">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="flex h-10 flex-1 items-center justify-center rounded-lg border border-[rgb(var(--line))] bg-[rgb(var(--panel-hi))] px-5 text-sm font-medium text-[rgb(var(--mist))] transition hover:border-[rgb(var(--iris))]/40 hover:bg-[rgb(var(--panel))] hover:text-[rgb(var(--ink))] sm:flex-none"
+                >
+                  Close
+                </button>
 
-            <div style={styles.inputWrap}>
-                {icon && <span style={styles.icon}>{icon}</span>}
-                {children}
+                {editing && (
+                  <button
+                    type="button"
+                    onClick={handleSave}
+                    className="gradient-btn flex h-10 flex-1 items-center justify-center gap-2 rounded-lg px-5 text-sm font-medium transition hover:-translate-y-0.5 sm:flex-none"
+                  >
+                    <Check size={15} />
+                    Save Profile
+                  </button>
+                )}
+              </div>
             </div>
+          </footer>
         </div>
-    );
+      </div>
+    </>
+  );
 }

@@ -14,7 +14,7 @@ from app.services.auth import (
 )
 from datetime import datetime
 import json
-
+from app.models.models import Base, engine
 
 # api_server.py lives in src/app; load keys from the backend root.
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
@@ -29,6 +29,12 @@ app = FastAPI(
     description="Backend API for Nayak - AI-Powered Legal Assistant",
     version="0.1.0"
 )
+
+# --------------------------------------------------
+# Create tables if they do not exist on launch
+# --------------------------------------------------
+
+Base.metadata.create_all(bind=engine)
 
 
 # --------------------------------------------------
@@ -161,17 +167,26 @@ async def upload_document(file: UploadFile):
 @app.post("/api/auth/login", response_model=LoginResponse)
 # Authenticate user with username and password.
 async def login(payload: LoginRequest):
+    user_info = authenticate_user(payload.username, payload.password)
     
-    try:
-        user_info = authenticate_user(payload.username, payload.password)
-        token, expiry = generate_token(user_info["user_id"], guest=user_info["user_type"] == "guest")
+    # Check if authentication failed
+    if not user_info:
+        from fastapi import HTTPException, status
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid username or password"
+        )
 
+    try:
+        token, expiry = generate_token(
+            user_info["user_id"], 
+            guest=user_info.get("user_type") == "guest"
+        )
         expires_in = int((expiry - datetime.utcnow()).total_seconds())
 
-# Returns JWT token and user info.
         return LoginResponse(
             token=token,
-            user_id=user_info["id"],
+            user_id=user_info["user_id"],
             username=user_info["username"],
             user_type=user_info["user_type"],
             expires_in=expires_in
@@ -179,7 +194,7 @@ async def login(payload: LoginRequest):
     except Exception as e:
         from fastapi import HTTPException, status
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e)
         )
 
@@ -187,8 +202,41 @@ async def login(payload: LoginRequest):
 @app.post("/api/auth/register", response_model=LoginResponse)
 # Authenticate user to register.
 async def register(data: NewLoginRequest):
-    User = register_user(data.username, data.password, data.email)
-    return login(data.username, data.password)
+    try:
+        user = register_user(
+            data.username,
+            data.password,
+            data.email
+        )
+
+        token, expiry = generate_token(
+            str(user.id),
+            guest=False
+        )
+
+        expires_in = int(
+            (expiry - datetime.utcnow()).total_seconds()
+        )
+
+        return LoginResponse(
+            token=token,
+            user_id=str(user.id),
+            username=user.username,
+            user_type=user.user_type,
+            expires_in=expires_in
+        )
+    except ValueError as e:
+        from fastapi import HTTPException, status
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        from fastapi import HTTPException, status
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Registration failed. Please try again."
+        )
 
 
 @app.post("/api/auth/guest-login", response_model=LoginResponse)
