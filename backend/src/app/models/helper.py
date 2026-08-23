@@ -1,16 +1,31 @@
 from datetime import datetime
+import os
+from pathlib import Path
+from dotenv import load_dotenv
 
 from sqlalchemy import (
     DateTime,
-    MetaData
+    MetaData,
+    create_engine,
     )
 
 from sqlalchemy.orm import (
     Mapped,
     mapped_column,
-    DeclarativeBase
+    DeclarativeBase,
+    sessionmaker,
+)
 
-    )
+load_dotenv(Path(__file__).resolve().parents[3] / ".env")
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL is missing")
+
+engine = create_engine(
+    DATABASE_URL,
+    connect_args={"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {},
+)
+SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
 
 # Naming convention so Alembic autogenerate produces stable, predictable
@@ -38,3 +53,16 @@ class TimestampMixin:
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
     )
+
+
+def gen_uuid() -> str:
+    import uuid
+    return str(uuid.uuid4())
+
+
+SUPPORTED_LANGS = (
+    "en", "hi", "mr", "ta", "te", "bn", "gu", "kn", "ml", "pa", "or", "as", "ur",
+)
+MESSAGE_ROLES = ("user", "assistant", "system")
+SESSION_MODES = ("text", "voice", "video")
+USER_SCHEME_STATUSES = ("recommended", "saved", "applied", "rejected")

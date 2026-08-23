@@ -23,7 +23,9 @@ export default function App() {
   const [loading, setLoading] = useState(true)
   const [focusIndex, setFocusIndex] = useState(null)
   const [showProfile, setShowProfile] = useState(false)
-
+  const [sessionId, setSessionId] = useState(
+    () => localStorage.getItem('nayak_session_id'),
+  )
   const appendExchange = useCallback(({ userText, assistantText }) => {
     setMessages((prev) => [
       ...prev,
@@ -32,23 +34,53 @@ export default function App() {
     ])
   }, [])
 
+  const createSession = useCallback(async () => {
+    const token = localStorage.getItem('auth_token')
+    const res = await fetch(`${API_BASE}/api/session`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (!res.ok) throw new Error('Could not create chat session')
+
+    const data = await res.json()
+    setSessionId(data.session_id)
+    localStorage.setItem('nayak_session_id', data.session_id)
+    return data.session_id
+  }, [])
+
+  const handleLoginSuccess = useCallback(async () => {
+    setIsAuthenticated(true)
+    await createSession()
+  }, [createSession])
   const addUserMessage = useCallback((userText) => {
     setMessages((prev) => [...prev, { role: 'user', content: userText, time: nowLabel() }])
   }, [])
 
   const { status, micOn, micSupported, interimText, error, toggleMic, sendTextCommand } =
-    useNayak({ onExchange: appendExchange })
+    useNayak({ onExchange: appendExchange, sessionId })
 
   useEffect(() => {
     if (!isAuthenticated) return
+
+    if (!sessionId) {
+      createSession().catch((err) => {
+        console.warn('[App] could not create chat session:', err.message)
+        setBackendOnline(false)
+        setLoading(false)
+      })
+      return
+    }
 
     let cancelled = false
     async function loadHistory() {
       try {
         const token = localStorage.getItem('auth_token')
-        const res = await fetch(`${API_BASE}/api/history`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        })
+        const res = await fetch(
+          `${API_BASE}/api/history?session_id=${encodeURIComponent(sessionId)}`,
+          {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+          },
+        )
         if (!res.ok) throw new Error(`status ${res.status}`)
         const data = await res.json()
         const list = Array.isArray(data) ? data : data.history ?? []
@@ -67,7 +99,7 @@ export default function App() {
     return () => {
       cancelled = true
     }
-  }, [isAuthenticated])
+  }, [createSession, isAuthenticated, sessionId])
 
   useEffect(() => {
     if (error) setBackendOnline(false)
@@ -75,17 +107,23 @@ export default function App() {
 
   const handleLogout = () => {
     localStorage.removeItem('auth_token')
+    localStorage.removeItem('nayak_session_id')
     setIsAuthenticated(false)
+    setSessionId(null)
     setMessages([])
   }
 
   const handleNewChat = useCallback(async () => {
     try {
       const token = localStorage.getItem('auth_token')
-      await fetch(`${API_BASE}/api/new-chat`, {
+      const res = await fetch(`${API_BASE}/api/new-chat`, {
         method: 'POST',
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       })
+      if (!res.ok) throw new Error(`status ${res.status}`)
+      const data = await res.json()
+      setSessionId(data.session_id)
+      localStorage.setItem('nayak_session_id', data.session_id)
     } catch {}
     setMessages([])
     setFocusIndex(null)
@@ -95,7 +133,7 @@ export default function App() {
   const stateLabel = { sleeping: 'idle', listening: 'listening', processing: 'processing' }[status]
 
   if (!isAuthenticated) {
-    return <Login onLoginSuccess={() => setIsAuthenticated(true)} />
+    return <Login onLoginSuccess={handleLoginSuccess} />
   }
 
   return (

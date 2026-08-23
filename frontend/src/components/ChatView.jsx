@@ -29,7 +29,7 @@ export default function ChatView({ messages, focusIndex, interimText }) {
     return (
       <div className="flex flex-1 items-center justify-center px-6">
         <div className="max-w-sm text-center">
-          <p className="font-display text-lg text-ink">Say “Nayak” or ask a legal question</p>
+          <p className="font-display text-lg text-ink">Ask a legal question</p>
           <p className="mt-1 text-sm text-mist">
             Type your query below or tap the microphone — the orb will pulse while Nayak listens and processes.
           </p>

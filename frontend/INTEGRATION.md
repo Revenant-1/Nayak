@@ -35,6 +35,6 @@ npm run dev
 
 Open `http://localhost:5173`.
 
-## 4. About Wake Word and Voice Input
+## 4. Voice Input
 
-The web interface listens for the wake word `"nayak"`, buffers the voice input until a pause, and sends the query to the `/api/command` endpoint.
+The web interface accepts voice input while the microphone is active, buffers it until a pause, and sends the query to the `/api/command` endpoint.

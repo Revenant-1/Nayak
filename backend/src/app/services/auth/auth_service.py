@@ -92,7 +92,7 @@ def _verify_token(token: str) -> Optional[Dict]:
 def _user_to_dict(user: SQLUser) -> Dict:
     """Convert SQLAlchemy User model to dict"""
     return {
-        "user_id": str(user.user_id),
+        "user_id": str(user.id),
         "username": user.username,
         "password_hash": user.password_hash,
         "user_type": user.user_type if hasattr(user, 'user_type') else "regular",
@@ -145,7 +145,7 @@ def save_user(username: str, password: str, user_type: str = "regular") -> SQLUs
         hashed_pw = _hash_password(password)
 
         new_user = SQLUser(
-            user_id=user_id,
+            id=user_id,
             username=username,
             password_hash=hashed_pw,
             user_type=user_type,
@@ -160,59 +160,6 @@ def save_user(username: str, password: str, user_type: str = "regular") -> SQLUs
         db.refresh(new_user)
 
         return new_user
-    except Exception as e:
-        db.rollback()
-        raise e
-    finally:
-        _close_db(db)
-
-def get_user(username: str) -> Optional[SQLUser]:
-    """Get user from SQLite database"""
-    db = _get_db()
-    try:
-        user = db.query(SQLUser).filter(SQLUser.username == username).first()
-        return user
-    finally:
-        _close_db(db)
-
-def authenticate_user(username: str, password: str) -> Optional[Dict]:
-    """Authenticate user with username and password from SQLite database"""
-    db = _get_db()
-    try:
-        # Check if user exists
-        user = db.query(SQLUser).filter(SQLUser.username == username).first()
-        if not user:
-            return None
-
-        # Check if account is active
-        if not user.is_active:
-            return None
-
-        # Verify password
-        if not _verify_password(password, user.password_hash):
-            # Record failed attempt
-            _record_failed_attempt(username, db)
-            return None
-
-        # Successful login - reset attempts
-        _reset_failed_attempts(username, db)
-
-        # Update user stats
-        user.last_login = datetime.utcnow()
-        user.login_count = (user.login_count or 0) + 1
-        db.commit()
-
-        # Generate token
-        token, expiry = _generate_token(str(user.user_id), guest=user.user_type == "guest")
-
-        return {
-            "user_id": str(user.user_id),
-            "username": user.username,
-            "user_type": user.user_type,
-            "is_active": user.is_active,
-            "token": token,
-            "expires_in": int((expiry - datetime.utcnow()).total_seconds())
-        }
     except Exception as e:
         db.rollback()
         raise e

@@ -1,7 +1,7 @@
 # Nayak Frontend
 
 A dark, voice-first legal assistant control surface for the **Nayak AI Legal Assistant** backend:
-wake-word listening, a reactive orb indicator, and a chat transcript, built with React + Vite + Tailwind CSS.
+voice input, a reactive orb indicator, and a chat transcript, built with React + Vite + Tailwind CSS.
 
 ## Quick start
 
@@ -23,7 +23,7 @@ src/
 │   ├── InputBar.jsx     # text query fallback + mic toggle
 │   └── voiceinput.jsx   # voice input controller
 ├── hooks/
-│   └── useNayak.jsx     # wake-word detection, STT, backend API dispatch
+│   └── useNayak.jsx     # speech recognition, STT, backend API dispatch
 ├── App.jsx
 ├── main.jsx
 └── index.css

@@ -3,16 +3,14 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 // Talks directly to the FastAPI backend described in INTEGRATION.md.
 // Override with VITE_API_BASE_URL in a .env file for other environments.
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? ''
-const WAKE_WORD = 'nayak'
 const SILENCE_TIMEOUT_MS = 1400 // pause length that closes out a captured command
 
 /**
  * useNayak
  * --------
  * Owns the entire voice & command pipeline:
- *   1. Continuous Web Speech API recognition, watching for "nayak".
- *   2. Once heard, buffers the following speech until a pause, then
- *      treats that buffer as the command.
+ *   1. Continuous Web Speech API recognition while the microphone is active.
+ *   2. Buffers speech until a pause, then treats that buffer as the command.
  *   3. POSTs the command to the FastAPI backend and speaks the reply back
  *      with SpeechSynthesis.
  *   4. Also exposes `sendTextCommand` so the InputBar fallback shares the
@@ -22,7 +20,7 @@ const SILENCE_TIMEOUT_MS = 1400 // pause length that closes out a captured comma
  * successful (or failed) round trip so the parent can append it to the
  * transcript.
  */
-export function useNayak({ onExchange } = {}) {
+export function useNayak({ onExchange, sessionId } = {}) {
   const [status, setStatus] = useState('sleeping') // 'sleeping' | 'listening' | 'processing'
   const [micOn, setMicOn] = useState(false)
   const [interimText, setInterimText] = useState('')
@@ -51,10 +49,14 @@ export function useNayak({ onExchange } = {}) {
       setStatus('processing')
       setInterimText('')
       try {
+        const token = localStorage.getItem('auth_token')
         const res = await fetch(`${API_BASE}/api/command`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text }),
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ text, session_id: sessionId }),
         })
         if (!res.ok) throw new Error(`Backend responded ${res.status}`)
         const data = await res.json()
@@ -83,7 +85,7 @@ export function useNayak({ onExchange } = {}) {
         setStatus('sleeping')
       }
     },
-    [onExchange],
+    [onExchange, sessionId],
   )
 
   // ---- optional mic amplitude via Web Audio, purely cosmetic -----------
@@ -135,18 +137,9 @@ export function useNayak({ onExchange } = {}) {
       }
 
       if (statusRef.current === 'sleeping') {
-        const combinedLower = (finalChunk + interimChunk).toLowerCase()
-        const wakeIndex = combinedLower.indexOf(WAKE_WORD)
-        if (wakeIndex !== -1) {
-          setStatus('listening')
-          statusRef.current = 'listening'
-          const afterWake = (finalChunk + interimChunk).slice(wakeIndex + WAKE_WORD.length).trim()
-          commandBufferRef.current = afterWake
-          setInterimText(afterWake)
-        }
-        return
-      }
-
+        setStatus('listening')
+        statusRef.current = 'listening'
+}
       if (statusRef.current === 'listening') {
         if (finalChunk) {
           commandBufferRef.current = `${commandBufferRef.current} ${finalChunk}`.trim()

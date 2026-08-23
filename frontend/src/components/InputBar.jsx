@@ -4,8 +4,8 @@ import { Send, Mic, MicOff } from 'lucide-react'
 /**
  * InputBar
  * --------
- * Text fallback for when voice isn't preferred, plus a toggle for the
- * always-listening wake-word mic. Disabled gracefully when the browser
+ * Text fallback for when voice isn't preferred, plus a microphone toggle.
+ * Disabled gracefully when the browser
  * doesn't support the Web Speech API.
  */
 export default function InputBar({ onSend, micActive, onToggleMic, micSupported, disabled }) {

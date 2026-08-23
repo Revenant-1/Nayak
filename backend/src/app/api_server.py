@@ -1,7 +1,12 @@
-from pathlib import Path
-from dotenv import load_dotenv
-from fastapi import FastAPI, UploadFile
+from fastapi import (
+    FastAPI, UploadFile, Depends,
+    HTTPException, status
+    )
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import (
+    HTTPAuthorizationCredentials, 
+    HTTPBearer
+    )
 from pydantic import BaseModel
 from app.ProcessCommands import processCommand
 from app.Ai import create_chat_session, load_history
@@ -14,12 +19,21 @@ from app.services.auth import (
     generate_token,
 )
 from datetime import datetime
-from app.models.models import Base, engine
-
-# api_server.py lives in src/app; load keys from the backend root.
-load_dotenv(Path(__file__).resolve().parents[2] / ".env")
+from app.models import Session, SessionLocal
 
 
+bearer = HTTPBearer()
+
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(bearer),
+    )-> str:
+    payload = verify_token(credentials.credentials)
+    if not payload:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token",
+        )
+    return payload["user_id"]
 # --------------------------------------------------
 # FastAPI app
 # --------------------------------------------------
@@ -80,27 +94,76 @@ class CommandRequest(BaseModel):
 # --------------------------------------------------
 
 @app.get("/api/history")
-async def get_history(session_id: str):
-    return load_history(session_id)
+async def get_history(
+    session_id: str,
+    user_id: str = Depends(get_current_user),
+):
+    db = SessionLocal()
+
+    try:
+        chat_session = (
+            db.query(Session)
+            .filter(
+                Session.session_id == session_id,
+                Session.user_id == user_id,
+            )
+            .first()
+        )
+
+        if not chat_session:
+            raise HTTPException(status_code=404, detail="Session not found")
+
+        return load_history(session_id)
+    finally:
+        db.close()
 
 
 @app.post("/api/command")
-async def post_command(payload: CommandRequest):
-
+async def post_command(
+    payload: CommandRequest,
+    user_id: str = Depends(get_current_user),
+):
     text = payload.text.strip()
 
     if not text:
-        return {"error": "empty command"}
+        raise HTTPException(status_code=400, detail="Empty command")
 
-    session_id = payload.session_id or create_chat_session()
+    if not payload.session_id:
+        session_id = create_chat_session(user_id=user_id)
+    else:
+        session_id = payload.session_id
+
+        db = SessionLocal()
+        try:
+            chat_session = (
+                db.query(Session)
+                .filter(
+                    Session.session_id == session_id,
+                    Session.user_id == user_id,
+                )
+                .first()
+            )
+
+            if not chat_session:
+                raise HTTPException(status_code=404, detail="Session not found")
+        finally:
+            db.close()
+
     reply = processCommand(text, session_id=session_id) or "Done."
-    return {"response": reply, "session_id": session_id}
 
+    return {
+        "response": reply,
+        "session_id": session_id,
+    }
 
 @app.post("/api/new-chat")
-async def new_chat():
-    return {"ok": True, "session_id": create_chat_session()}
+async def new_chat(user_id: str = Depends(get_current_user)):
+    return {"ok": True, "session_id": create_chat_session(user_id)}
 
+@app.post("/api/session")
+async def create_session(user_id: str = Depends(get_current_user)):
+    session_id = create_chat_session(user_id)
+    return {"session_id": session_id}
 @app.post("/upload-document")
 async def upload_document(file: UploadFile):
     ...

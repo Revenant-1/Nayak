@@ -59,7 +59,7 @@ export default function Sidebar({ history, status, onNewChat, activeIndex, onSel
       <div className="mt-5 flex-1 overflow-y-auto scroll-thin px-3 pb-3">
         <p className="px-2 pb-2 font-mono text-[10px] uppercase tracking-widest text-mist">History</p>
         {entries.length === 0 && (
-          <p className="px-2 py-4 text-sm text-mist">No conversations yet. Say “Nayak” or ask a legal query to begin.</p>
+          <p className="px-2 py-4 text-sm text-mist">No conversations yet. Ask a legal query to begin.</p>
         )}
         <ul className="space-y-1">
           {entries.map((entry) => (
