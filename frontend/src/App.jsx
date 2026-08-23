@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { User, LogOut } from 'lucide-react'
+import { User, LogOut, Download } from 'lucide-react'
 import Sidebar from './components/Sidebar.jsx'
 import ChatView from './components/ChatView.jsx'
 import InputBar from './components/InputBar.jsx'
@@ -113,6 +113,25 @@ export default function App() {
     setMessages([])
   }
 
+  const downloadMarkdown = useCallback(() => {
+    const markdown = messages
+      .map((message) => {
+        const speaker = message.role === 'user' ? 'You' : 'Nayak'
+        return `## ${speaker}\n\n${message.content}\n`
+      })
+      .join('\n')
+
+    const blob = new Blob([`# Nayak Legal Assistant Chat\n\n${markdown}`], {
+      type: 'text/markdown',
+    })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `nayak-chat-${new Date().toISOString().slice(0, 10)}.md`
+    link.click()
+    URL.revokeObjectURL(url)
+  }, [messages])
+
   const handleNewChat = useCallback(async () => {
     try {
       const token = localStorage.getItem('auth_token')
@@ -158,6 +177,14 @@ export default function App() {
             </p>
           </div>
           <div className="flex items-center gap-3">
+            <button
+              onClick={downloadMarkdown}
+              disabled={messages.length === 0}
+              title="Download chat as Markdown"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-[#17163A] text-mist transition hover:border-cyan/40 hover:bg-cyan/10 hover:text-cyan disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <Download size={16} />
+            </button>
             <button
               onClick={() => setShowProfile(true)}
               title="My Profile"

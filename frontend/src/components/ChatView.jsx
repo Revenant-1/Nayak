@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import ReactMarkdown from 'react-markdown'
 
 function timestamp() {
   return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -57,7 +58,13 @@ export default function ChatView({ messages, focusIndex, interimText }) {
                   : 'bg-panel-hi text-ink border border-line rounded-bl-sm'
               }`}
             >
-              <p className="whitespace-pre-wrap">{m.content}</p>
+              {m.role === 'assistant' ? (
+                <div className="markdown-content">
+                  <ReactMarkdown>{m.content}</ReactMarkdown>
+                </div>
+              ) : (
+                <p className="whitespace-pre-wrap">{m.content}</p>
+              )}
               <p className="mt-1 font-mono text-[10px] text-mist">
                 {m.role === 'user' ? 'you' : 'nayak'} · {m.time || timestamp()}
               </p>
