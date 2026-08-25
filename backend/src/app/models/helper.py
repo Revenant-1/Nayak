@@ -28,6 +28,14 @@ engine = create_engine(
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
 
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
 # Naming convention so Alembic autogenerate produces stable, predictable
 # constraint/index names instead of DB-generated ones that differ across
 # SQLite/Postgres. This is the single biggest thing that saves pain later

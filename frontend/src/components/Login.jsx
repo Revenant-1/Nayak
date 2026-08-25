@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Lock, Mail, User, ArrowRight, UserCheck, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react'
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? ''
+import { api } from '../lib/api.js'
 
 export default function Login({ onLoginSuccess }) {
     const [isRegister, setIsRegister] = useState(false)
@@ -18,58 +17,18 @@ export default function Login({ onLoginSuccess }) {
         setError('')
 
         try {
-            if (isRegister) {
-                // Register route
-                const res = await fetch(`${API_BASE}/api/auth/register`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        username,
-                        email,
-                        password,
-                    }),
-                })
-
-                const data = await res.json()
-                if (!res.ok) {
-                    throw new Error(data.detail || 'Registration failed')
-                }
-
-                // Automatically log in after registration
-                const userObj = {
-                    user_id: data.user_id,
-                    username: data.username,
-                    user_type: data.user_type,
-                    email: email,
-                }
-                localStorage.setItem('auth_token', data.token)
-                localStorage.setItem('nayak_user', JSON.stringify(userObj))
-                onLoginSuccess(userObj)
-            } else {
-                // Login route
-                const res = await fetch(`${API_BASE}/api/auth/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        username,
-                        password,
-                    }),
-                })
-
-                const data = await res.json()
-                if (!res.ok) {
-                    throw new Error(data.detail || 'Invalid username or password')
-                }
-
-                const userObj = {
-                    user_id: data.user_id,
-                    username: data.username,
-                    user_type: data.user_type,
-                }
-                localStorage.setItem('auth_token', data.token)
-                localStorage.setItem('nayak_user', JSON.stringify(userObj))
-                onLoginSuccess(userObj)
+            const data = isRegister
+                ? await api.register({ username, email, password })
+                : await api.login({ username, password })
+            const userObj = {
+                user_id: data.user_id,
+                username: data.username,
+                user_type: data.user_type,
+                ...(isRegister ? { email } : {}),
             }
+            localStorage.setItem('auth_token', data.token)
+            localStorage.setItem('nayak_user', JSON.stringify(userObj))
+            await onLoginSuccess(userObj)
         } catch (err) {
             setError(err.message)
         } finally {
@@ -82,15 +41,7 @@ export default function Login({ onLoginSuccess }) {
         setError('')
 
         try {
-            const res = await fetch(`${API_BASE}/api/auth/guest-login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-            })
-
-            const data = await res.json()
-            if (!res.ok) {
-                throw new Error(data.detail || 'Guest login failed')
-            }
+            const data = await api.guestLogin()
 
             const guestUser = {
                 user_id: data.user_id,
@@ -101,7 +52,7 @@ export default function Login({ onLoginSuccess }) {
 
             localStorage.setItem('auth_token', data.token)
             localStorage.setItem('nayak_user', JSON.stringify(guestUser))
-            onLoginSuccess(guestUser)
+            await onLoginSuccess(guestUser)
         } catch (err) {
             setError(err.message)
         } finally {

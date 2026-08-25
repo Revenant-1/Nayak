@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { api } from '../lib/api.js'
 
 // Talks directly to the FastAPI backend described in INTEGRATION.md.
 // Override with VITE_API_BASE_URL in a .env file for other environments.
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? ''
 const SILENCE_TIMEOUT_MS = 1400 // pause length that closes out a captured command
 
 /**
@@ -49,17 +49,7 @@ export function useNayak({ onExchange, sessionId } = {}) {
       setStatus('processing')
       setInterimText('')
       try {
-        const token = localStorage.getItem('auth_token')
-        const res = await fetch(`${API_BASE}/api/command`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ text, session_id: sessionId }),
-        })
-        if (!res.ok) throw new Error(`Backend responded ${res.status}`)
-        const data = await res.json()
+        const data = await api.command({ text, session_id: sessionId })
         const reply = data.response ?? data.reply ?? data.content ?? '(backend reply had no recognizable text field)'
 
         onExchange?.({ userText: text, assistantText: reply })
@@ -76,10 +66,10 @@ export function useNayak({ onExchange, sessionId } = {}) {
         }
       } catch (err) {
         console.error('[useNayak] command failed:', err)
-        setError(`Could not reach the Nayak backend at ${API_BASE}`)
+        setError(`Could not reach the Nayak backend: ${err.message}`)
         onExchange?.({
           userText: text,
-          assistantText: `Could not reach the backend (${err.message}). Is Nayak backend running on ${API_BASE}?`,
+          assistantText: `Could not reach the backend (${err.message}). Is the Nayak backend running?`,
           isError: true,
         })
         setStatus('sleeping')

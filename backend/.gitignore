@@ -8,3 +8,7 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Local secrets and runtime configuration
+.env
+src/app/config/auth_config.json

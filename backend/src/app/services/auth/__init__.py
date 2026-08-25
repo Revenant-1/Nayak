@@ -1,18 +1,10 @@
-"""
-Authentication microservice - init module
-"""
-
 from .auth_service import (
-    create_guest_user,
-    verify_token,
-    get_user_info,
-    update_user_password,
-    deactivate_user,
-)
-from .login_signup import (
     authenticate_user,
+    create_guest_user,
     generate_token,
-    register_user
+    get_user,
+    register_user,
+    verify_token,
 )
 
 __all__ = [
@@ -21,7 +13,5 @@ __all__ = [
     "create_guest_user",
     "generate_token",
     "verify_token",
-    "get_user_info",
-    "update_user_password",
-    "deactivate_user",
+    "get_user",
 ]

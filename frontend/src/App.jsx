@@ -7,8 +7,7 @@ import { useNayak } from './hooks/useNayak.jsx'
 import VoiceInput from './components/voiceinput.jsx'
 import Profile from './components/Profile.jsx'
 import Login from './components/Login.jsx'
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? ''
+import { api } from './lib/api.js'
 
 function nowLabel() {
   return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -35,14 +34,7 @@ export default function App() {
   }, [])
 
   const createSession = useCallback(async () => {
-    const token = localStorage.getItem('auth_token')
-    const res = await fetch(`${API_BASE}/api/session`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
-    })
-    if (!res.ok) throw new Error('Could not create chat session')
-
-    const data = await res.json()
+    const data = await api.createSession()
     setSessionId(data.session_id)
     localStorage.setItem('nayak_session_id', data.session_id)
     return data.session_id
@@ -74,15 +66,7 @@ export default function App() {
     let cancelled = false
     async function loadHistory() {
       try {
-        const token = localStorage.getItem('auth_token')
-        const res = await fetch(
-          `${API_BASE}/api/history?session_id=${encodeURIComponent(sessionId)}`,
-          {
-            headers: token ? { Authorization: `Bearer ${token}` } : {},
-          },
-        )
-        if (!res.ok) throw new Error(`status ${res.status}`)
-        const data = await res.json()
+        const data = await api.history(sessionId)
         const list = Array.isArray(data) ? data : data.history ?? []
         if (!cancelled) {
           setMessages(list)
@@ -134,13 +118,7 @@ export default function App() {
 
   const handleNewChat = useCallback(async () => {
     try {
-      const token = localStorage.getItem('auth_token')
-      const res = await fetch(`${API_BASE}/api/new-chat`, {
-        method: 'POST',
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      })
-      if (!res.ok) throw new Error(`status ${res.status}`)
-      const data = await res.json()
+      const data = await api.newChat()
       setSessionId(data.session_id)
       localStorage.setItem('nayak_session_id', data.session_id)
     } catch {}

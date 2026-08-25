@@ -1,4 +1,4 @@
-from .helper import Base, DATABASE_URL, SessionLocal, engine, gen_uuid
+from .helper import Base, DATABASE_URL, SessionLocal, engine, gen_uuid, get_db
 from .user import User
 from .profile import Profile
 from .session import Session
@@ -12,7 +12,7 @@ from .feedback import Feedback
 from .misc import TranslationCache, STTLog, DemoTestSet
 
 __all__ = [
-    "Base", "DATABASE_URL", "SessionLocal", "engine", "gen_uuid",
+    "Base", "DATABASE_URL", "SessionLocal", "engine", "gen_uuid", "get_db",
     "User", "Profile", "Session", "Message", "CorpusDocument", "CorpusChunk",
     "MessageSource", "Scheme", "SchemeCategory", "SchemeCategoryMap", "UserScheme",
     "Document", "DocumentQA", "Feedback", "TranslationCache", "STTLog", "DemoTestSet",
