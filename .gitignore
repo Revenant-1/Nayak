@@ -12,3 +12,7 @@ __pycache__/
 .idea/
 plan/
 CLAUDE.md
+# Local AI Models
+backend/models/
+models/
+*.gguf
