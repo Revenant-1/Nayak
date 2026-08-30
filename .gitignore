@@ -16,3 +16,6 @@ CLAUDE.md
 backend/models/
 models/
 *.gguf
+plan/
+CLAUDE.md
+memory/
