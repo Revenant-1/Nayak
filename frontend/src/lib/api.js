@@ -20,6 +20,11 @@ export const api = {
   login: (body) => request('/api/auth/login', { method: 'POST', body: JSON.stringify(body) }),
   register: (body) => request('/api/auth/register', { method: 'POST', body: JSON.stringify(body) }),
   guestLogin: () => request('/api/auth/guest-login', { method: 'POST' }),
+  verifyToken: (token) =>
+    request('/api/auth/verify', {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${token}` },
+    }),
   createSession: () => request('/api/session', { method: 'POST' }),
   newChat: () => request('/api/new-chat', { method: 'POST' }),
   history: (sessionId) => request(`/api/history?session_id=${encodeURIComponent(sessionId)}`),

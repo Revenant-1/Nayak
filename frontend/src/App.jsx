@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { User, LogOut, Download } from 'lucide-react'
+import { User, LogOut, Download, Loader2, AlertCircle } from 'lucide-react'
 import Sidebar from './components/Sidebar.jsx'
 import ChatView from './components/ChatView.jsx'
 import InputBar from './components/InputBar.jsx'
@@ -13,18 +13,37 @@ function nowLabel() {
   return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
 
+// Auth state machine values: idle | checking-token | signing-in | registering |
+// guest-login | authenticated | auth-error
+const initialAuthStatus = (() => {
+  const token = localStorage.getItem('auth_token')
+  return token ? 'checking-token' : 'idle'
+})()
+
+// Session state machine values: initializing | creating-session | loading-history |
+// ready | empty-session | error
+const initialSessionStatus = 'initializing'
+
 export default function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return Boolean(localStorage.getItem('auth_token'))
-  })
+  const [authStatus, setAuthStatus] = useState(initialAuthStatus)
+  const [authError, setAuthError] = useState(null)
+  const [sessionStatus, setSessionStatus] = useState(initialSessionStatus)
+  const isAuthenticated = authStatus === 'authenticated'
   const [messages, setMessages] = useState([])
   const [backendOnline, setBackendOnline] = useState(true)
   const [loading, setLoading] = useState(true)
+  const [systemMessage, setSystemMessage] = useState('Preparing your assistant…')
   const [focusIndex, setFocusIndex] = useState(null)
   const [showProfile, setShowProfile] = useState(false)
   const [sessionId, setSessionId] = useState(
     () => localStorage.getItem('nayak_session_id'),
   )
+
+  const handleAuthStatusChange = useCallback((status, errorMessage = null) => {
+    setAuthStatus(status)
+    setAuthError(status === 'auth-error' ? errorMessage : null)
+  }, [])
+
   const appendExchange = useCallback(({ userText, assistantText }) => {
     setMessages((prev) => [
       ...prev,
@@ -34,16 +53,24 @@ export default function App() {
   }, [])
 
   const createSession = useCallback(async () => {
+    setSessionStatus('creating-session')
+    setSystemMessage('Creating a new chat session…')
     const data = await api.createSession()
     setSessionId(data.session_id)
     localStorage.setItem('nayak_session_id', data.session_id)
+    setSessionStatus('loading-history')
+    setSystemMessage('Session ready. Loading your chat…')
     return data.session_id
   }, [])
 
   const handleLoginSuccess = useCallback(async () => {
-    setIsAuthenticated(true)
+    setAuthStatus('authenticated')
+    setAuthError(null)
+    setSessionStatus('creating-session')
+    setSystemMessage('Signed in. Creating your chat session…')
     await createSession()
   }, [createSession])
+
   const addUserMessage = useCallback((userText) => {
     setMessages((prev) => [...prev, { role: 'user', content: userText, time: nowLabel() }])
   }, [])
@@ -51,12 +78,53 @@ export default function App() {
   const { status, micOn, micSupported, interimText, error, toggleMic, sendTextCommand } =
     useNayak({ onExchange: appendExchange, sessionId })
 
+  // Track AI command errors separately
+  const [commandError, setCommandError] = useState(null)
+
+  // Verify saved token on first load. If valid, become authenticated. If not,
+  // clear it and stay on the login screen with a visible message.
+  useEffect(() => {
+    const token = localStorage.getItem('auth_token')
+    if (!token) {
+      setAuthStatus('idle')
+      setSessionStatus('initializing')
+      return
+    }
+    let cancelled = false
+    setSystemMessage('Checking saved session…')
+    api
+      .verifyToken(token)
+      .then(() => {
+        if (!cancelled) {
+          setAuthStatus('authenticated')
+          setAuthError(null)
+          setSessionStatus('initializing')
+        }
+      })
+      .catch((err) => {
+        if (cancelled) return
+        // Token is invalid or expired — wipe it and surface the error
+        localStorage.removeItem('auth_token')
+        localStorage.removeItem('nayak_session_id')
+        setSessionId(null)
+        setAuthStatus('auth-error')
+        setAuthError(err?.message || 'Your session has expired. Please sign in again.')
+        setSessionStatus('initializing')
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   useEffect(() => {
     if (!isAuthenticated) return
 
     if (!sessionId) {
+      setSessionStatus('creating-session')
       createSession().catch((err) => {
         console.warn('[App] could not create chat session:', err.message)
+        setSystemMessage('Session creation failed. Check the backend connection.')
+        setSessionStatus('error')
         setBackendOnline(false)
         setLoading(false)
       })
@@ -65,16 +133,24 @@ export default function App() {
 
     let cancelled = false
     async function loadHistory() {
+      setSessionStatus('loading-history')
+      setSystemMessage('Loading your saved chat history…')
       try {
         const data = await api.history(sessionId)
         const list = Array.isArray(data) ? data : data.history ?? []
         if (!cancelled) {
           setMessages(list)
           setBackendOnline(true)
+          setSessionStatus(list.length ? 'ready' : 'empty-session')
+          setSystemMessage(list.length ? 'Chat history loaded.' : 'No previous messages in this session.')
         }
       } catch (err) {
         console.warn('[App] could not load chat history:', err.message)
-        if (!cancelled) setBackendOnline(false)
+        if (!cancelled) {
+          setBackendOnline(false)
+          setSessionStatus('error')
+          setSystemMessage('Backend unavailable — check the API server.')
+        }
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -86,16 +162,20 @@ export default function App() {
   }, [createSession, isAuthenticated, sessionId])
 
   useEffect(() => {
-    if (error) setBackendOnline(false)
+    if (error) setCommandError(error)
   }, [error])
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     localStorage.removeItem('auth_token')
     localStorage.removeItem('nayak_session_id')
-    setIsAuthenticated(false)
+    localStorage.removeItem('nayak_user')
     setSessionId(null)
     setMessages([])
-  }
+    setAuthStatus('idle')
+    setSessionStatus('initializing')
+    setAuthError(null)
+    setSystemMessage('Preparing your assistant…')
+  }, [])
 
   const downloadMarkdown = useCallback(() => {
     const markdown = messages
@@ -127,10 +207,22 @@ export default function App() {
   }, [])
 
   const handleSelectEntry = useCallback((index) => setFocusIndex(index), [])
-  const stateLabel = { sleeping: 'idle', listening: 'listening', processing: 'processing' }[status]
+  const stateLabel = {
+    sleeping: 'idle',
+    listening: 'listening',
+    processing: 'processing',
+    thinking: 'thinking',
+    responding: 'responding',
+    error: 'error',
+  }[status]
 
   if (!isAuthenticated) {
-    return <Login onLoginSuccess={handleLoginSuccess} />
+    return (
+      <Login
+        onLoginSuccess={handleLoginSuccess}
+        onAuthStatusChange={handleAuthStatusChange}
+      />
+    )
   }
 
   return (
@@ -151,7 +243,10 @@ export default function App() {
           <div>
             <p className="font-display text-sm font-medium text-ink">Legal Assistant Session</p>
             <p className="font-mono text-[11px] text-mist">
-              {loading ? 'syncing chat_history.json…' : `${messages.length} messages`}
+              {loading ? systemMessage : `${messages.length} messages · ${systemMessage}`}
+            </p>
+            <p className="font-mono text-[10px] text-mist/70">
+              session:{sessionStatus} · ai:{stateLabel}
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -177,15 +272,18 @@ export default function App() {
             >
               <LogOut size={16} />
             </button>
-            <span className="rounded-full border border-line px-3 py-1 font-mono text-[11px] uppercase tracking-widest text-mist">
-              state:{stateLabel}
-            </span>
           </div>
         </header>
 
         {!backendOnline && (
           <div className="border-b border-magenta/30 bg-magenta/10 px-6 py-2 text-center font-mono text-xs text-magenta">
-            Can’t reach the backend. Start the Nayak FastAPI server with `uv run uvicorn app.api_server:app --reload`.
+            Backend unavailable — start the API server before continuing: uv run uvicorn app.api_server:app --reload
+          </div>
+        )}
+
+        {commandError && (
+          <div className="border-b border-red-500/30 bg-red-500/10 px-6 py-2 text-center font-mono text-xs text-red-400">
+            Could not reach the backend. Check the API server. ({commandError})
           </div>
         )}
 
