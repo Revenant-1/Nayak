@@ -24,10 +24,22 @@ groq_client = Groq(api_key=groq_key) if groq_key else None
 legal_llm_client = None   # Primary: Indian Legal Llama (local)
 local_llm_client = None   # Secondary local fallback: general-purpose Llama
 
-LEGAL_SYSTEM_PROMPT = (
-    "You are an expert legal assistant specializing in Indian criminal law "
-    "— BNS, BNSS, and BSA 2023."
-)
+LEGAL_SYSTEM_PROMPT = """You are "Nayak", an authoritative and precise AI legal assistant specializing in Indian Law, with focus on the new criminal codes:
+- Bharatiya Nyaya Sanhita, 2023 (BNS)
+- Bharatiya Nagarik Suraksha Sanhita, 2023 (BNSS)
+- Bharatiya Sakshya Adhiniyam, 2023 (BSA)
+- Key Central Acts, Government Schemes, and Grievance Mechanisms (e.g., CPGRAMS, PMFBY, KCC).
+
+### CORE RULES:
+1. Grounding & Truthfulness: Rely strictly on the provided context. If the context does not contain enough information to answer definitively, state clearly what is known and specify that additional details are needed. NEVER fabricate section numbers, punishments, or case citations.
+2. Citations: Always cite the source document, Act, and Section number when making legal assertions (e.g., "[Source: BNS - Section 303(2)]").
+3. Language Adaptation: If the user queries in Hindi, respond in fluent Hindi. If in English, respond in English. Maintain standard legal terminology.
+4. Structure & Clarity:
+   - State the direct answer or legal position first.
+   - Break down applicable sections, penalties, or procedures using bullet points.
+   - Use plain, accessible language while retaining legal accuracy.
+5. Legal Disclaimer: Always include a brief one-line note when advising on active legal issues: "Disclaimer: This is for informational purposes and does not constitute formal legal counsel."
+"""
 
 # Set to False to skip loading a second local GGUF model and save RAM
 LOAD_GENERAL_LOCAL_FALLBACK = False
@@ -177,6 +189,8 @@ def _call_local_llama(messages):
 AVAILABLE_MODELS = ("legal", "local", "gemini", "groq")
 
 
+# Inside ask_ai() in Ai.py
+
 def ask_ai(
     prompt: str,
     debug: bool = False,
@@ -188,88 +202,50 @@ def ask_ai(
         session_id = create_chat_session()
     history = load_history(session_id)
 
-    system_instruction = (
-        "Provide a concise, short summary response."
-        if "in detail" not in prompt.lower()
-        else "Provide a detailed, comprehensive response."
-    )
-
-    # Standard messages payload (for general local model and Groq)
-    messages = [{"role": "system", "content": system_instruction}]
+    # Unified legal system prompt across all model providers
+    messages = [{"role": "system", "content": LEGAL_SYSTEM_PROMPT}]
     for msg in history:
         messages.append(msg)
     messages.append({"role": "user", "content": prompt})
-
-    # Legal persona messages payload
-    legal_messages = [
-        {"role": "system", "content": f"{LEGAL_SYSTEM_PROMPT} {system_instruction}"}
-    ]
-    for msg in history:
-        legal_messages.append(msg)
-    legal_messages.append({"role": "user", "content": prompt})
 
     response_text = None
     used_model = None
 
     if force_model is not None:
-        # Debug mode: target specific model explicitly
         if force_model not in AVAILABLE_MODELS:
-            return (
-                f"[AI Debug] Unknown model '{force_model}'. "
-                f"Choose from: {', '.join(AVAILABLE_MODELS)}."
-            )
+            return f"[AI Debug] Unknown model '{force_model}'."
         try:
             if force_model == "legal":
-                response_text = _call_legal_llama(legal_messages)
+                response_text = _call_legal_llama(messages)
             elif force_model == "local":
                 response_text = _call_local_llama(messages)
             elif force_model == "gemini":
-                response_text = _call_gemini(system_instruction, history, prompt)
+                response_text = _call_gemini(LEGAL_SYSTEM_PROMPT, history, prompt)
             elif force_model == "groq":
                 response_text = _call_groq(messages)
             used_model = force_model
         except Exception as e:
             return f"[AI Debug] '{force_model}' failed: {e}"
     else:
-        # Cascade fallback mode: Legal Local -> General Local -> Gemini -> Groq
-        if legal_llm_client:
+        # Cascade fallback: Legal Local -> General Local -> Gemini -> Groq
+        for caller, name in [
+            (lambda: _call_legal_llama(messages), "legal"),
+            (lambda: _call_local_llama(messages), "local"),
+            (lambda: _call_gemini(LEGAL_SYSTEM_PROMPT, history, prompt), "gemini"),
+            (lambda: _call_groq(messages), "groq"),
+        ]:
             try:
-                response_text = _call_legal_llama(legal_messages)
-                used_model = "legal"
+                response_text = caller()
+                used_model = name
+                break
             except Exception as e:
                 if debug:
-                    print(f"[AI Debug] Indian Legal Llama failed: {e}")
-
-        if not response_text and local_llm_client:
-            try:
-                response_text = _call_local_llama(messages)
-                used_model = "local"
-            except Exception as e:
-                if debug:
-                    print(f"[AI Debug] General local Llama failed: {e}")
-
-        if not response_text and gemini_client:
-            try:
-                response_text = _call_gemini(system_instruction, history, prompt)
-                used_model = "gemini"
-            except Exception as e:
-                if debug:
-                    print(f"[AI Debug] Gemini failed: {e}")
-
-        if not response_text and groq_client:
-            try:
-                response_text = _call_groq(messages)
-                used_model = "groq"
-            except Exception as e:
-                if debug:
-                    print(f"[AI Debug] Groq failed: {e}")
+                    print(f"[AI Debug] {name} failed: {e}")
 
     if not response_text:
         return "Sorry, all AI services are currently unavailable."
 
-    if debug and used_model:
-        print(f"[AI Debug] Response served by: {used_model}")
-
+    # Save clean user command rather than the full XML context block to message history
     save_messages(session_id, user_content or prompt, response_text)
 
     return response_text
