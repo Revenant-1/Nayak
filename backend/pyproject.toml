@@ -24,6 +24,7 @@ dependencies = [
     "psycopg[binary]>=3.3.4",
     "alembic>=1.19.1",
     "llama-cpp-python>=0.3.35",
+    "beautifulsoup4>=4.15.0",
 ]
 
 [tool.uv.extra-build-dependencies]
@@ -35,3 +36,8 @@ app = "app:main"
 [build-system]
 requires = ["uv_build>=0.12.3,<0.13.0"]
 app = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
