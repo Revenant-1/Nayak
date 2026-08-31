@@ -9,6 +9,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.0",
+    "@capacitor/cli": "^7.6.8",
+    "@capacitor/core": "^8.5.0",
     "country-state-city": "^3.2.1",
     "framer-motion": "^11.2.10",
     "lucide-react": "^0.400.0",
