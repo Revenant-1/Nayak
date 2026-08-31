@@ -23,6 +23,7 @@ dependencies = [
     "bcrypt>=5.0.0",
     "psycopg[binary]>=3.3.4",
     "alembic>=1.19.1",
+    "llama-cpp-python>=0.3.35",
 ]
 
 [tool.uv.extra-build-dependencies]
