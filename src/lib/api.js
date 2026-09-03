@@ -1,134 +1,119 @@
-import { storage } from './storage'
-
-/*
- * Development API server.
- *
- * IMPORTANT:
- * Android Expo Go cannot use localhost to reach the computer running
- * FastAPI. Use the computer's LAN IP instead.
- *
- * You can override this with:
- *
- * EXPO_PUBLIC_API_BASE_URL=http://YOUR_COMPUTER_IP:8000
- *
- * when needed.
- */
-const API_BASE_URL =
-    process.env.EXPO_PUBLIC_API_BASE_URL || 'http://192.168.1.48:8000'
-
-function buildUrl(path) {
-    return `${API_BASE_URL}${path}`
-}
-
-async function parseResponse(response) {
-    const text = await response.text()
-
-    if (!text) {
-        return null
-    }
-
-    try {
-        return JSON.parse(text)
-    } catch {
-        return text
-    }
-}
+const API_BASE_URL = 'http://192.168.1.48:8000'
 
 async function request(path, options = {}) {
-    const token = await storage.getItem('auth_token')
+  const { token, headers = {}, ...fetchOptions } = options
 
-    const headers = {
-        Accept: 'application/json',
-        ...(options.headers || {}),
-    }
+  const requestHeaders = {
+    Accept: 'application/json',
+    ...headers,
+  }
 
-    if (token && !headers.Authorization) {
-        headers.Authorization = `Bearer ${token}`
-    }
+  if (fetchOptions.body !== undefined) {
+    requestHeaders['Content-Type'] = 'application/json'
+  }
 
-    if (options.body !== undefined && !headers['Content-Type']) {
-        headers['Content-Type'] = 'application/json'
-    }
+  if (token) {
+    requestHeaders.Authorization = `Bearer ${token}`
+  }
 
-    let response
+  let response
 
-    try {
-        response = await fetch(buildUrl(path), {
-            ...options,
-            headers,
-        })
-    } catch (error) {
-        throw new Error(
-            `Could not reach the backend at ${API_BASE_URL}. ` +
-            `Make sure the FastAPI server is running and the phone is on the same network.`,
-        )
-    }
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      ...fetchOptions,
+      headers: requestHeaders,
+    })
+  } catch (error) {
+    throw new Error(
+      `Could not reach the Nayak backend. Check that the backend is running and the phone is connected to the same network.`,
+    )
+  }
 
-    const data = await parseResponse(response)
+  let data = null
 
-    if (!response.ok) {
-        const message =
-            data?.detail ||
-            data?.error ||
-            data?.message ||
-            `Request failed (${response.status})`
+  try {
+    data = await response.json()
+  } catch {
+    // Some successful responses may not contain JSON.
+  }
 
-        throw new Error(message)
-    }
+  if (!response.ok) {
+    const message =
+      data?.detail ||
+      data?.error ||
+      `Request failed with status ${response.status}`
 
-    return data
+    throw new Error(message)
+  }
+
+  return data
 }
 
 export const api = {
-    login: (body) =>
-        request('/api/auth/login', {
-            method: 'POST',
-            body: JSON.stringify(body),
-        }),
+  async login({ username, password }) {
+    return request('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({
+        username,
+        password,
+      }),
+    })
+  },
 
-    register: (body) =>
-        request('/api/auth/register', {
-            method: 'POST',
-            body: JSON.stringify(body),
-        }),
+  async register({ username, email, password }) {
+    return request('/api/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({
+        username,
+        password,
+        email,
+      }),
+    })
+  },
 
-    guestLogin: () =>
-        request('/api/auth/guest-login', {
-            method: 'POST',
-        }),
+  async guestLogin() {
+    return request('/api/auth/guest-login', {
+      method: 'POST',
+    })
+  },
 
-    verifyToken: async (token) =>
-        request('/api/auth/verify', {
-            method: 'GET',
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        }),
+  async verifyToken(token) {
+    return request(`/api/auth/verify?token=${encodeURIComponent(token)}`)
+  },
 
-    createSession: () =>
-        request('/api/session', {
-            method: 'POST',
-        }),
+  async createSession(token) {
+    return request('/api/session', {
+      method: 'POST',
+      token,
+    })
+  },
 
-    history: (sessionId) =>
-        request(
-            `/api/history?session_id=${encodeURIComponent(sessionId)}`,
-            {
-                method: 'GET',
-            },
-        ),
+  async history(sessionId, token) {
+    return request(
+      `/api/history?session_id=${encodeURIComponent(sessionId)}`,
+      {
+        token,
+      },
+    )
+  },
 
-    command: (body) =>
-        request('/api/command', {
-            method: 'POST',
-            body: JSON.stringify(body),
-        }),
+  async command({ text, session_id }, token) {
+    return request('/api/command', {
+      method: 'POST',
+      token,
+      body: JSON.stringify({
+        text,
+        session_id: session_id || null,
+      }),
+    })
+  },
 
-    newChat: () =>
-        request('/api/new-chat', {
-            method: 'POST',
-        }),
+  async newChat(token) {
+    return request('/api/new-chat', {
+      method: 'POST',
+      token,
+    })
+  },
 }
 
 export { API_BASE_URL }
-

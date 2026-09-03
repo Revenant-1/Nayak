@@ -1,39 +1,33 @@
 import * as SecureStore from 'expo-secure-store'
 
-export async function setItem(key, value) {
+const storage = {
+  async setItem(key, value) {
+    if (value === null || value === undefined) {
+      await SecureStore.deleteItemAsync(key)
+      return
+    }
+
     await SecureStore.setItemAsync(key, String(value))
-}
+  },
 
-export async function getItem(key) {
+  async getItem(key) {
     return SecureStore.getItemAsync(key)
-}
+  },
 
-export async function removeItem(key) {
+  async removeItem(key) {
     await SecureStore.deleteItemAsync(key)
+  },
+
+  async clear() {
+    // SecureStore does not provide a way to enumerate all keys.
+    // Remove the keys currently used by Nayak explicitly.
+    await Promise.all([
+      SecureStore.deleteItemAsync('auth_token'),
+      SecureStore.deleteItemAsync('nayak_session_id'),
+      SecureStore.deleteItemAsync('nayak_user'),
+    ])
+  },
 }
 
-export async function setJSON(key, value) {
-    await setItem(key, JSON.stringify(value))
-}
-
-export async function getJSON(key) {
-    const value = await getItem(key)
-
-    if (!value) {
-        return null
-    }
-
-    try {
-        return JSON.parse(value)
-    } catch {
-        return null
-    }
-}
-
-export const storage = {
-    setItem,
-    getItem,
-    removeItem,
-    setJSON,
-    getJSON,
-}
+export default storage
+export { storage }

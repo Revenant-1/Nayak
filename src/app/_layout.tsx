@@ -1,8 +1,5 @@
 import { DarkTheme, ThemeProvider } from 'expo-router'
-import * as SplashScreen from 'expo-splash-screen'
 import { Stack } from 'expo-router'
-
-SplashScreen.preventAutoHideAsync().catch(() => {})
 
 export default function RootLayout() {
   return (
