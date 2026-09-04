@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.Ai import create_chat_session, groq_client, load_history
 from app.ProcessCommands import processCommand
-from app.models import Session as ChatSession
+from app.models import Grievance, Session as ChatSession
 from app.models import User, get_db
 from app.services.auth import (
     authenticate_user,
@@ -63,6 +63,13 @@ class CommandRequest(BaseModel):
     session_id: str | None = None
 
 
+class GrievanceRequest(BaseModel):
+    title: str = Field(min_length=1, max_length=200)
+    category: str = Field(min_length=1, max_length=100)
+    description: str = Field(min_length=10, max_length=10000)
+    location: str | None = Field(default=None, max_length=255)
+
+
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(bearer),
     db: Session = Depends(get_db),
@@ -76,6 +83,61 @@ def get_current_user(
             detail="Invalid or expired token",
         )
     return user
+
+
+def get_registered_user(user: User = Depends(get_current_user)) -> User:
+    if user.user_type == "guest":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Please sign in with a registered account to raise a grievance",
+        )
+    return user
+
+
+def grievance_script(grievance: Grievance) -> str:
+    return (
+        "# Grievance Submission\n\n"
+        f"**Reference:** {grievance.id}\n"
+        f"**Submitted:** {grievance.created_at.isoformat()} UTC\n"
+        f"**Status:** {grievance.status}\n\n"
+        f"## Subject\n{grievance.title}\n\n"
+        f"## Category\n{grievance.category}\n\n"
+        f"## Location\n{grievance.location or 'Not provided'}\n\n"
+        f"## Details\n{grievance.description}\n"
+    )
+
+
+@app.post("/api/grievances")
+async def create_grievance(
+    payload: GrievanceRequest,
+    user: User = Depends(get_registered_user),
+    db: Session = Depends(get_db),
+):
+    grievance = Grievance(
+        user_id=user.id,
+        title=payload.title.strip(),
+        category=payload.category.strip(),
+        description=payload.description.strip(),
+        location=payload.location.strip() if payload.location else None,
+    )
+    db.add(grievance)
+    db.commit()
+    db.refresh(grievance)
+    return {
+        "id": grievance.id,
+        "status": grievance.status,
+        "created_at": grievance.created_at,
+        "script": grievance_script(grievance),
+    }
+
+
+@app.get("/api/grievances")
+async def list_grievances(user: User = Depends(get_registered_user), db: Session = Depends(get_db)):
+    grievances = db.query(Grievance).filter(Grievance.user_id == user.id).order_by(Grievance.created_at.desc()).all()
+    return [
+        {"id": grievance.id, "title": grievance.title, "category": grievance.category, "status": grievance.status, "created_at": grievance.created_at}
+        for grievance in grievances
+    ]
 
 
 @app.post("/api/transcribe")

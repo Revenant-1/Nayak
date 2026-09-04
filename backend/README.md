@@ -65,6 +65,8 @@ secret for each deployed environment.
 - `POST /api/auth/login`: Log in with a username and password.
 - `POST /api/auth/register`: Create a user account.
 - `POST /api/auth/guest-login`: Create a temporary guest account.
+- `POST /api/grievances`: Submit a grievance as a registered user and receive a downloadable Markdown script.
+- `GET /api/grievances`: List the signed-in user's grievances.
 
 ---
 

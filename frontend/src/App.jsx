@@ -9,6 +9,7 @@ import {
   Pause,
   Play,
   Square,
+  FileText,
 } from 'lucide-react'
 
 import Sidebar from './components/Sidebar.jsx'
@@ -17,6 +18,7 @@ import InputBar from './components/InputBar.jsx'
 import { useNayak } from './hooks/useNayak.jsx'
 import VoiceInput from './components/voiceinput.jsx'
 import Profile from './components/Profile.jsx'
+import Grievance from './components/Grievance.jsx'
 import Login from './components/Login.jsx'
 import { api } from './lib/api.js'
 
@@ -68,6 +70,12 @@ export default function App() {
 
   const [showProfile, setShowProfile] =
     useState(false)
+
+  const [showGrievance, setShowGrievance] =
+    useState(false)
+
+  const currentUser = JSON.parse(localStorage.getItem('nayak_user') || 'null')
+  const canRaiseGrievance = currentUser?.user_type !== 'guest' && !currentUser?.isGuest
 
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -480,6 +488,10 @@ export default function App() {
         />
       )}
 
+      {showGrievance && (
+        <Grievance onClose={() => setShowGrievance(false)} />
+      )}
+
       <main className="flex min-w-0 flex-1 flex-col">
         <header className="flex items-center justify-between border-b border-line px-6 py-3">
           <div className="flex items-center gap-2 px-5 pb-4 pt-6">
@@ -525,6 +537,19 @@ export default function App() {
                   <User size={18} />
                   <span>Profile</span>
                 </button>
+
+                {canRaiseGrievance && (
+                  <button
+                    onClick={() => {
+                      setShowGrievance(true)
+                      setMenuOpen(false)
+                    }}
+                    className="menu-item flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left"
+                  >
+                    <FileText size={18} />
+                    <span>Raise grievance</span>
+                  </button>
+                )}
 
                 {/* Download chat */}
 

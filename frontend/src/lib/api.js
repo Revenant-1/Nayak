@@ -29,6 +29,7 @@ export const api = {
   newChat: () => request('/api/new-chat', { method: 'POST' }),
   history: (sessionId) => request(`/api/history?session_id=${encodeURIComponent(sessionId)}`),
   command: (body) => request('/api/command', { method: 'POST', body: JSON.stringify(body) }),
+  createGrievance: (body) => request('/api/grievances', { method: 'POST', body: JSON.stringify(body) }),
   transcribe: (audio) => {
     const body = new FormData()
     const extension = audio.type.includes('ogg') ? 'ogg' : audio.type.includes('mp4') ? 'mp4' : 'webm'

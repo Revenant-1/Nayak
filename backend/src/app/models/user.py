@@ -20,3 +20,4 @@ class User(Base, TimestampMixin):
     documents: Mapped[list["Document"]] = relationship(back_populates="user", cascade="all, delete-orphan", passive_deletes=True)
     feedback: Mapped[list["Feedback"]] = relationship(back_populates="user", cascade="all, delete-orphan", passive_deletes=True)
     user_schemes: Mapped[list["UserScheme"]] = relationship(back_populates="user", cascade="all, delete-orphan", passive_deletes=True)
+    grievances: Mapped[list["Grievance"]] = relationship(back_populates="user", cascade="all, delete-orphan", passive_deletes=True)

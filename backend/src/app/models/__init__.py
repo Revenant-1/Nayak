@@ -9,11 +9,12 @@ from .scheme import Scheme, SchemeCategory, SchemeCategoryMap
 from .user_scheme import UserScheme
 from .document import Document, DocumentQA
 from .feedback import Feedback
+from .grievance import Grievance
 from .misc import TranslationCache, STTLog, DemoTestSet
 
 __all__ = [
     "Base", "DATABASE_URL", "SessionLocal", "engine", "gen_uuid", "get_db",
     "User", "Profile", "Session", "Message", "CorpusDocument", "CorpusChunk",
     "MessageSource", "Scheme", "SchemeCategory", "SchemeCategoryMap", "UserScheme",
-    "Document", "DocumentQA", "Feedback", "TranslationCache", "STTLog", "DemoTestSet",
+    "Document", "DocumentQA", "Feedback", "Grievance", "TranslationCache", "STTLog", "DemoTestSet",
 ]
