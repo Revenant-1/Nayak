@@ -37,13 +37,13 @@ const INITIAL_PROFILE = {
 };
 
 const inputClass =
-  "w-full rounded-xl border border-slate-700/80 bg-[#111827] py-3 pl-11 pr-3 text-sm text-white placeholder:text-slate-500 outline-none transition focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 disabled:cursor-not-allowed disabled:opacity-60";
+  "w-full rounded-xl border border-line bg-panel-hi py-3 pl-11 pr-3 text-sm text-ink placeholder:text-mist outline-none transition focus:border-cyan focus:ring-4 focus:ring-cyan/15 disabled:cursor-not-allowed disabled:opacity-60";
 
 const selectClass =
-  "w-full rounded-xl border border-slate-700/80 bg-[#111827] px-3 py-3 text-sm text-white outline-none transition focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 disabled:cursor-not-allowed disabled:opacity-60";
+  "w-full rounded-xl border border-line bg-panel-hi px-3 py-3 text-sm text-ink outline-none transition focus:border-cyan focus:ring-4 focus:ring-cyan/15 disabled:cursor-not-allowed disabled:opacity-60";
 
 const labelClass =
-  "mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-400";
+  "mb-2 block text-xs font-semibold uppercase tracking-wide text-mist";
 
 function Field({ label, icon: Icon, children }) {
   return (
@@ -54,7 +54,7 @@ function Field({ label, icon: Icon, children }) {
         {Icon && (
           <Icon
             size={18}
-            className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500"
+            className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-mist"
           />
         )}
 
@@ -68,16 +68,16 @@ function Section({ icon: Icon, title, description, children }) {
   return (
     <section>
       <div className="mb-5 flex items-start gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-violet-500/20 bg-violet-500/10">
-          <Icon size={19} className="text-violet-300" />
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-cyan/20 bg-cyan/10">
+          <Icon size={19} className="text-cyan" />
         </div>
 
         <div>
-          <h3 className="text-base font-semibold text-white">
+          <h3 className="text-base font-semibold text-ink">
             {title}
           </h3>
 
-          <p className="mt-0.5 text-xs leading-5 text-slate-500">
+          <p className="mt-0.5 text-xs leading-5 text-mist">
             {description}
           </p>
         </div>
@@ -210,9 +210,13 @@ export default function Profile({ onClose }) {
     <>
       <style>{`
         .date-input::-webkit-calendar-picker-indicator {
-          filter: invert(1) brightness(1.5);
-          opacity: .9;
+          filter: none;
+          opacity: .8;
           cursor: pointer;
+        }
+
+        html.dark .date-input::-webkit-calendar-picker-indicator {
+          filter: invert(1) brightness(1.5);
         }
 
         .profile-scrollbar::-webkit-scrollbar {
@@ -234,31 +238,31 @@ export default function Profile({ onClose }) {
       `}</style>
 
       {/* Overlay */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-3 backdrop-blur-md sm:p-5">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-3 backdrop-blur-md sm:p-5">
 
         {/* Modal */}
-        <div className="flex max-h-[94vh] w-full max-w-3xl flex-col overflow-hidden rounded-3xl border border-violet-500/20 bg-[#080D1A] text-white shadow-[0_25px_80px_rgba(0,0,0,.55)]">
+        <div className="flex max-h-[94vh] w-full max-w-3xl flex-col overflow-hidden rounded-3xl border border-cyan/30 bg-panel text-ink shadow-[0_25px_80px_rgba(6,80,75,.28),0_0_45px_rgba(37,99,235,.08)]">
 
           {/* ================= HEADER ================= */}
-          <header className="shrink-0 border-b border-white/5 bg-[#0B1020]">
+          <header className="shrink-0 border-b border-line/60 bg-panel-hi shadow-[0_4px_20px_rgba(20,184,166,.04)]">
 
             <div className="flex items-center justify-between px-5 py-4 sm:px-7">
 
               <div className="flex min-w-0 items-center gap-3 sm:gap-4">
 
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-violet-500/30 bg-violet-500/10">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-cyan/30 bg-cyan/10">
                   <UserRound
                     size={23}
-                    className="text-violet-300"
+                    className="text-cyan"
                   />
                 </div>
 
                 <div className="min-w-0">
-                  <h2 className="text-lg font-bold text-white sm:text-xl">
+                  <h2 className="text-lg font-bold text-ink sm:text-xl">
                     My Profile
                   </h2>
 
-                  <p className="text-xs text-slate-500 sm:text-sm">
+                  <p className="text-xs text-mist sm:text-sm">
                     Manage your personal information
                   </p>
                 </div>
@@ -269,7 +273,7 @@ export default function Profile({ onClose }) {
                 {!editing && (
                   <button
                     onClick={handleEdit}
-                    className="flex items-center gap-2 rounded-xl border border-violet-500/25 bg-violet-500/10 px-3 py-2 text-xs font-semibold text-violet-200 transition hover:bg-violet-500/20 sm:px-4 sm:text-sm"
+                    className="flex items-center gap-2 rounded-xl border border-cyan/25 bg-cyan/10 px-3 py-2 text-xs font-semibold text-cyan transition hover:bg-cyan/20 sm:px-4 sm:text-sm"
                   >
                     <Pencil size={15} />
 
@@ -282,23 +286,23 @@ export default function Profile({ onClose }) {
                 <button
                   onClick={onClose}
                   aria-label="Close profile"
-                  className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition hover:bg-white/5 hover:text-white"
+                  className="flex h-9 w-9 items-center justify-center rounded-xl text-mist transition hover:bg-cyan/5 hover:text-ink"
                 >
                   <X size={20} />
                 </button>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 border-t border-white/5 px-5 py-2.5 sm:px-7">
+            <div className="flex items-center gap-2 border-t border-line/60 px-5 py-2.5 sm:px-7">
               <span
                 className={`h-1.5 w-1.5 rounded-full ${
                   editing
                     ? "bg-amber-400"
-                    : "bg-emerald-400"
+                    : "bg-jade"
                 }`}
               />
 
-              <span className="text-xs text-slate-500">
+              <span className="text-xs text-mist">
                 {editing
                   ? "Editing your profile"
                   : "Your profile is up to date"}
@@ -417,7 +421,7 @@ export default function Profile({ onClose }) {
                 </div>
               </Section>
 
-              <div className="h-px bg-white/5" />
+              <div className="h-px bg-line/50" />
 
               {/* ================= LOCATION ================= */}
               <Section
@@ -512,13 +516,13 @@ export default function Profile({ onClose }) {
                 </div>
 
                 {profile.state && (
-                  <div className="mt-4 flex items-center gap-2 rounded-xl border border-violet-500/10 bg-violet-500/5 px-3 py-2.5">
+                  <div className="mt-4 flex items-center gap-2 rounded-xl border border-blue/20 bg-blue/5 px-3 py-2.5">
                     <MapPin
                       size={15}
-                      className="text-violet-300"
+                      className="text-cyan"
                     />
 
-                    <span className="text-xs text-slate-400">
+                    <span className="text-xs text-mist">
                       Your location helps Nayak tailor
                       information to your area.
                     </span>
@@ -526,7 +530,7 @@ export default function Profile({ onClose }) {
                 )}
               </Section>
 
-              <div className="h-px bg-white/5" />
+              <div className="h-px bg-line/50" />
 
               {/* ================= CONTACT ================= */}
               <Section
@@ -570,7 +574,7 @@ export default function Profile({ onClose }) {
                 </div>
               </Section>
 
-              <div className="h-px bg-white/5" />
+              <div className="h-px bg-line/50" />
 
               {/* ================= SOCIO ECONOMIC ================= */}
               <Section
@@ -668,7 +672,7 @@ export default function Profile({ onClose }) {
                     Special Category / Status
                   </label>
 
-                  <p className="mb-3 text-xs text-slate-500">
+                  <p className="mb-3 text-xs text-mist">
                     Select all that apply
                   </p>
 
@@ -690,21 +694,21 @@ export default function Profile({ onClose }) {
                           }
                           className={`flex items-center gap-3 rounded-xl border px-3 py-3 text-left text-sm transition ${
                             selected
-                              ? "border-violet-500/50 bg-violet-500/10 text-violet-200"
-                              : "border-slate-700/70 bg-[#111827] text-slate-400 hover:border-slate-600 hover:bg-[#172033]"
+                              ? "border-cyan/50 bg-cyan/10 text-ink"
+                              : "border-line bg-panel-hi text-mist hover:border-cyan/30 hover:bg-cyan/5"
                           } disabled:cursor-not-allowed disabled:opacity-60`}
                         >
                           <span
                             className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border ${
                               selected
-                                ? "border-violet-500 bg-violet-600"
-                                : "border-slate-600 bg-transparent"
+                                ? "border-cyan bg-cyan"
+                                : "border-line bg-transparent"
                             }`}
                           >
                             {selected && (
                               <Check
                                 size={13}
-                                className="text-white"
+                                className="text-ink"
                               />
                             )}
                           </span>
@@ -717,7 +721,7 @@ export default function Profile({ onClose }) {
                 </div>
               </Section>
 
-              <div className="h-px bg-white/5" />
+              <div className="h-px bg-line/50" />
 
               {/* ================= PREFERENCES ================= */}
               <Section
@@ -775,23 +779,23 @@ export default function Profile({ onClose }) {
                   disabled={!editing}
                   rows={4}
                   placeholder="Tell Nayak something about yourself..."
-                  className="w-full resize-none rounded-xl border border-slate-700/80 bg-[#111827] px-4 py-3 text-sm leading-6 text-white placeholder:text-slate-500 outline-none transition focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="w-full resize-none rounded-xl border border-line bg-panel-hi px-4 py-3 text-sm leading-6 text-ink placeholder:text-mist outline-none transition focus:border-cyan focus:ring-4 focus:ring-cyan/15 disabled:cursor-not-allowed disabled:opacity-60"
                 />
               </Section>
 
               {/* ================= PRIVACY ================= */}
-              <div className="flex gap-3 rounded-2xl border border-emerald-500/10 bg-emerald-500/5 p-4">
+              <div className="flex gap-3 rounded-2xl border border-jade/20 bg-jade/5 p-4">
                 <ShieldCheck
                   size={19}
-                  className="mt-0.5 shrink-0 text-emerald-400"
+                  className="mt-0.5 shrink-0 text-jade"
                 />
 
                 <div>
-                  <p className="text-sm font-medium text-emerald-300">
+                  <p className="text-sm font-medium text-jade">
                     Your profile stays on this device
                   </p>
 
-                  <p className="mt-1 text-xs leading-5 text-slate-500">
+                  <p className="mt-1 text-xs leading-5 text-mist">
                     Your profile information is currently
                     stored locally in your browser.
                   </p>
@@ -801,13 +805,13 @@ export default function Profile({ onClose }) {
           </main>
 
           {/* ================= FOOTER ================= */}
-          <footer className="shrink-0 border-t border-white/5 bg-[#0B1020] px-5 py-4 sm:px-7">
+          <footer className="shrink-0 border-t border-line/60 bg-panel-hi px-5 py-4 sm:px-7">
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 
               <div className="min-h-5">
                 {saved && (
-                  <span className="flex items-center gap-2 text-xs font-medium text-emerald-400">
+                  <span className="flex items-center gap-2 text-xs font-medium text-jade">
                     <Check size={15} />
                     Profile saved successfully
                   </span>
@@ -818,7 +822,7 @@ export default function Profile({ onClose }) {
 
                 <button
                   onClick={onClose}
-                  className="flex-1 rounded-xl border border-slate-700 bg-[#111827] px-5 py-2.5 text-sm font-medium text-slate-300 transition hover:border-slate-600 hover:bg-[#172033] hover:text-white sm:flex-none"
+                  className="flex-1 rounded-xl border border-line bg-panel-hi px-5 py-2.5 text-sm font-medium text-mist transition hover:border-cyan/30 hover:bg-cyan/5 hover:text-ink sm:flex-none"
                 >
                   Close
                 </button>
@@ -826,7 +830,7 @@ export default function Profile({ onClose }) {
                 {editing && (
                   <button
                     onClick={handleSave}
-                    className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-6 py-2.5 text-sm font-semibold text-white transition hover:from-violet-500 hover:to-indigo-500 hover:shadow-[0_0_25px_rgba(124,58,237,.3)] sm:flex-none"
+                    className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-blue-600 px-6 py-2.5 text-sm font-semibold text-ink transition hover:from-emerald-500 hover:via-teal-500 hover:to-blue-500 hover:shadow-[0_0_25px_rgba(20,184,166,.28)] sm:flex-none"
                   >
                     <Check size={16} />
                     Save Profile
