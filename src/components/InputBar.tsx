@@ -1,159 +1,214 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
+    ActivityIndicator,
+    Keyboard,
+    Pressable,
+    StyleSheet,
+    Text,
+    TextInput,
+    View,
 } from 'react-native'
 
+type Theme = {
+    background: string
+    surface: string
+    surfaceHigh: string
+    border: string
+    text: string
+    muted: string
+    accent: string
+    accentSoft: string
+}
+
 type InputBarProps = {
-  onSend: (text: string) => void | Promise<void>
-  disabled?: boolean
-  loading?: boolean
-  placeholder?: string
+    onSend: (text: string) => void | Promise<void>
+    disabled?: boolean
+    loading?: boolean
+    placeholder?: string
+    theme: Theme
 }
 
 export default function InputBar({
-  onSend,
-  disabled = false,
-  loading = false,
-  placeholder = 'Ask Nayak a legal question...',
+    onSend,
+    disabled = false,
+    loading = false,
+    placeholder = 'Ask Nayak a legal question...',
+    theme,
 }: InputBarProps) {
-  const [text, setText] = useState('')
+    const [text, setText] = useState('')
+    const inputRef = useRef<TextInput>(null)
 
-  const canSend = text.trim().length > 0 && !disabled && !loading
+    const canSend =
+        text.trim().length > 0 &&
+        !disabled &&
+        !loading
 
-  async function handleSend() {
-    const value = text.trim()
+    async function handleSend() {
+        const value = text.trim()
 
-    if (!value || !canSend) {
-      return
+        if (!value || !canSend) {
+            return
+        }
+
+        setText('')
+        Keyboard.dismiss()
+
+        try {
+            await onSend(value)
+        } catch (error) {
+            console.warn('[InputBar] send error:', error)
+        }
     }
 
-    setText('')
-
-    try {
-      await onSend(value)
-    } catch (error) {
-      console.warn('[InputBar] send error:', error)
-    }
-  }
-
-  return (
-    <View style={styles.container}>
-      <View style={styles.inputWrapper}>
-        <TextInput
-          value={text}
-          onChangeText={setText}
-          placeholder={placeholder}
-          placeholderTextColor="#66667a"
-          multiline
-          maxLength={4000}
-          editable={!disabled && !loading}
-          style={styles.input}
-          textAlignVertical="top"
-          returnKeyType="default"
-        />
-
-        <Pressable
-          onPress={handleSend}
-          disabled={!canSend}
-          accessibilityRole="button"
-          accessibilityLabel="Send message"
-          style={({ pressed }) => [
-            styles.sendButton,
-            !canSend && styles.sendButtonDisabled,
-            pressed && canSend && styles.sendButtonPressed,
-          ]}
+    return (
+        <View
+            style={[
+                styles.container,
+                {
+                    backgroundColor: theme.background,
+                    borderTopColor: theme.border,
+                },
+            ]}
         >
-          {loading ? (
-            <ActivityIndicator
-              size="small"
-              color="#c4b5fd"
-            />
-          ) : (
-            <Text
-              style={[
-                styles.sendIcon,
-                !canSend && styles.sendIconDisabled,
-              ]}
+            <View
+                style={[
+                    styles.inputWrapper,
+                    {
+                        backgroundColor: theme.surfaceHigh,
+                        borderColor: theme.border,
+                    },
+                ]}
             >
-              ↑
-            </Text>
-          )}
-        </Pressable>
-      </View>
-    </View>
-  )
+                <TextInput
+                    ref={inputRef}
+                    value={text}
+                    onChangeText={setText}
+                    placeholder={placeholder}
+                    placeholderTextColor={theme.muted}
+                    multiline
+                    maxLength={4000}
+                    editable={!disabled && !loading}
+                    autoCorrect
+                    autoCapitalize="sentences"
+                    blurOnSubmit={false}
+                    returnKeyType="default"
+                    keyboardType="default"
+                    textAlignVertical="top"
+                    selectionColor={theme.accent}
+                    style={[
+                        styles.input,
+                        {
+                            color: theme.text,
+                        },
+                    ]}
+                    onFocus={() => {
+                        // Keep the input available for keyboard interaction.
+                    }}
+                />
+
+                <Pressable
+                    onPress={handleSend}
+                    disabled={!canSend}
+                    accessibilityRole="button"
+                    accessibilityLabel="Send message"
+                    style={({ pressed }) => [
+                        styles.sendButton,
+                        {
+                            backgroundColor: canSend
+                                ? theme.accentSoft
+                                : theme.surface,
+                            borderColor: canSend
+                                ? theme.accent
+                                : theme.border,
+                        },
+                        !canSend && styles.sendButtonDisabled,
+                        pressed &&
+                        canSend &&
+                        styles.sendButtonPressed,
+                    ]}
+                >
+                    {loading ? (
+                        <ActivityIndicator
+                            size="small"
+                            color={theme.accent}
+                        />
+                    ) : (
+                        <Text
+                            style={[
+                                styles.sendIcon,
+                                {
+                                    color: canSend
+                                        ? theme.accent
+                                        : theme.muted,
+                                },
+                            ]}
+                        >
+                            ↑
+                        </Text>
+                    )}
+                </Pressable>
+            </View>
+        </View>
+    )
 }
 
 const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: 12,
-    paddingTop: 8,
-    paddingBottom: 10,
-    backgroundColor: '#080812',
-    borderTopWidth: 1,
-    borderTopColor: '#1c1b2b',
-  },
+    container: {
+        paddingHorizontal: 11,
+        paddingTop: 8,
+        paddingBottom: 9,
+        borderTopWidth: 1,
+    },
 
-  inputWrapper: {
-    minHeight: 48,
-    maxHeight: 140,
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    backgroundColor: '#11111d',
-    borderWidth: 1,
-    borderColor: '#2a2940',
-    borderRadius: 18,
-    paddingLeft: 15,
-    paddingRight: 7,
-    paddingVertical: 6,
-  },
+    inputWrapper: {
+        minHeight: 50,
+        maxHeight: 145,
+        flexDirection: 'row',
+        alignItems: 'flex-end',
+        borderWidth: 1,
+        borderRadius: 18,
+        paddingLeft: 14,
+        paddingRight: 7,
+        paddingVertical: 6,
+    },
 
-  input: {
-    flex: 1,
-    minHeight: 34,
-    maxHeight: 126,
-    paddingTop: 7,
-    paddingBottom: 7,
-    paddingRight: 8,
-    color: '#f4f4f5',
-    fontSize: 14,
-    lineHeight: 20,
-  },
+    input: {
+        flex: 1,
+        minHeight: 36,
+        maxHeight: 130,
+        paddingTop: 7,
+        paddingBottom: 7,
+        paddingRight: 8,
+        fontSize: 14,
+        lineHeight: 20,
+    },
 
-  sendButton: {
-    width: 36,
-    height: 36,
-    marginBottom: 1,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#2b2250',
-    borderWidth: 1,
-    borderColor: '#5946a6',
-  },
+    sendButton: {
+        width: 37,
+        height: 37,
+        marginBottom: 1,
+        borderRadius: 19,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+    },
 
-  sendButtonDisabled: {
-    opacity: 0.45,
-  },
+    sendButtonDisabled: {
+        opacity: 0.55,
+    },
 
-  sendButtonPressed: {
-    opacity: 0.7,
-    transform: [{ scale: 0.96 }],
-  },
+    sendButtonPressed: {
+        opacity: 0.7,
+        transform: [
+            {
+                scale: 0.96,
+            },
+        ],
+    },
 
-  sendIcon: {
-    color: '#c4b5fd',
-    fontSize: 22,
-    fontWeight: '700',
-    lineHeight: 24,
-  },
-
-  sendIconDisabled: {
-    color: '#77778a',
-  },
+    sendIcon: {
+        fontSize: 22,
+        fontWeight: '700',
+        lineHeight: 24,
+    },
 })

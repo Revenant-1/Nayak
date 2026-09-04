@@ -18,9 +18,29 @@ const storage = {
     await SecureStore.deleteItemAsync(key)
   },
 
+  async setJSON(key, value) {
+    await SecureStore.setItemAsync(key, JSON.stringify(value))
+  },
+
+  async getJSON(key) {
+    const value = await SecureStore.getItemAsync(key)
+
+    if (!value) {
+      return null
+    }
+
+    try {
+      return JSON.parse(value)
+    } catch {
+      return null
+    }
+  },
+
+  async removeJSON(key) {
+    await SecureStore.deleteItemAsync(key)
+  },
+
   async clear() {
-    // SecureStore does not provide a way to enumerate all keys.
-    // Remove the keys currently used by Nayak explicitly.
     await Promise.all([
       SecureStore.deleteItemAsync('auth_token'),
       SecureStore.deleteItemAsync('nayak_session_id'),

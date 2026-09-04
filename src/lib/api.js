@@ -1,7 +1,20 @@
+import storage from './storage'
+
 const API_BASE_URL = 'http://192.168.1.48:8000'
 
+async function getAuthToken() {
+  return storage.getItem('auth_token')
+}
+
 async function request(path, options = {}) {
-  const { token, headers = {}, ...fetchOptions } = options
+  const {
+    token: suppliedToken,
+    headers = {},
+    ...fetchOptions
+  } = options
+
+  const token =
+    suppliedToken ?? (await getAuthToken())
 
   const requestHeaders = {
     Accept: 'application/json',
@@ -19,13 +32,19 @@ async function request(path, options = {}) {
   let response
 
   try {
+    console.log(
+      `[Nayak API] ${fetchOptions.method || 'GET'} ${API_BASE_URL}${path}`,
+    )
+
     response = await fetch(`${API_BASE_URL}${path}`, {
       ...fetchOptions,
       headers: requestHeaders,
     })
   } catch (error) {
+    console.error('[Nayak API] Network error:', error)
+
     throw new Error(
-      `Could not reach the Nayak backend. Check that the backend is running and the phone is connected to the same network.`,
+      'Could not reach the Nayak backend. Check that the backend is running and the phone is connected to the same network.',
     )
   }
 
@@ -34,7 +53,7 @@ async function request(path, options = {}) {
   try {
     data = await response.json()
   } catch {
-    // Some successful responses may not contain JSON.
+    // Response did not contain JSON.
   }
 
   if (!response.ok) {
@@ -43,13 +62,27 @@ async function request(path, options = {}) {
       data?.error ||
       `Request failed with status ${response.status}`
 
+    console.error(
+      `[Nayak API] ${response.status} ${path}:`,
+      message,
+    )
+
     throw new Error(message)
   }
+
+  console.log(
+    `[Nayak API] ${response.status} ${path}`,
+    data,
+  )
 
   return data
 }
 
 export const api = {
+  // -------------------------
+  // Authentication
+  // -------------------------
+
   async login({ username, password }) {
     return request('/api/auth/login', {
       method: 'POST',
@@ -78,8 +111,14 @@ export const api = {
   },
 
   async verifyToken(token) {
-    return request(`/api/auth/verify?token=${encodeURIComponent(token)}`)
+    return request(
+      `/api/auth/verify?token=${encodeURIComponent(token)}`,
+    )
   },
+
+  // -------------------------
+  // Sessions
+  // -------------------------
 
   async createSession(token) {
     return request('/api/session', {
@@ -88,7 +127,22 @@ export const api = {
     })
   },
 
+  async newChat(token) {
+    return request('/api/new-chat', {
+      method: 'POST',
+      token,
+    })
+  },
+
+  // -------------------------
+  // Chat history
+  // -------------------------
+
   async history(sessionId, token) {
+    if (!sessionId) {
+      throw new Error('A session ID is required to load chat history.')
+    }
+
     return request(
       `/api/history?session_id=${encodeURIComponent(sessionId)}`,
       {
@@ -97,21 +151,24 @@ export const api = {
     )
   },
 
+  // -------------------------
+  // Command
+  // -------------------------
+
   async command({ text, session_id }, token) {
+    const trimmed = text?.trim()
+
+    if (!trimmed) {
+      throw new Error('Message cannot be empty.')
+    }
+
     return request('/api/command', {
       method: 'POST',
       token,
       body: JSON.stringify({
-        text,
+        text: trimmed,
         session_id: session_id || null,
       }),
-    })
-  },
-
-  async newChat(token) {
-    return request('/api/new-chat', {
-      method: 'POST',
-      token,
     })
   },
 }
