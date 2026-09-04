@@ -1,13 +1,13 @@
 import os
 from datetime import datetime
 
-from fastapi import Depends, FastAPI, HTTPException, UploadFile, status
+from fastapi import Depends, FastAPI, File, HTTPException, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy.orm import Session
 
-from app.Ai import create_chat_session, load_history
+from app.Ai import create_chat_session, groq_client, load_history
 from app.ProcessCommands import processCommand
 from app.models import Session as ChatSession
 from app.models import User, get_db
@@ -76,6 +76,39 @@ def get_current_user(
             detail="Invalid or expired token",
         )
     return user
+
+
+@app.post("/api/transcribe")
+async def transcribe_audio(audio: UploadFile = File(...), user: User = Depends(get_current_user)):
+    if not groq_client:
+        raise HTTPException(status_code=503, detail="GROQ_API_KEY is missing from .env")
+    content_type = audio.content_type or ""
+    filename = (audio.filename or "").lower()
+    known_audio_extension = filename.endswith((".webm", ".ogg", ".mp4", ".wav", ".mp3", ".m4a"))
+    if not (
+        content_type.startswith("audio/")
+        or content_type.startswith("video/webm")
+        or content_type == "application/ogg"
+        or (content_type == "application/octet-stream" and known_audio_extension)
+    ):
+        raise HTTPException(status_code=415, detail="An audio file is required")
+
+    contents = await audio.read()
+    if not contents:
+        raise HTTPException(status_code=400, detail="The audio recording is empty")
+    if len(contents) > 25 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="The audio recording is too large")
+
+    try:
+        result = groq_client.audio.transcriptions.create(
+            file=(audio.filename or "recording.webm", contents),
+            model="whisper-large-v3-turbo",
+            response_format="verbose_json",
+        )
+    except Exception as error:
+        raise HTTPException(status_code=502, detail=f"Transcription failed: {error}") from error
+
+    return {"text": result.text, "language": getattr(result, "language", None)}
 
 
 def make_login_response(user: User, guest: bool = False) -> LoginResponse:

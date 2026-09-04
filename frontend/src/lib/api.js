@@ -4,7 +4,7 @@ export async function request(path, options = {}) {
   const token = localStorage.getItem('auth_token')
   const headers = new Headers(options.headers)
   if (token) headers.set('Authorization', `Bearer ${token}`)
-  if (options.body && !headers.has('Content-Type')) {
+  if (options.body && !(options.body instanceof FormData) && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json')
   }
 
@@ -29,4 +29,10 @@ export const api = {
   newChat: () => request('/api/new-chat', { method: 'POST' }),
   history: (sessionId) => request(`/api/history?session_id=${encodeURIComponent(sessionId)}`),
   command: (body) => request('/api/command', { method: 'POST', body: JSON.stringify(body) }),
+  transcribe: (audio) => {
+    const body = new FormData()
+    const extension = audio.type.includes('ogg') ? 'ogg' : audio.type.includes('mp4') ? 'mp4' : 'webm'
+    body.append('audio', audio, `recording.${extension}`)
+    return request('/api/transcribe', { method: 'POST', body })
+  },
 }

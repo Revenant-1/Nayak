@@ -1,17 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { api } from '../lib/api.js'
 
-// Talks directly to the FastAPI backend described in INTEGRATION.md.
-// Override with VITE_API_BASE_URL in a .env file for other environments.
-const SILENCE_TIMEOUT_MS = 1400 // pause length that closes out a captured command
-
 /**
  * useNayak
  * --------
  * Owns the entire voice & command pipeline:
- *   1. Continuous Web Speech API recognition while the microphone is active.
- *   2. Buffers speech until a pause, then treats that buffer as the command.
- *   3. POSTs the command to the FastAPI backend and speaks the reply back
+ *   1. Records audio while the microphone is active.
+ *   2. Sends the recording to Whisper for transcription.
+ *   3. POSTs the transcript to the FastAPI backend and speaks the reply back
  *      with SpeechSynthesis.
  *   4. Also exposes `sendTextCommand` so the InputBar fallback shares the
  *      exact same pipeline.
@@ -27,16 +23,14 @@ export function useNayak({ onExchange, sessionId } = {}) {
   const [micLevel, setMicLevel] = useState(0)
   const [error, setError] = useState(null)
 
-  const recognitionRef = useRef(null)
+  const recorderRef = useRef(null)
+  const streamRef = useRef(null)
+  const chunksRef = useRef([])
   const statusRef = useRef('sleeping')
   const commandBufferRef = useRef('')
-  const silenceTimerRef = useRef(null)
-  const audioCtxRef = useRef(null)
-  const levelRafRef = useRef(null)
-
-  const SpeechRecognitionImpl =
-    typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition)
-  const micSupported = Boolean(SpeechRecognitionImpl)
+  const micSupported = typeof window !== 'undefined' && Boolean(
+    navigator.mediaDevices?.getUserMedia && window.MediaRecorder,
+  )
 
   useEffect(() => {
     statusRef.current = status
@@ -78,115 +72,46 @@ export function useNayak({ onExchange, sessionId } = {}) {
     [onExchange, sessionId],
   )
 
-  // ---- optional mic amplitude via Web Audio, purely cosmetic -----------
-  const startLevelMeter = useCallback(async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      const ctx = new (window.AudioContext || window.webkitAudioContext)()
-      const source = ctx.createMediaStreamSource(stream)
-      const analyser = ctx.createAnalyser()
-      analyser.fftSize = 256
-      source.connect(analyser)
-      audioCtxRef.current = ctx
-
-      const data = new Uint8Array(analyser.frequencyBinCount)
-      const tick = () => {
-        analyser.getByteFrequencyData(data)
-        const avg = data.reduce((a, b) => a + b, 0) / data.length
-        setMicLevel(Math.min(avg / 128, 1))
-        levelRafRef.current = requestAnimationFrame(tick)
-      }
-      tick()
-    } catch (err) {
-      console.warn('[useNayak] mic level metering unavailable:', err.message)
-    }
-  }, [])
-
-  const stopLevelMeter = useCallback(() => {
-    cancelAnimationFrame(levelRafRef.current)
-    audioCtxRef.current?.close()
-    audioCtxRef.current = null
-    setMicLevel(0)
-  }, [])
-
-  // ---- speech recognition lifecycle -------------------------------------
+  // ---- audio recording lifecycle ----------------------------------------
   const startListening = useCallback(() => {
-    if (!micSupported || recognitionRef.current) return
-    const recognition = new SpeechRecognitionImpl()
-    recognition.continuous = true
-    recognition.interimResults = true
-    recognition.lang = 'en-US'
-
-    recognition.onresult = (event) => {
-      let finalChunk = ''
-      let interimChunk = ''
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const chunk = event.results[i][0].transcript
-        if (event.results[i].isFinal) finalChunk += chunk
-        else interimChunk += chunk
-      }
-
-      if (statusRef.current === 'sleeping') {
-        setStatus('listening')
-        statusRef.current = 'listening'
-}
-      if (statusRef.current === 'listening') {
-        if (finalChunk) {
-          commandBufferRef.current = `${commandBufferRef.current} ${finalChunk}`.trim()
-        }
-        setInterimText(`${commandBufferRef.current} ${interimChunk}`.trim())
-
-        // Every new speech chunk resets the pause timer; once speech
-        // stops for SILENCE_TIMEOUT_MS, the buffered text is the command.
-        clearTimeout(silenceTimerRef.current)
-        silenceTimerRef.current = setTimeout(() => {
-          const finalText = commandBufferRef.current.trim()
-          commandBufferRef.current = ''
-          setInterimText('')
-          if (finalText) sendCommand(finalText)
-          else setStatus('sleeping')
-        }, SILENCE_TIMEOUT_MS)
-      }
-    }
-
-    recognition.onerror = (event) => {
-      console.warn('[useNayak] recognition error:', event.error)
-      if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-        setError('Microphone access was blocked — check your browser permissions.')
-        setMicOn(false)
-        recognitionRef.current = null
-      }
-    }
-
-    // Chrome silently ends `continuous` recognition after a while;
-    // restart it automatically unless the user explicitly turned it off.
-    recognition.onend = () => {
-      if (recognitionRef.current) {
+    if (!micSupported || recorderRef.current) return
+    navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+      const recorder = new MediaRecorder(stream)
+      chunksRef.current = []
+      recorder.ondataavailable = (event) => event.data.size && chunksRef.current.push(event.data)
+      recorder.onstop = async () => {
+        const audio = new Blob(chunksRef.current, { type: recorder.mimeType })
+        stream.getTracks().forEach((track) => track.stop())
+        recorderRef.current = null
+        streamRef.current = null
         try {
-          recognition.start()
-        } catch {
-          /* already starting — safe to ignore */
+          const data = await api.transcribe(audio)
+          if (!data.text?.trim()) throw new Error('No speech was detected')
+          await sendCommand(data.text)
+        } catch (err) {
+          console.error('[useNayak] transcription failed:', err)
+          setError(`Could not transcribe the recording: ${err.message}`)
+          setStatus('sleeping')
         }
       }
-    }
-
-    recognitionRef.current = recognition
-    recognition.start()
-    setMicOn(true)
-    startLevelMeter()
-  }, [SpeechRecognitionImpl, micSupported, sendCommand, startLevelMeter])
+      recorderRef.current = recorder
+      streamRef.current = stream
+      recorder.start()
+      setMicOn(true)
+      setStatus('listening')
+    }).catch((err) => {
+      setError(`Microphone access failed: ${err.message}`)
+      setStatus('sleeping')
+    })
+  }, [micSupported, sendCommand])
 
   const stopListening = useCallback(() => {
-    const recognition = recognitionRef.current
-    recognitionRef.current = null // tells onend not to auto-restart
-    recognition?.stop()
+    const recorder = recorderRef.current
     setMicOn(false)
-    setStatus('sleeping')
-    clearTimeout(silenceTimerRef.current)
-    commandBufferRef.current = ''
+    setStatus('processing')
     setInterimText('')
-    stopLevelMeter()
-  }, [stopLevelMeter])
+    recorder?.stop()
+  }, [])
 
   const toggleMic = useCallback(() => {
     if (micOn) stopListening()
@@ -198,13 +123,9 @@ export function useNayak({ onExchange, sessionId } = {}) {
 
   useEffect(() => {
     return () => {
-      const recognition = recognitionRef.current
-      recognitionRef.current = null
-      recognition?.stop()
-      clearTimeout(silenceTimerRef.current)
-      stopLevelMeter()
+      recorderRef.current?.stop()
+      streamRef.current?.getTracks().forEach((track) => track.stop())
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return {

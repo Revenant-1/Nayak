@@ -75,7 +75,7 @@ export default function App() {
     setMessages((prev) => [...prev, { role: 'user', content: userText, time: nowLabel() }])
   }, [])
 
-  const { status, micOn, micSupported, interimText, error, toggleMic, sendTextCommand } =
+  const { status, micOn, micSupported, micLevel, interimText, error, toggleMic, sendTextCommand } =
     useNayak({ onExchange: appendExchange, sessionId })
 
   // Track AI command errors separately
@@ -288,7 +288,7 @@ export default function App() {
         )}
 
         <div className="flex shrink-0 items-center justify-center pb-2 pt-6">
-          <VoiceInput status={status} sendTextCommand={sendTextCommand} addUserMessage={addUserMessage} />
+          {micOn && <VoiceInput status={status} micLevel={micLevel} onStop={toggleMic} />}
         </div>
 
         <ChatView messages={messages} focusIndex={focusIndex} interimText={interimText} />
