@@ -15,7 +15,14 @@ const STATUS_COPY = {
  * We surface every user turn as a clickable entry — clicking one scrolls
  * the transcript to that turn (handled by the parent via onSelectEntry).
  */
-export default function Sidebar({ history, status, onNewChat, activeIndex, onSelectEntry, backendOnline }) {
+export default function Sidebar({
+  history,
+  status,
+  onNewChat,
+  activeIndex,
+  onSelectEntry,
+  backendOnline,
+}) {
   const entries = history
     .map((msg, i) => ({ ...msg, index: i }))
     .filter((msg) => msg.role === 'user')

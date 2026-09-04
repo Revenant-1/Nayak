@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { User, LogOut, Download, Loader2, AlertCircle } from 'lucide-react'
+import { Menu, User, LogOut, Download, Palette } from 'lucide-react'
 import Sidebar from './components/Sidebar.jsx'
 import ChatView from './components/ChatView.jsx'
 import InputBar from './components/InputBar.jsx'
@@ -35,6 +35,8 @@ export default function App() {
   const [systemMessage, setSystemMessage] = useState('Preparing your assistant…')
   const [focusIndex, setFocusIndex] = useState(null)
   const [showProfile, setShowProfile] = useState(false)
+  const [design, setDesign] = useState('default')
+  const [menuOpen, setMenuOpen] = useState(false)
   const [sessionId, setSessionId] = useState(
     () => localStorage.getItem('nayak_session_id'),
   )
@@ -175,6 +177,11 @@ export default function App() {
     setSessionStatus('initializing')
     setAuthError(null)
     setSystemMessage('Preparing your assistant…')
+    setMenuOpen(false)
+  }, [])
+
+  const cycleDesign = useCallback(() => {
+    setDesign((current) => ({ default: 'minimalist', minimalist: 'light', light: 'default' }[current]))
   }, [])
 
   const downloadMarkdown = useCallback(() => {
@@ -226,7 +233,7 @@ export default function App() {
   }
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-void font-body text-ink">
+    <div className={`relative flex h-screen w-screen overflow-hidden bg-void font-body text-ink ${design === 'minimalist' ? 'minimalist-mode' : ''} ${design === 'light' ? 'light-mode' : ''}`}>
       <Sidebar
         history={messages}
         status={status}
@@ -249,29 +256,46 @@ export default function App() {
               session:{sessionStatus} · ai:{stateLabel}
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="relative">
             <button
-              onClick={downloadMarkdown}
-              disabled={messages.length === 0}
-              title="Download chat as Markdown"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-[#17163A] text-mist transition hover:border-cyan/40 hover:bg-cyan/10 hover:text-cyan disabled:cursor-not-allowed disabled:opacity-40"
+              onClick={() => setMenuOpen((open) => !open)}
+              aria-expanded={menuOpen}
+              aria-label="Open account menu"
+              title="Open menu"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-[#17163A] text-mist transition hover:border-cyan/40 hover:bg-cyan/10 hover:text-cyan"
             >
-              <Download size={16} />
+              <Menu size={18} />
             </button>
-            <button
-              onClick={() => setShowProfile(true)}
-              title="My Profile"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-violet-500/30 bg-[#17163A] text-violet-300 transition hover:border-violet-400 hover:bg-violet-600 hover:text-white"
-            >
-              <User size={18} />
-            </button>
-            <button
-              onClick={handleLogout}
-              title="Log out"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-[#17163A] text-mist transition hover:border-red-500/40 hover:bg-red-500/20 hover:text-red-300"
-            >
-              <LogOut size={16} />
-            </button>
+            {menuOpen && (
+              <div className="absolute right-0 top-12 z-20 w-52 rounded-lg border border-line bg-panel p-2 shadow-xl">
+                <button
+                  onClick={() => { setShowProfile(true); setMenuOpen(false) }}
+                  className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm text-mist hover:bg-panel-hi hover:text-ink"
+                >
+                  <User size={16} /> Profile
+                </button>
+                <button
+                  onClick={() => { downloadMarkdown(); setMenuOpen(false) }}
+                  disabled={messages.length === 0}
+                  className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm text-mist hover:bg-panel-hi hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <Download size={16} /> Download chat
+                </button>
+                <button
+                  onClick={cycleDesign}
+                  className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm text-mist hover:bg-panel-hi hover:text-ink"
+                >
+                  <span className="flex items-center gap-3"><Palette size={16} /> Design</span>
+                  <span className="font-mono text-[10px] uppercase">{design}</span>
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm text-mist hover:bg-red-500/20 hover:text-red-300"
+                >
+                  <LogOut size={16} /> Log out
+                </button>
+              </div>
+            )}
           </div>
         </header>
 

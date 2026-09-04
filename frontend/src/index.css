@@ -14,6 +14,12 @@
   ::selection {
     @apply bg-iris/40 text-ink;
   }
+  .minimalist-mode {
+    filter: grayscale(1) contrast(1.1);
+  }
+  .light-mode {
+    filter: grayscale(1) invert(1);
+  }
   /* Visible keyboard focus everywhere — never removed, just restyled */
   :focus-visible {
     outline: 2px solid theme('colors.cyan');
