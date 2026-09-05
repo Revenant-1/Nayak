@@ -30,10 +30,11 @@ export const api = {
   history: (sessionId) => request(`/api/history?session_id=${encodeURIComponent(sessionId)}`),
   command: (body) => request('/api/command', { method: 'POST', body: JSON.stringify(body) }),
   createGrievance: (body) => request('/api/grievances', { method: 'POST', body: JSON.stringify(body) }),
-  transcribe: (audio) => {
+  transcribe: (audio, language) => {
     const body = new FormData()
     const extension = audio.type.includes('ogg') ? 'ogg' : audio.type.includes('mp4') ? 'mp4' : 'webm'
     body.append('audio', audio, `recording.${extension}`)
+    if (language) body.append('language', language)
     return request('/api/transcribe', { method: 'POST', body })
   },
 }

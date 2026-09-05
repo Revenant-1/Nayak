@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 
-from fastapi import Depends, FastAPI, File, HTTPException, UploadFile, status
+from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, EmailStr, Field
@@ -141,7 +141,11 @@ async def list_grievances(user: User = Depends(get_registered_user), db: Session
 
 
 @app.post("/api/transcribe")
-async def transcribe_audio(audio: UploadFile = File(...), user: User = Depends(get_current_user)):
+async def transcribe_audio(
+    audio: UploadFile = File(...),
+    language: str | None = Form(default=None),
+    user: User = Depends(get_current_user),
+):
     if not groq_client:
         raise HTTPException(status_code=503, detail="GROQ_API_KEY is missing from .env")
     content_type = audio.content_type or ""
@@ -162,11 +166,14 @@ async def transcribe_audio(audio: UploadFile = File(...), user: User = Depends(g
         raise HTTPException(status_code=413, detail="The audio recording is too large")
 
     try:
-        result = groq_client.audio.transcriptions.create(
-            file=(audio.filename or "recording.webm", contents),
-            model="whisper-large-v3-turbo",
-            response_format="verbose_json",
-        )
+        transcription_options = {
+            "file": (audio.filename or "recording.webm", contents),
+            "model": "whisper-large-v3-turbo",
+            "response_format": "verbose_json",
+        }
+        if language:
+            transcription_options["language"] = language
+        result = groq_client.audio.transcriptions.create(**transcription_options)
     except Exception as error:
         raise HTTPException(status_code=502, detail=f"Transcription failed: {error}") from error
 

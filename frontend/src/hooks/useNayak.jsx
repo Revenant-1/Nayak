@@ -14,7 +14,7 @@ import { api } from '../lib/api.js'
  *      exact same pipeline.
  */
 
-export function useNayak({ onExchange, sessionId } = {}) {
+export function useNayak({ onExchange, sessionId, language = 'en-IN' } = {}) {
   const [status, setStatus] = useState('sleeping')
   const [micOn, setMicOn] = useState(false)
   const [interimText, setInterimText] = useState('')
@@ -112,6 +112,7 @@ export function useNayak({ onExchange, sessionId } = {}) {
         if ('speechSynthesis' in window) {
           const utter =
             new SpeechSynthesisUtterance(reply)
+          if (language) utter.lang = language
 
           utter.onstart = () => {
             setSpeechSpeaking(true)
@@ -171,7 +172,7 @@ export function useNayak({ onExchange, sessionId } = {}) {
         setStatus('sleeping')
       }
     },
-    [onExchange, sessionId, stopSpeech],
+    [language, onExchange, sessionId, stopSpeech],
   )
 
   // --------------------------------------------------
@@ -213,7 +214,7 @@ export function useNayak({ onExchange, sessionId } = {}) {
           streamRef.current = null
 
           try {
-            const data = await api.transcribe(audio)
+            const data = await api.transcribe(audio, language?.slice(0, 2))
 
             if (!data.text?.trim()) {
               throw new Error(
@@ -251,7 +252,7 @@ export function useNayak({ onExchange, sessionId } = {}) {
 
         setStatus('sleeping')
       })
-  }, [micSupported, sendCommand, stopSpeech])
+  }, [language, micSupported, sendCommand, stopSpeech])
 
   const stopListening = useCallback(() => {
     const recorder = recorderRef.current

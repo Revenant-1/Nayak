@@ -42,6 +42,16 @@ const initialAuthStatus = (() => {
 // ready | empty-session | error
 const initialSessionStatus = 'initializing'
 
+const LANGUAGES = [
+  { code: 'auto', label: 'Auto', speechCode: null },
+  { code: 'en', label: 'English', speechCode: 'en-IN' },
+  { code: 'hi', label: 'हिन्दी', speechCode: 'hi-IN' },
+  { code: 'mr', label: 'मराठी', speechCode: 'mr-IN' },
+  { code: 'ta', label: 'தமிழ்', speechCode: 'ta-IN' },
+  { code: 'te', label: 'తెలుగు', speechCode: 'te-IN' },
+  { code: 'bn', label: 'বাংলা', speechCode: 'bn-IN' },
+]
+
 export default function App() {
   const [authStatus, setAuthStatus] =
     useState(initialAuthStatus)
@@ -92,6 +102,17 @@ export default function App() {
   const [sessionId, setSessionId] = useState(() =>
     localStorage.getItem('nayak_session_id'),
   )
+
+  const [language, setLanguage] = useState(() =>
+    localStorage.getItem('nayak_language') || 'en',
+  )
+
+  const selectedLanguage =
+    LANGUAGES.find((item) => item.code === language) || LANGUAGES[0]
+
+  useEffect(() => {
+    localStorage.setItem('nayak_language', language)
+  }, [language])
 
   useEffect(() => {
     document.documentElement.classList.toggle(
@@ -208,6 +229,7 @@ export default function App() {
   } = useNayak({
     onExchange: appendExchange,
     sessionId,
+    language: selectedLanguage.speechCode,
   })
 
   // Track AI command errors separately
@@ -693,6 +715,9 @@ export default function App() {
           onToggleMic={toggleMic}
           micSupported={micSupported}
           disabled={status === 'processing'}
+          language={language}
+          languages={LANGUAGES}
+          onLanguageChange={setLanguage}
         />
       </main>
     </div>

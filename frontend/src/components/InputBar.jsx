@@ -6,7 +6,7 @@ import { Send, Mic } from 'lucide-react'
  * --------
  * Text fallback plus the cross-browser audio recorder toggle.
  */
-export default function InputBar({ onSend, micActive, onToggleMic, micSupported, disabled }) {
+export default function InputBar({ onSend, micActive, onToggleMic, micSupported, disabled, language, languages, onLanguageChange }) {
   const [value, setValue] = useState('')
 
   const submit = (e) => {
@@ -44,6 +44,22 @@ export default function InputBar({ onSend, micActive, onToggleMic, micSupported,
         disabled={disabled}
         className="flex-1 rounded-full border border-line bg-panel-hi px-4 py-2.5 text-sm text-ink placeholder:text-mist focus-visible:outline-cyan disabled:opacity-50"
       />
+
+      <label className="sr-only" htmlFor="input-language">Voice language</label>
+      <select
+        id="input-language"
+        value={language}
+        onChange={(event) => onLanguageChange(event.target.value)}
+        aria-label="Voice language"
+        title="Choose voice language or Auto"
+        className="max-w-28 rounded-lg border border-line bg-panel-hi px-2 py-2.5 text-xs text-ink outline-none focus:border-cyan"
+      >
+        {languages.map((item) => (
+          <option key={item.code} value={item.code}>
+            {item.label}
+          </option>
+        ))}
+      </select>
 
       <button
         type="submit"
