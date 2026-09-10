@@ -25,6 +25,9 @@ dependencies = [
     "alembic>=1.19.1",
     "llama-cpp-python>=0.3.35",
     "beautifulsoup4>=4.15.0",
+    "pymupdf4llm>=1.28.2",
+    "langchain-text-splitters>=1.1.2",
+    "tqdm>=4.70.0",
 ]
 
 [tool.uv.extra-build-dependencies]

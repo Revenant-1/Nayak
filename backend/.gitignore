@@ -12,3 +12,6 @@ wheels/
 # Local secrets and runtime configuration
 .env
 src/app/config/auth_config.json
+backend/generate_dataset.py
+backend/pyproject.toml
+backend/qwen_rag_finetune.jsonl
