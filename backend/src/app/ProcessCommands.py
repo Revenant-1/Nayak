@@ -14,8 +14,8 @@ vector_db = QdrantService()
 vector_db = QdrantService()
 
 
-def retrieve_legal_context(user_query: str, limit: int = 3) -> str:
-    """Queries Qdrant vector database and returns formatted context chunks."""
+def retrieve_legal_context(user_query: str, limit: int = 4) -> str:
+    """Queries Qdrant and formats clean context blocks for the LLM."""
     try:
         search_results = vector_db.search(query=user_query, limit=limit)
         if not search_results:
@@ -23,11 +23,12 @@ def retrieve_legal_context(user_query: str, limit: int = 3) -> str:
 
         context_chunks = []
         for i, hit in enumerate(search_results, start=1):
-            source = hit.payload.get("source", "Unknown")
+            source = hit.payload.get("source", "Unknown").replace("_", " ")
             section = hit.payload.get("section", "General")
             text = hit.payload.get("text", "").strip()
+            # Clean structure without nested brackets
             context_chunks.append(
-                f"[Doc {i} | Source: {source} | Section: {section}]\n{text}"
+                f"--- Reference Document {i} ---\nDocument: {source}\nSection: {section}\nContent: {text}"
             )
         return "\n\n".join(context_chunks)
     except Exception as e:
@@ -36,11 +37,10 @@ def retrieve_legal_context(user_query: str, limit: int = 3) -> str:
 
 
 def format_rag_prompt(command: str, legal_context: str, is_detailed: bool) -> str:
-    """Structures retrieved knowledge chunks with XML tags and model instructions."""
     detail_guideline = (
-        "Provide a comprehensive, in-depth breakdown covering definitions, exceptions, and procedural steps."
+        "Provide a comprehensive, in-depth breakdown covering conditions and procedures."
         if is_detailed
-        else "Provide a concise summary answering the question directly in 2-4 bullet points."
+        else "Provide a concise summary answering directly in 2-3 bullet points."
     )
 
     if legal_context:
@@ -49,15 +49,14 @@ def format_rag_prompt(command: str, legal_context: str, is_detailed: bool) -> st
 </context>
 
 <instructions>
-1. Use the reference material in <context> above to answer the user's question.
+1. Answer the question strictly using the facts in the <context> above.
 2. {detail_guideline}
-3. Cite the exact source tags provided in the context (e.g., [Doc 1 | Source: X | Section: Y]).
-4. If the context does not cover the question, state that the provided records do not contain the answer, but provide general legal information if known under Indian law.
+3. Citation Rule: Cite your source at the end of the answer in clean parentheses: (Source: <Document Name>, <Section/Page>). Do NOT invent or output raw internal doc tags.
+4. Grounding: If the context discusses a policy/scheme (such as PMFBY), do not fabricate statutory Acts or Section numbers. If an exact condition (like timelines or percentage thresholds) is not in the context, explicitly state that it is not specified.
 </instructions>
 
 User Question: {command}"""
-    else:
-        return f"{command}\n\nNote: {detail_guideline}"
+    return f"{command}\n\nNote: {detail_guideline}"
 
 
 def processCommand(command: str, session_id: str | None = None) -> str:
@@ -72,7 +71,8 @@ def processCommand(command: str, session_id: str | None = None) -> str:
     is_detailed = "in detail" in command.lower() or "detailed" in command.lower()
 
     # 2. Retrieve relevant context from vector database
-    legal_context = retrieve_legal_context(command, limit=3)
+    legal_context = retrieve_legal_context(command, limit=5)
+    
 
     # 3. Format the prompt with XML context delimiters
     prompt = format_rag_prompt(command, legal_context, is_detailed)
