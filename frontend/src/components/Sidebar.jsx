@@ -1,6 +1,10 @@
 import { motion } from 'framer-motion'
-import { Plus, MessageSquare, Circle } from 'lucide-react'
-
+import {
+  Plus,
+  MessageSquare,
+  Circle,
+  Landmark,
+} from 'lucide-react'
 const STATUS_COPY = {
   sleeping: {
     label: 'Sleeping',
@@ -45,6 +49,8 @@ export default function Sidebar({
   onNewChat,
   activeIndex,
   onSelectEntry,
+  onSchemes,
+  schemeActive,
   backendOnline,
 }) {
   const entries = history
@@ -75,7 +81,20 @@ export default function Sidebar({
           </span>
         </div>
       </div>
+      {/* Schemes */}
+      <div className="px-4 pt-3">
+        <button
+          onClick={onSchemes}
+          className={`flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan ${schemeActive
+              ? 'border-cyan/40 bg-cyan/10 text-cyan'
+              : 'border-line bg-panel-hi text-mist hover:bg-cyan/10 hover:text-cyan'
+            }`}
+        >
+          <Landmark size={16} />
 
+          <span>Schemes</span>
+        </button>
+      </div>
       {/* New Chat */}
       <div className="px-4 pt-3">
         <button
@@ -108,11 +127,10 @@ export default function Sidebar({
             >
               <button
                 onClick={() => onSelectEntry(entry.index)}
-                className={`flex w-full items-start gap-2 rounded-md px-2 py-2 text-left text-sm transition-colors hover:bg-panel-hi ${
-                  activeIndex === entry.index
+                className={`flex w-full items-start gap-2 rounded-md px-2 py-2 text-left text-sm transition-colors hover:bg-panel-hi ${activeIndex === entry.index
                     ? 'bg-panel-hi text-ink'
                     : 'text-mist'
-                }`}
+                  }`}
               >
                 <MessageSquare
                   size={14}

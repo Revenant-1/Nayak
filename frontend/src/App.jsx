@@ -11,7 +11,7 @@ import {
   Square,
   FileText,
 } from 'lucide-react'
-
+import Scheme from './components/Scheme.jsx'
 import Sidebar from './components/Sidebar.jsx'
 import ChatView from './components/ChatView.jsx'
 import InputBar from './components/InputBar.jsx'
@@ -82,6 +82,9 @@ export default function App() {
     useState(false)
 
   const [showGrievance, setShowGrievance] =
+    useState(false)
+
+  const [showScheme, setShowScheme] =
     useState(false)
 
   const currentUser = JSON.parse(localStorage.getItem('nayak_user') || 'null')
@@ -275,7 +278,7 @@ export default function App() {
 
         setAuthError(
           err?.message ||
-            'Your session has expired. Please sign in again.',
+          'Your session has expired. Please sign in again.',
         )
 
         setSessionStatus('initializing')
@@ -496,9 +499,17 @@ export default function App() {
       <Sidebar
         history={messages}
         status={status}
-        onNewChat={handleNewChat}
+        onNewChat={() => {
+          setShowScheme(false)
+          handleNewChat()
+        }}
         activeIndex={focusIndex}
-        onSelectEntry={handleSelectEntry}
+        onSelectEntry={(index) => {
+          setShowScheme(false)
+          handleSelectEntry(index)
+        }}
+        onSchemes={() => setShowScheme(true)}
+        schemeActive={showScheme}
         backendOnline={backendOnline}
       />
 
@@ -703,22 +714,28 @@ export default function App() {
           )}
         </div>
 
-        <ChatView
-          messages={messages}
-          focusIndex={focusIndex}
-          interimText={interimText}
-        />
+        {showScheme ? (
+          <Scheme />
+        ) : (
+          <>
+            <ChatView
+              messages={messages}
+              focusIndex={focusIndex}
+              interimText={interimText}
+            />
 
-        <InputBar
-          onSend={sendTextCommand}
-          micActive={micOn}
-          onToggleMic={toggleMic}
-          micSupported={micSupported}
-          disabled={status === 'processing'}
-          language={language}
-          languages={LANGUAGES}
-          onLanguageChange={setLanguage}
-        />
+            <InputBar
+              onSend={sendTextCommand}
+              micActive={micOn}
+              onToggleMic={toggleMic}
+              micSupported={micSupported}
+              disabled={status === 'processing'}
+              language={language}
+              languages={LANGUAGES}
+              onLanguageChange={setLanguage}
+            />
+          </>
+        )}
       </main>
     </div>
   )
