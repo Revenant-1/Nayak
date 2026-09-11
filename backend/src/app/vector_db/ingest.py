@@ -1,5 +1,6 @@
 # app/vector_db/ingest.py
 import os
+import re
 import sys
 import time
 from pathlib import Path
@@ -13,6 +14,23 @@ if str(SRC_DIR) not in sys.path:
 from app.vector_db.qdrant_service import QdrantService
 from app.vector_db.embeddings import EmbeddingService
 from app.vector_db.document_processor import create_points
+
+# Regex matching common Indian legal, policy, and scheme heading conventions:
+# - Named headers: "Section 15", "Chapter III", "Rule 24", "Clause 5", "Part B"
+# - Hierarchical numbered clauses: "4.2 Coverage", "4.2.1 Eligibility"
+# - Simple numbered titles: "12. Terms of Settlement"
+HEADING_REGEX = re.compile(
+    r"^(?:"
+    r"(?:SECTION|CHAPTER|CLAUSE|RULE|PART|ARTICLE)\s+[\dA-Z\.\-]+(?:\s*[:\-–]\s*|\s+)[^\n]+"
+    r"|\d+(?:\.\d+)+\s+[A-Z][^\n]+"
+    r"|\d+\.\s+[A-Z][^\n]+"
+    r")",
+    re.IGNORECASE
+)
+def clean_source_name(file_stem: str) -> str:
+    """Strips dataset prefixes like 'A001_' and replaces underscores with spaces."""
+    cleaned = re.sub(r"^[A-Z]\d+_", "", file_stem)
+    return cleaned.replace("_", " ")
 
 
 def chunk_text(text: str, chunk_size: int = 800, chunk_overlap: int = 150) -> list[str]:
@@ -30,14 +48,29 @@ def chunk_text(text: str, chunk_size: int = 800, chunk_overlap: int = 150) -> li
 
 
 def parse_pdf(file_path: Path) -> list[dict]:
+    """
+    Extracts text per page while tracking semantic section headers.
+    Attaches both the detected heading and the physical page number.
+    """
     reader = PdfReader(str(file_path))
     chunks = []
+    current_section = "Introduction / Overview"
+
     for page_idx, page in enumerate(reader.pages, start=1):
         text = page.extract_text() or ""
+        lines = text.splitlines()
+
+        # Detect new legal or scheme headers on the current page
+        for line in lines:
+            line_clean = line.strip()
+            if HEADING_REGEX.match(line_clean) and len(line_clean) < 90:
+                current_section = line_clean
+
         for chunk in chunk_text(text):
             chunks.append({
                 "text": chunk,
-                "section": f"Page {page_idx}"
+                "section": f"{current_section} (Page {page_idx})",
+                "page": page_idx
             })
     return chunks
 
@@ -51,7 +84,10 @@ def parse_html(file_path: Path) -> list[dict]:
         tag.decompose()
         
     text = soup.get_text(separator=" ")
-    return [{"text": chunk, "section": "Web Document"} for chunk in chunk_text(text)]
+    return [
+        {"text": chunk, "section": "Web Document", "page": 1}
+        for chunk in chunk_text(text)
+    ]
 
 
 def parse_image_placeholder(file_path: Path) -> list[dict]:
@@ -60,7 +96,7 @@ def parse_image_placeholder(file_path: Path) -> list[dict]:
     Replace this with an actual OCR / Vision API call if needed.
     """
     summary = f"CPGRAMS Grievance Redressal Process Flow Chart (Source: {file_path.name})"
-    return [{"text": summary, "section": "Flowchart Diagram"}]
+    return [{"text": summary, "section": "Flowchart Diagram", "page": 1}]
 
 
 def load_knowledge_base(base_dir: str) -> list[dict]:
@@ -72,12 +108,13 @@ def load_knowledge_base(base_dir: str) -> list[dict]:
         if not file_path.is_file():
             continue
 
-        # Extract hierarchical metadata from directory structure
-        # Example: knowledge_base/agriculture/pmfby/A001.pdf
+        # 1. Define rel_parts from the relative path
         rel_parts = file_path.relative_to(root_path).parts
+
+        # 2. Extract domain and cleaned metadata
         domain = rel_parts[0] if len(rel_parts) > 1 else "general"
         sub_domain = rel_parts[1] if len(rel_parts) > 2 else "general"
-        source_name = file_path.stem
+        source_name = clean_source_name(file_path.stem)
         ext = file_path.suffix.lower()
 
         is_hindi = "hindi" in file_path.name.lower() or "hindi" in str(file_path).lower()
@@ -86,13 +123,10 @@ def load_knowledge_base(base_dir: str) -> list[dict]:
         parsed_items = []
         if ext == ".pdf":
             parsed_items = parse_pdf(file_path)
-            file_type = "pdf"
         elif ext in [".html", ".htm"]:
             parsed_items = parse_html(file_path)
-            file_type = "html"
         elif ext in [".jpg", ".jpeg", ".png"]:
             parsed_items = parse_image_placeholder(file_path)
-            file_type = "image"
         else:
             continue
 
@@ -101,9 +135,10 @@ def load_knowledge_base(base_dir: str) -> list[dict]:
                 "text": item["text"],
                 "source": source_name,
                 "section": item["section"],
+                "page": item.get("page", 1),
                 "domain": domain,
                 "sub_domain": sub_domain,
-                "file_type": file_type,
+                "file_type": file_type if "file_type" in locals() else ext.replace(".", ""),
                 "language": language
             })
 
