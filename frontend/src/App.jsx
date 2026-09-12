@@ -9,6 +9,15 @@ import Profile from './components/Profile.jsx'
 import Grievance from './components/Grievance.jsx'
 import Login from './components/Login.jsx'
 import { api } from './lib/api.js'
+import bgIllustration from './assets/bg.png'
+import {
+  Download,
+  LogOut,
+  Menu,
+  Moon,
+  ShieldAlert,
+  Sun,
+} from 'lucide-react'
 
 function nowLabel() {
   return new Date().toLocaleTimeString([], {
@@ -49,6 +58,7 @@ const LANGUAGES = [
 ]
 
 export default function App() {
+  const [illustration] = useState(bgIllustration)
   const [authStatus, setAuthStatus] =
     useState(initialAuthStatus)
 
@@ -83,6 +93,8 @@ export default function App() {
 
   const [showScheme, setShowScheme] =
     useState(false)
+
+  const [showHeaderMenu, setShowHeaderMenu] = useState(false)
 
   const currentUser = (() => {
     try {
@@ -538,12 +550,7 @@ export default function App() {
         schemeActive={showScheme}
         backendOnline={backendOnline}
         onProfile={() => setShowProfile(true)}
-        onGrievance={() => setShowGrievance(true)}
-        onDownload={downloadMarkdown}
-        onToggleTheme={() => setDarkMode((prev) => !prev)}
-        darkMode={darkMode}
-        onLogout={handleLogout}
-        canRaiseGrievance={canRaiseGrievance}
+        onVoiceAssistant={toggleMic}
       />
 
       {showProfile && (
@@ -554,11 +561,74 @@ export default function App() {
         />
       )}
 
-      {showGrievance && (
-        <Grievance onClose={() => setShowGrievance(false)} />
-      )}
+      <main className="main-canvas relative flex min-w-0 flex-1 flex-col overflow-hidden">
+        <img
+          src={illustration}
+          alt=""
+          aria-hidden="true"
+          className="watermark-illustration pointer-events-none absolute inset-0 z-0 h-full w-full object-contain opacity-[0.16] sm:opacity-[0.2] dark:opacity-[0.08]"
+        />
+        <header className="relative z-20 flex h-14 shrink-0 items-center justify-end gap-2 border-b border-line bg-panel px-4">
+          <button
+            onClick={() => setDarkMode((prev) => !prev)}
+            aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+            className="rounded-lg border border-line p-2 text-mist transition hover:bg-panel-hi hover:text-ink"
+          >
+            {darkMode ? <Sun /> : <Moon />}
+          </button>
 
-      <main className="flex min-w-0 flex-1 flex-col">
+          <div className="relative">
+            <button
+              aria-label="Open menu"
+              onClick={() => setShowHeaderMenu((prev) => !prev)}
+              className="rounded-lg border border-line p-2 text-mist transition hover:bg-panel-hi hover:text-ink"
+            >
+              <Menu size={18} />
+            </button>
+
+            {showHeaderMenu && (
+              <div className="header-menu absolute right-0 top-[calc(100%+0.65rem)] z-40 w-64 overflow-hidden rounded-2xl border border-line bg-panel p-1.5 shadow-xl">
+                <div className="border-b border-line px-3 pb-2.5 pt-2">
+                  <p className="text-sm font-semibold text-ink">NAYAK menu</p>
+                  <p className="mt-0.5 text-xs text-mist">Quick actions</p>
+                </div>
+
+                <button
+                  onClick={() => {
+                    setShowHeaderMenu(false)
+                    setShowGrievance(true)
+                  }}
+                  className="header-menu-item flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-ink transition"
+                >
+                  <span className="menu-icon bg-secondary/15 text-secondary"><ShieldAlert size={16} /></span>
+                  <span><b className="font-medium">Grievance</b><small className="block text-xs text-mist">Raise a citizen issue</small></span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setShowHeaderMenu(false)
+                    downloadMarkdown()
+                  }}
+                  className="header-menu-item flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-ink transition"
+                >
+                  <span className="menu-icon bg-accent/15 text-accent"><Download size={16} /></span>
+                  <span><b className="font-medium">Download chat</b><small className="block text-xs text-mist">Save this conversation</small></span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setShowHeaderMenu(false)
+                    handleLogout()
+                  }}
+                  className="header-menu-item flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-ink transition"
+                >
+                  <span className="menu-icon bg-primary/15 text-primary"><LogOut size={16} /></span>
+                  <span><b className="font-medium">Logout</b><small className="block text-xs text-mist">End this session</small></span>
+                </button>
+              </div>
+            )}
+          </div>
+        </header>
         {!backendOnline && (
           <div className="border-b border-magenta/30 bg-magenta/10 px-6 py-2 text-center font-mono text-xs text-magenta">
             Backend unavailable — start the API server before
@@ -578,7 +648,7 @@ export default function App() {
           className={
             showScheme
               ? 'hidden'
-              : 'relative flex min-h-0 flex-1 flex-col'
+              : 'relative z-10 flex min-h-0 flex-1 flex-col'
           }
           aria-hidden={showScheme}
         >
@@ -621,7 +691,7 @@ export default function App() {
         <div
           className={
             showScheme
-              ? 'flex min-h-0 flex-1 flex-col'
+              ? 'relative z-10 flex min-h-0 flex-1 flex-col'
               : 'hidden'
           }
           aria-hidden={!showScheme}

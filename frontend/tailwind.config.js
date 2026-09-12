@@ -11,6 +11,10 @@ export default {
   theme: {
     extend: {
       colors: {
+        primary: 'rgb(var(--primary) / <alpha-value>)',
+        secondary: 'rgb(var(--secondary) / <alpha-value>)',
+        accent: 'rgb(var(--accent) / <alpha-value>)',
+        error: 'rgb(var(--error) / <alpha-value>)',
         /* Theme surfaces */
         void: 'rgb(var(--void) / <alpha-value>)',
         panel: 'rgb(var(--panel) / <alpha-value>)',
@@ -27,6 +31,7 @@ export default {
         cyan: 'rgb(var(--cyan) / <alpha-value>)',
         jade: 'rgb(var(--jade) / <alpha-value>)',
         orange: 'rgb(var(--orange) / <alpha-value>)',
+        gold: 'rgb(var(--gold) / <alpha-value>)',
       },
 
       fontFamily: {

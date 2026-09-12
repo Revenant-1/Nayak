@@ -120,7 +120,7 @@ export default function Login({
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -left-24 -top-24 h-72 w-72 rounded-full bg-cyan/10 blur-3xl" />
 
-        <div className="absolute -right-24 top-10 h-80 w-80 rounded-full bg-sky/10 blur-3xl" />
+        <div className="absolute -right-24 top-10 h-80 w-80 rounded-full bg-accent/10 blur-3xl" />
 
         <div className="absolute bottom-[-120px] left-1/3 h-80 w-80 rounded-full bg-jade/10 blur-3xl" />
       </div>
@@ -140,7 +140,7 @@ export default function Login({
         </button>
 
         {/* Accent line */}
-        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-iris via-cyan to-sky" />
+        <div className="absolute inset-x-0 top-0 h-1 bg-primary" />
 
         {/* Header */}
         <div className="mb-6 text-center">
@@ -331,4 +331,3 @@ export default function Login({
     </div>
   );
 }
-

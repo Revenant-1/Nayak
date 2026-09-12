@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import ReactMarkdown from 'react-markdown'
-import { Pause, Play, Square } from 'lucide-react'
+import { FileText, MessageSquare, Pause, Play, Scale, ThumbsDown, ThumbsUp, Volume2, Mic,Landmark } from 'lucide-react'
 
 function timestamp() {
   return new Date().toLocaleTimeString([], {
@@ -48,16 +48,35 @@ export default function ChatView({
 
   if (messages.length === 0 && !interimText) {
     return (
-      <div className="flex flex-1 items-center justify-center px-6">
-        <div className="max-w-sm text-center">
-          <p className="font-display text-lg text-ink">
+      <div className="flex flex-1 items-center justify-center overflow-y-auto px-6 py-10">
+        <div className="w-full max-w-3xl text-center">
+          <p className="font-mono text-[10px] font-semibold tracking-[0.2em] text-primary">
+            YOUR VOICE. YOUR RIGHTS. YOUR LANGUAGE.
+          </p>
+          <h2 className="mt-3 font-display text-3xl font-semibold text-ink">
             Ask a legal question
+          </h2>
+
+          <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-mist">
+            Get simple, reliable legal information in your language.
           </p>
 
-          <p className="mt-1 text-sm text-mist">
-            Type your query below or tap the microphone — the orb will pulse
-            while Nayak listens and processes.
-          </p>
+          <div className="mt-9 grid grid-cols-1 gap-3 text-left sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              [Scale, 'Legal Q&A', 'Clear answers to everyday legal questions.', 'bg-primary/10 text-primary'],
+              [Landmark, 'Government Schemes', 'Find support you may be eligible for.', 'bg-secondary/10 text-secondary'],
+              [FileText, 'Document Explanation', 'Understand important documents simply.', 'bg-accent/10 text-accent'],
+              [Mic, 'Voice Assistant', 'Ask naturally in your language.', 'bg-primary/10 text-primary'],
+            ].map(([Icon, title, description, color]) => (
+              <div key={title} className="rounded-2xl border border-line bg-panel p-4 shadow-sm">
+                <div className={`mb-4 flex h-9 w-9 items-center justify-center rounded-xl ${color}`}>
+                  <Icon size={18} />
+                </div>
+                <p className="text-sm font-semibold text-ink">{title}</p>
+                <p className="mt-1 text-xs leading-5 text-mist">{description}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     )
@@ -69,29 +88,8 @@ export default function ChatView({
           Ambient background
       ───────────────────────────────────────────── */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        {/* Top-left iris glow */}
-        <div className="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-iris/10 blur-3xl" />
-
-        {/* Bottom-right magenta glow */}
-        <div className="absolute -bottom-40 -right-32 h-96 w-96 rounded-full bg-magenta/10 blur-3xl" />
-
-        {/* Subtle central glow */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(124,92,255,0.08),transparent_45%)]" />
-
-        {/* Very subtle technical grid */}
-        <div
-          className="absolute inset-0 opacity-[0.035]"
-          style={{
-            backgroundImage: `
-              linear-gradient(rgba(255,255,255,0.8) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(255,255,255,0.8) 1px, transparent 1px)
-            `,
-            backgroundSize: '32px 32px',
-          }}
-        />
-
-        {/* Soft vignette */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_35%,rgba(0,0,0,0.12)_100%)]" />
+        <div className="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-accent/5 blur-3xl" />
+        <div className="absolute -bottom-40 -right-32 h-96 w-96 rounded-full bg-primary/5 blur-3xl" />
       </div>
 
       {/* ─────────────────────────────────────────────
@@ -130,7 +128,24 @@ export default function ChatView({
                 >
                   {m.role === 'assistant' ? (
                     <div className="markdown-content">
+                      <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-primary">
+                        Relevant legal information
+                      </p>
                       <ReactMarkdown>{m.content}</ReactMarkdown>
+                      <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-line pt-3">
+                        <button className="inline-flex items-center gap-1.5 rounded-lg border border-line px-2.5 py-1.5 text-xs text-mist hover:bg-panel-hi hover:text-ink">
+                          <Volume2 size={13} /> Listen to answer
+                        </button>
+                        <button aria-label="Helpful answer" className="rounded-lg border border-line p-1.5 text-mist hover:bg-panel-hi hover:text-primary">
+                          <ThumbsUp size={13} />
+                        </button>
+                        <button aria-label="Not helpful answer" className="rounded-lg border border-line p-1.5 text-mist hover:bg-panel-hi hover:text-error">
+                          <ThumbsDown size={13} />
+                        </button>
+                        <span className="inline-flex items-center gap-1 text-[10px] text-mist">
+                          <MessageSquare size={12} /> Sources available
+                        </span>
+                      </div>
                     </div>
                   ) : (
                     <p className="whitespace-pre-wrap">{m.content}</p>

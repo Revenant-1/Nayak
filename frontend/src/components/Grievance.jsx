@@ -54,7 +54,7 @@ export default function Grievance({ onClose }) {
   };
 
   const inputClass =
-    "mt-1 w-full rounded-xl border border-line bg-panel-hi px-3 py-2.5 text-sm text-ink outline-none transition focus:border-pink-400 focus:ring-4 focus:ring-pink-400/10";
+    "mt-1 w-full rounded-xl border border-line bg-panel-hi px-3 py-2.5 text-sm text-ink outline-none transition focus:border-accent focus:ring-4 focus:ring-accent/10";
 
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-void/70 p-4 backdrop-blur-sm">
@@ -62,7 +62,7 @@ export default function Grievance({ onClose }) {
 
         <header className="mb-6 flex justify-between gap-4">
           <div>
-            <div className="mb-2 flex items-center gap-2 text-pink-500">
+            <div className="mb-2 flex items-center gap-2 text-accent">
               <FileText size={18} />
               <span className="font-mono text-[10px] uppercase tracking-widest">
                 Citizen support
@@ -81,7 +81,7 @@ export default function Grievance({ onClose }) {
           <button
             onClick={onClose}
             aria-label="Close grievance form"
-            className="h-9 w-9 rounded-xl text-mist hover:bg-pink-500/5 hover:text-ink"
+            className="h-9 w-9 rounded-xl text-mist hover:bg-accent/5 hover:text-ink"
           >
             <X size={18} />
           </button>
@@ -90,7 +90,7 @@ export default function Grievance({ onClose }) {
         {result ? (
           <div className="space-y-4">
 
-            <div className="rounded-xl border border-sky-400/20 bg-sky-400/5 p-4">
+            <div className="rounded-xl border border-accent/20 bg-accent/5 p-4">
               <p className="font-medium text-ink">
                 Grievance submitted
               </p>

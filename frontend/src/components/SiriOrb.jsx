@@ -55,27 +55,27 @@ export default function SiriOrb({ state = 'sleeping', level = 0, size = 220 }) {
     // only saturation, speed, and amplitude change.
     const PALETTES = {
       sleeping: {
-        sphereFrom: '#0B1230',
-        sphereTo: '#050710',
-        ribbons: ['#2DD4E8', '#3E63FF'],
+        sphereFrom: '#244235',
+        sphereTo: '#0d1117',
+        ribbons: ['#2DD4BF', '#34D399'],
         coreAlpha: 0.55,
         speed: 0.18,
         amp: 0.16,
         blur: 14,
       },
       listening: {
-        sphereFrom: '#1A1440',
-        sphereTo: '#070714',
-        ribbons: ['#EC4899', '#8B5CF6', '#2DD4E8', '#14C9A5'],
+        sphereFrom: '#355647',
+        sphereTo: '#0d1117',
+        ribbons: ['#34D399', '#2DD4BF', '#FBBF24'],
         coreAlpha: 1,
         speed: 1.05,
         amp: 0.62,
         blur: 22,
       },
       processing: {
-        sphereFrom: '#141238',
-        sphereTo: '#06060F',
-        ribbons: ['#8B5CF6', '#2DD4E8', '#EC4899'],
+        sphereFrom: '#2d4d43',
+        sphereTo: '#0d1117',
+        ribbons: ['#2DD4BF', '#34D399', '#FBBF24'],
         coreAlpha: 0.85,
         speed: 0.5,
         amp: 0.38,
@@ -193,7 +193,7 @@ export default function SiriOrb({ state = 'sleeping', level = 0, size = 220 }) {
     }, [effectiveSize])
 
   const ringColor =
-    state === 'listening' ? '#EC4899' : state === 'processing' ? '#2DD4E8' : '#3E63FF'
+    state === 'listening' ? '#34D399' : state === 'processing' ? '#2DD4BF' : '#FBBF24'
 
   return (
     <div className="relative flex items-center justify-center transition-all" style={{ width: effectiveSize * 1.55, height: effectiveSize * 1.55 }}>

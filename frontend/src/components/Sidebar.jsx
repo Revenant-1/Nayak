@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+import { motion } from "framer-motion";
 
 import {
   Plus,
@@ -8,11 +8,8 @@ import {
   Scale,
   User,
   FileText,
-  Download,
-  Sun,
-  Moon,
-  LogOut,
-} from 'lucide-react'
+  Mic,
+} from "lucide-react";
 
 /**
  * Sidebar
@@ -28,26 +25,19 @@ export default function Sidebar({
   schemeActive,
   backendOnline,
   onProfile,
-  onGrievance,
-  onDownload,
-  onToggleTheme,
-  darkMode,
-  onLogout,
-  canRaiseGrievance,
+  onVoiceAssistant,
 }) {
   const entries = history
     .map((msg, i) => ({ ...msg, index: i }))
-    .filter((msg) => msg.role === 'user')
+    .filter((msg) => msg.role === "user");
 
   return (
     <aside className="flex h-full w-[280px] shrink-0 flex-col border-r border-line bg-panel">
-
       {/* =====================================================
           NAYAK LOGO
           ===================================================== */}
       <div className="px-5 pt-5 pb-2">
         <div className="flex items-center gap-3">
-
           {/* Logo mark */}
           <div
             className="
@@ -66,11 +56,7 @@ export default function Sidebar({
           >
             <div className="absolute inset-0 rounded-xl bg-gold/5 blur-md" />
 
-            <Scale
-              size={27}
-              strokeWidth={1.5}
-              className="relative text-gold"
-            />
+            <Scale size={27} strokeWidth={1.5} className="relative text-gold" />
           </div>
 
           {/* Logo text */}
@@ -101,7 +87,6 @@ export default function Sidebar({
               Legal Assistant
             </p>
           </div>
-
         </div>
       </div>
 
@@ -117,65 +102,45 @@ export default function Sidebar({
             <User size={16} />
             <span>Profile</span>
           </button>
-
-          {canRaiseGrievance && (
-            <button
-              onClick={onGrievance}
-              className="menu-item flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm transition-colors"
-            >
-              <FileText size={16} />
-              <span>Raise grievance</span>
-            </button>
-          )}
-
           <button
-            onClick={onDownload}
-            disabled={history.length === 0}
-            className="menu-item flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+            onClick={onSchemes}
+            className={`menu-item flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm transition-colors ${
+              schemeActive ? "border-cyan/40 bg-cyan/10 text-cyan" : ""
+            }`}
           >
-            <Download size={16} />
-            <span>Download chat</span>
+            <Landmark size={16} />
+            <span>Schemes</span>
           </button>
-
           <button
-            onClick={onToggleTheme}
+            onClick={""}
             className="menu-item flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm transition-colors"
           >
-            {darkMode ? (
-              <Sun size={16} />
-            ) : (
-              <Moon size={16} />
-            )}
-            <span>{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
+            <FileText size={16} />
+            <span>Document</span>
           </button>
 
           <button
-            onClick={onLogout}
-            className="menu-item flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm transition-colors hover:bg-red-500/10 hover:text-red-500"
+            onClick={onVoiceAssistant}
+            className="menu-item flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm transition-colors"
           >
-            <LogOut size={16} />
-            <span>Log out</span>
+            <Mic size={16} />
+            <span>Voice Assistant</span>
+          </button>
+
+          <button
+            onClick={onNewChat}
+            className="menu-item flex w-full items-center gap-3 rounded-md bg-primary/10 px-3 py-2.5 text-left text-sm font-medium text-primary"
+          >
+            <MessageSquare size={16} />
+            <span>Chat</span>
           </button>
         </div>
       </div>
 
-
       {/* =====================================================
           SCHEMES
           ===================================================== */}
-      <div className="px-4 pt-3">
-        <button
-          onClick={onSchemes}
-          className={`flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan ${
-            schemeActive
-              ? 'border-cyan/40 bg-cyan/10 text-cyan'
-              : 'border-line bg-panel-hi text-mist hover:bg-cyan/10 hover:text-cyan'
-          }`}
-        >
-          <Landmark size={16} />
-          <span>Schemes</span>
-        </button>
-      </div>
+      <div className="px-4 pt-3"></div>
 
       {/* =====================================================
           NEW CHAT
@@ -214,7 +179,6 @@ export default function Sidebar({
           HISTORY
           ===================================================== */}
       <div className="mt-5 flex-1 overflow-y-auto px-3 pb-3">
-
         <p className="px-2 pb-2 font-mono text-[10px] uppercase tracking-widest text-mist">
           History
         </p>
@@ -236,8 +200,8 @@ export default function Sidebar({
                 onClick={() => onSelectEntry(entry.index)}
                 className={`flex w-full items-start gap-2 rounded-md px-2 py-2 text-left text-sm transition-colors hover:bg-panel-hi ${
                   activeIndex === entry.index
-                    ? 'bg-panel-hi text-ink'
-                    : 'text-mist'
+                    ? "bg-panel-hi text-ink"
+                    : "text-mist"
                 }`}
               >
                 <MessageSquare
@@ -245,38 +209,28 @@ export default function Sidebar({
                   className="mt-0.5 shrink-0 opacity-60"
                 />
 
-                <span className="line-clamp-2">
-                  {entry.content}
-                </span>
+                <span className="line-clamp-2">{entry.content}</span>
               </button>
             </motion.li>
           ))}
         </ul>
-
       </div>
 
       {/* =====================================================
           BACKEND STATUS
           ===================================================== */}
       <div className="flex items-center gap-2 border-t border-line px-5 py-3">
-
         <Circle
           size={8}
           className={
-            backendOnline
-              ? 'fill-jade text-jade'
-              : 'fill-mist text-mist'
+            backendOnline ? "fill-jade text-jade" : "fill-mist text-mist"
           }
         />
 
         <span className="font-mono text-[11px] text-mist">
-          {backendOnline
-            ? 'backend connected'
-            : 'backend offline'}
+          {backendOnline ? "backend connected" : "backend offline"}
         </span>
-
       </div>
-
     </aside>
-  )
+  );
 }
