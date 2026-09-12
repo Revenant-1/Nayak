@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState } from 'react'
 
 import {
   Lock,
@@ -11,102 +11,107 @@ import {
   Eye,
   EyeOff,
   RefreshCw,
-} from "lucide-react";
+} from 'lucide-react'
 
-import { api } from "../lib/api.js";
+import { api } from '../lib/api.js'
 
-export default function Login({ onLoginSuccess, onAuthStatusChange, onCancel }) {
-  const [isRegister, setIsRegister] = useState(false);
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [statusText, setStatusText] = useState("");
-  const [error, setError] = useState("");
-  const [retryCount, setRetryCount] = useState(0);
+export default function Login({ onLoginSuccess, onAuthStatusChange }) {
+  const [isRegister, setIsRegister] = useState(false)
+  const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [statusText, setStatusText] = useState('')
+  const [error, setError] = useState('')
+  const [retryCount, setRetryCount] = useState(0)
 
-  const MAX_RETRIES = 1;
+  const MAX_RETRIES = 1
 
-  const runAuthFlow = async (label, authState, action) => {
-    setError("");
-    setStatusText(label);
-    onAuthStatusChange?.(authState);
-    setLoading(true);
+  const runAuthFlow = async (
+    label,
+    authState,
+    action,
+    isGuest = false,
+  ) => {
+    setError('')
+    setStatusText(label)
+    onAuthStatusChange?.(authState)
+    setLoading(true)
 
     try {
-      const data = await action();
+      const data = await action()
 
       const userObj = {
         user_id: data.user_id,
         username: data.username,
         user_type: data.user_type,
-      };
+        ...(isGuest ? {} : isRegister ? { email } : {}),
+        isGuest,
+      }
 
-      localStorage.setItem("auth_token", data.token);
-      localStorage.setItem("nayak_user", JSON.stringify(userObj));
+      localStorage.setItem('auth_token', data.token)
+      localStorage.setItem('nayak_user', JSON.stringify(userObj))
 
-      onAuthStatusChange?.("authenticated");
-      await onLoginSuccess(userObj);
+      onAuthStatusChange?.('authenticated')
+      await onLoginSuccess(userObj)
     } catch (err) {
       const isNetwork =
-        err?.message?.includes("fetch") || err?.message?.includes("Network");
+        err?.message?.includes('fetch') ||
+        err?.message?.includes('Network')
 
       const message = isNetwork
-        ? "Could not reach the backend. Check the API server."
-        : `Authentication failed: ${err.message}`;
+        ? 'Could not reach the backend. Check the API server.'
+        : `Authentication failed: ${err.message}`
 
-      setError(message);
-      onAuthStatusChange?.("auth-error", message);
+      setError(message)
+      onAuthStatusChange?.('auth-error', message)
     } finally {
-      setLoading(false);
-      setStatusText("");
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (loading) return;
-
-    await runAuthFlow(
-      isRegister ? "Creating your account…" : "Signing you in…",
-      isRegister ? "registering" : "signing-in",
-      () =>
-        isRegister
-          ? api.register({ username, email, password })
-          : api.login({ username, password }),
-    );
-  };
-
-  async function handleCancel() {
-    setLoading(false);
-    setError("");
-    setStatusText("");
-
-    if (onCancel) {
-      onCancel();
-      return;
-    }
-
-    if (onAuthStatusChange) {
-      onAuthStatusChange("idle");
+      setLoading(false)
+      setStatusText('')
     }
   }
-  const handleRetry = async () => {
-    if (loading) return;
 
-    setRetryCount((prev) => prev + 1);
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+
+    if (loading) return
 
     await runAuthFlow(
-      isRegister ? "Creating your account…" : "Signing you in…",
-      isRegister ? "registering" : "signing-in",
+      isRegister ? 'Creating your account…' : 'Signing you in…',
+      isRegister ? 'registering' : 'signing-in',
       () =>
         isRegister
           ? api.register({ username, email, password })
           : api.login({ username, password }),
-    );
-  };
+    )
+  }
+
+  const handleRetry = async () => {
+    if (loading) return
+
+    setRetryCount((prev) => prev + 1)
+
+    await runAuthFlow(
+      isRegister ? 'Creating your account…' : 'Signing you in…',
+      isRegister ? 'registering' : 'signing-in',
+      () =>
+        isRegister
+          ? api.register({ username, email, password })
+          : api.login({ username, password }),
+    )
+  }
+
+  const handleGuestLogin = async () => {
+    if (loading) return
+
+    await runAuthFlow(
+      'Launching guest access…',
+      'guest-login',
+      () => api.guestLogin(),
+      true,
+    )
+  }
 
   return (
     <div className="relative flex h-screen w-screen items-center justify-center overflow-hidden bg-void px-4 font-body text-ink">
@@ -131,13 +136,13 @@ export default function Login({ onLoginSuccess, onAuthStatusChange, onCancel }) 
           </div>
 
           <h2 className="font-display text-2xl font-bold tracking-tight text-ink">
-            {isRegister ? "Create an Account" : "Welcome to Nayak"}
+            {isRegister ? 'Create an Account' : 'Welcome to Nayak'}
           </h2>
 
           <p className="mt-1 text-sm text-mist">
             {isRegister
-              ? "Register to start your legal assistant session"
-              : "Sign in to access your legal assistant session"}
+              ? 'Register to start your legal assistant session'
+              : 'Sign in to access your legal assistant session'}
           </p>
         </div>
 
@@ -146,8 +151,8 @@ export default function Login({ onLoginSuccess, onAuthStatusChange, onCancel }) 
           <button
             type="button"
             onClick={() => {
-              setIsRegister(false);
-              setError("");
+              setIsRegister(false)
+              setError('')
             }}
             className={`flex-1 rounded-md py-1.5 text-xs font-medium transition ${
               !isRegister
@@ -161,8 +166,8 @@ export default function Login({ onLoginSuccess, onAuthStatusChange, onCancel }) 
           <button
             type="button"
             onClick={() => {
-              setIsRegister(true);
-              setError("");
+              setIsRegister(true)
+              setError('')
             }}
             className={`flex-1 rounded-md py-1.5 text-xs font-medium transition ${
               isRegister
@@ -259,7 +264,7 @@ export default function Login({ onLoginSuccess, onAuthStatusChange, onCancel }) 
               />
 
               <input
-                type={showPassword ? "text" : "password"}
+                type={showPassword ? 'text' : 'password'}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -276,7 +281,11 @@ export default function Login({ onLoginSuccess, onAuthStatusChange, onCancel }) 
                   showPassword ? 'Hide password' : 'Show password'
                 }
               >
-                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                {showPassword ? (
+                  <EyeOff size={16} />
+                ) : (
+                  <Eye size={16} />
+                )}
               </button>
             </div>
           </div>
