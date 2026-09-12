@@ -34,7 +34,15 @@ function nowLabel() {
 // guest-login | authenticated | auth-error
 const initialAuthStatus = (() => {
   const token = localStorage.getItem('auth_token')
-  return token ? 'checking-token' : 'idle'
+  if (!token) return 'idle'
+
+  try {
+    const savedUser = JSON.parse(localStorage.getItem('nayak_user') || 'null')
+    const isGuestUser = savedUser?.user_type === 'guest' || savedUser?.isGuest
+    return isGuestUser ? 'idle' : 'checking-token'
+  } catch {
+    return 'checking-token'
+  }
 })()
 
 // Session state machine values:
@@ -57,6 +65,7 @@ export default function App() {
     useState(initialAuthStatus)
 
   const [authError, setAuthError] = useState(null)
+  const [showLogin, setShowLogin] = useState(true)
 
   const [sessionStatus, setSessionStatus] = useState(
     initialSessionStatus,
@@ -87,7 +96,13 @@ export default function App() {
   const [showScheme, setShowScheme] =
     useState(false)
 
-  const currentUser = JSON.parse(localStorage.getItem('nayak_user') || 'null')
+  const currentUser = (() => {
+    try {
+      return JSON.parse(localStorage.getItem('nayak_user') || 'null')
+    } catch {
+      return null
+    }
+  })()
   const canRaiseGrievance = currentUser?.user_type !== 'guest' && !currentUser?.isGuest
 
   const [menuOpen, setMenuOpen] = useState(false)
@@ -188,6 +203,7 @@ export default function App() {
     async () => {
       setAuthStatus('authenticated')
       setAuthError(null)
+      setShowLogin(false)
       setSessionStatus('creating-session')
 
       setSystemMessage(
@@ -198,6 +214,14 @@ export default function App() {
     },
     [createSession],
   )
+
+  const handleCancelLogin = useCallback(() => {
+    setShowLogin(false)
+    setAuthStatus('idle')
+    setAuthError(null)
+    setSessionStatus('initializing')
+    setSystemMessage('Preparing your assistant…')
+  }, [])
 
   const addUserMessage = useCallback(
     (userText) => {
@@ -241,10 +265,32 @@ export default function App() {
 
   // Verify saved token on first load
   useEffect(() => {
-    const token =
-      localStorage.getItem('auth_token')
+    const token = localStorage.getItem('auth_token')
 
     if (!token) {
+      setAuthStatus('idle')
+      setSessionStatus('initializing')
+      return
+    }
+
+    try {
+      const savedUser = JSON.parse(localStorage.getItem('nayak_user') || 'null')
+      const isGuestUser = savedUser?.user_type === 'guest' || savedUser?.isGuest
+
+      if (isGuestUser) {
+        localStorage.removeItem('auth_token')
+        localStorage.removeItem('nayak_user')
+        localStorage.removeItem('nayak_session_id')
+        setSessionId(null)
+        setAuthStatus('idle')
+        setSessionStatus('initializing')
+        return
+      }
+    } catch {
+      localStorage.removeItem('auth_token')
+      localStorage.removeItem('nayak_user')
+      localStorage.removeItem('nayak_session_id')
+      setSessionId(null)
       setAuthStatus('idle')
       setSessionStatus('initializing')
       return
@@ -397,6 +443,7 @@ export default function App() {
     setSessionId(null)
     setMessages([])
     setAuthStatus('idle')
+    setShowLogin(true)
     setSessionStatus('initializing')
     setAuthError(null)
 
@@ -483,13 +530,14 @@ export default function App() {
     error: 'error',
   }[status]
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated && showLogin) {
     return (
       <Login
         onLoginSuccess={handleLoginSuccess}
         onAuthStatusChange={
           handleAuthStatusChange
         }
+        onCancel={handleCancelLogin}
       />
     )
   }
