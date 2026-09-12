@@ -3,107 +3,97 @@
 @tailwind utilities;
 
 /* =========================================================
-   HEADER — SLIGHTLY DISTINCT FROM CHAT VIEW
-   Uses existing theme variables; no hard-coded theme colors.
-   ========================================================= */
+HEADER + SIDEBAR
+========================================================= */
 
 :root {
-  --header-bg: color-mix(
-    in srgb,
-    rgb(var(--panel)) 20%,
-    rgba(173, 211, 251, 0.689) 30%
-  );
+  --header-bg: rgba(16, 185, 129, 0.07);
 }
 
 html.dark {
-  --header-bg: color-mix(
-    in srgb,
-    rgb(var(--panel)) 20%,
-    rgba(3, 78, 165, 0.689) 30%
+  --header-bg: linear-gradient(
+    135deg,
+    rgb(6, 35, 25) 0%,
+    rgb(8, 55, 36) 50%,
+    rgb(10, 72, 46) 100%
   );
 }
-
-/* =========================================================
-   HEADER + SIDEBAR — SAME BACKGROUND
-   ========================================================= */
 
 main > header,
 aside {
   background: var(--header-bg) !important;
-
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-color: rgba(52, 211, 153, 0.18);
   transition:
-    background-color 0.3s ease,
+    background 0.3s ease,
     border-color 0.3s ease;
 }
 
+html.dark main > header,
+html.dark aside {
+  border-color: rgba(45, 212, 191, 0.14);
+}
+
 /* =========================================================
-   NAYAK — BABY PINK / SKY BLUE COLOR SYSTEM
+NAYAK — LIGHT THEME FROM PREVIOUS VERSION
 ========================================================= */
 
 :root {
   /* ---------- Main Theme ---------- */
-  --void: 250 238 246;
-  --panel: 255 249 253;
-  --panel-hi: 244 239 252;
+  --void: 250 251 250;
+  --panel: 255 255 255;
+  --panel-hi: 236 253 245;
 
   /* ---------- Borders ---------- */
-  --line: 220 201 226;
+  --line: 224 233 227;
 
   /* ---------- Text ---------- */
-  --ink: 35 27 67;
-  --mist: 103 92 132;
+  --ink: 8 20 14;
+  --mist: 96 114 100;
 
-  /* ---------- Primary Green ---------- */
-  --iris: 112 174 232;
-  --jade: 151 199 240;
+  /* ---------- Primary Emerald ---------- */
+  --iris: 5 150 105;
+  --jade: 16 185 129;
 
-  /* ---------- Teal / Cyan ---------- */
-  --cyan: 110 174 232;
-  --teal: 127 150 221;
+  /* ---------- Secondary Lime ---------- */
+  --cyan: 52 211 153;
+  --teal: 5 150 105;
 
-  /* ---------- Blue ---------- */
-  --blue: 82 158 226;
-  --sky: 132 197 242;
-  --deep-blue: 73 91 170;
+  /* ---------- Blue mapped to deep green ---------- */
+  --blue: 5 150 105;
+  --sky: 110 231 183;
+  --deep-blue: 6 95 70;
 
-  /* ---------- Accent ---------- */
-  --orange: 226 105 169;
-  --magenta: 221 116 178;
+  /* ---------- Accent Lime ---------- */
+  --orange: 132 204 22;
+  --magenta: 101 163 13;
 }
 
 /* =========================================================
-   DARK THEME
+DARK THEME — UNCHANGED
 ========================================================= */
 
 html.dark {
-  --void: 8 6 20;
-  --panel: 16 12 34;
-  --panel-hi: 27 19 54;
-
-  --line: 67 48 91;
-
-  --ink: 247 241 255;
-  --mist: 183 169 205;
-
-  --iris: 126 174 231;
-  --jade: 153 197 240;
-
-  --cyan: 116 165 228;
-  --teal: 129 143 207;
-
-  --blue: 83 122 196;
-  --sky: 128 180 236;
-  --deep-blue: 68 82 153;
-
-  --orange: 232 92 169;
-  --magenta: 224 120 180;
+  --void: 5 15 20;
+  --panel: 9 27 31;
+  --panel-hi: 14 42 47;
+  --line: 31 76 78;
+  --ink: 229 250 246;
+  --mist: 145 185 181;
+  --iris: 16 185 129;
+  --jade: 101 163 13;
+  --cyan: 45 212 191;
+  --teal: 20 184 166;
+  --blue: 59 130 246;
+  --sky: 56 189 248;
+  --deep-blue: 37 99 235;
+  --orange: 251 146 60;
+  --magenta: 96 165 250;
 }
 
 /* =========================================================
-   BASE
+BASE
 ========================================================= */
 
 @layer base {
@@ -127,114 +117,46 @@ html.dark {
 
   body {
     @apply text-ink;
-
     margin: 0;
     font-family: "Inter", sans-serif;
-
-    background:
-      radial-gradient(
-        circle at 8% 8%,
-        rgba(220, 62, 155, 0.18),
-        transparent 26%
-      ),
-      radial-gradient(
-        circle at 85% 12%,
-        rgba(125, 185, 239, 0.15),
-        transparent 27%
-      ),
-      radial-gradient(
-        circle at 75% 80%,
-        rgba(91, 72, 163, 0.1),
-        transparent 28%
-      ),
-      radial-gradient(
-        circle at 25% 85%,
-        rgba(214, 79, 159, 0.1),
-        transparent 25%
-      ),
-      linear-gradient(
-        135deg,
-        #fff0f7 0%,
-        #f1edfb 35%,
-        #eef7ff 70%,
-        #fff7fb 100%
-      );
-
+    background: #f9fbfa;
     color: rgb(var(--ink));
-
     transition:
       background 0.4s ease,
       color 0.3s ease;
   }
 
   html.dark body {
-    background:
-      radial-gradient(
-        circle at 8% 8%,
-        rgba(214, 79, 159, 0.18),
-        transparent 28%
-      ),
-      radial-gradient(
-        circle at 88% 12%,
-        rgba(125, 185, 239, 0.16),
-        transparent 30%
-      ),
-      radial-gradient(
-        circle at 80% 80%,
-        rgba(91, 72, 163, 0.13),
-        transparent 30%
-      ),
-      radial-gradient(
-        circle at 20% 85%,
-        rgba(220, 62, 155, 0.1),
-        transparent 25%
-      ),
-      linear-gradient(
-        135deg,
-        #080614 0%,
-        #100a24 38%,
-        #0d0920 72%,
-        #090717 100%
-      );
+    background: #071614;
   }
 
   ::selection {
-    background: rgba(220, 62, 155, 0.25);
+    background: rgba(16, 185, 129, 0.22);
     color: rgb(var(--ink));
   }
 
   :focus-visible {
-    outline: 2px solid rgb(var(--cyan));
+    outline: 2px solid rgb(var(--iris));
     outline-offset: 2px;
   }
 }
 
 /* =========================================================
-   COMPONENTS
+COMPONENTS
 ========================================================= */
 
 @layer components {
   /* =======================================================
-     GLASS
+  GLASS
   ======================================================= */
 
   .glass {
-    background:
-      linear-gradient(
-        135deg,
-        rgba(255, 255, 255, 0.88),
-        rgba(239, 250, 247, 0.78)
-      );
-
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-
-    border: 1px solid rgba(220, 188, 214, 0.65);
-
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(148, 163, 184, 0.26);
     box-shadow:
-      0 12px 40px rgba(91, 58, 105, 0.08),
-      0 2px 8px rgba(91, 72, 163, 0.04);
-
+      0 4px 16px rgba(8, 20, 14, 0.05);
     transition:
       background 0.3s ease,
       border-color 0.3s ease,
@@ -242,76 +164,37 @@ html.dark {
   }
 
   html.dark .glass {
-    background:
-      linear-gradient(
-        135deg,
-        rgba(23, 14, 45, 0.9),
-        rgba(13, 10, 34, 0.86)
-      );
-
-    border-color: rgba(220, 62, 155, 0.18);
-
-    box-shadow:
-      0 16px 50px rgba(0, 0, 0, 0.35),
-      0 0 30px rgba(125, 185, 239, 0.04);
+    background: rgba(9, 27, 31, 0.96);
+    border-color: rgba(45, 212, 191, 0.16);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
   }
 
   /* =======================================================
-     SIDEBAR
+  SIDEBAR
   ======================================================= */
 
   .sidebar-shell {
-    background:
-      linear-gradient(
-        180deg,
-        rgba(248, 253, 251, 0.96) 0%,
-        rgba(239, 249, 247, 0.94) 48%,
-        rgba(239, 246, 253, 0.94) 100%
-      );
-
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-
-    border-right: 1px solid rgba(211, 184, 220, 0.65);
-
+    background: rgba(250, 251, 250, 0.97);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-right: 1px solid rgba(148, 163, 184, 0.24);
     box-shadow:
-      8px 0 35px rgba(73, 54, 105, 0.07),
-      2px 0 10px rgba(91, 72, 163, 0.03);
+      4px 0 16px rgba(8, 20, 14, 0.03);
   }
 
   html.dark .sidebar-shell {
-    background:
-      linear-gradient(
-        180deg,
-        #061714 0%,
-        #071d20 50%,
-        #071626 100%
-      );
-
-    border-right-color: rgba(220, 62, 155, 0.16);
-
-    box-shadow:
-      8px 0 35px rgba(0, 0, 0, 0.4),
-      2px 0 20px rgba(125, 185, 239, 0.04);
+    background: #081a18;
+    border-right-color: rgba(45, 212, 191, 0.14);
+    box-shadow: 4px 0 18px rgba(0, 0, 0, 0.2);
   }
 
   .sidebar-card {
-    background:
-      linear-gradient(
-        135deg,
-        rgba(255, 255, 255, 0.92),
-        rgba(235, 249, 245, 0.82)
-      );
-
-    border: 1px solid rgba(214, 187, 221, 0.7);
-
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-
+    background: rgba(255, 255, 255, 0.90);
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     box-shadow:
-      0 6px 20px rgba(99, 66, 115, 0.05),
-      inset 0 1px 0 rgba(255, 255, 255, 0.7);
-
+      0 3px 12px rgba(8, 20, 14, 0.04);
     transition:
       background 0.3s ease,
       border-color 0.3s ease,
@@ -319,18 +202,12 @@ html.dark {
   }
 
   .sidebar-card:hover {
-    border-color: rgba(220, 62, 155, 0.5);
+    border-color: rgba(5, 150, 105, 0.40);
   }
 
   html.dark .sidebar-card {
-    background:
-      linear-gradient(
-        135deg,
-        rgba(16, 55, 52, 0.55),
-        rgba(9, 35, 49, 0.55)
-      );
-
-    border-color: rgba(220, 62, 155, 0.14);
+    background: rgba(14, 40, 38, 0.8);
+    border-color: rgba(45, 212, 191, 0.13);
   }
 
   .sidebar-text {
@@ -342,27 +219,20 @@ html.dark {
   }
 
   /* =======================================================
-     BUTTONS — RAISED CLAY / MAGENTA ACCENT
+  BUTTONS — LIGHT THEME FROM PREVIOUS VERSION
   ======================================================= */
 
   .gradient-btn {
-    background:
-      linear-gradient(
-        135deg,
-        #a83278 0%,
-        #c13d91 40%,
-        #d45a9f 75%,
-        #e06caf 100%
-      );
-
+    background: linear-gradient(
+      120deg,
+      #059669,
+      #10b981 55%,
+      #84cc16
+    );
     color: white;
-
-    border: 1px solid rgba(255, 255, 255, 0.16);
-
+    border: 1px solid rgba(255, 255, 255, 0.12);
     box-shadow:
-      0 10px 25px rgba(151, 47, 112, 0.22),
-      0 4px 12px rgba(205, 74, 151, 0.12);
-
+      0 4px 12px rgba(16, 185, 129, 0.20);
     transition:
       transform 0.25s ease,
       box-shadow 0.25s ease,
@@ -370,179 +240,106 @@ html.dark {
   }
 
   .gradient-btn:hover {
-    transform: translateY(-2px);
-
+    transform: translateY(-1px);
     filter: brightness(1.06);
-
     box-shadow:
-      0 16px 35px rgba(151, 47, 112, 0.28),
-      0 8px 20px rgba(205, 74, 151, 0.18);
+      0 7px 18px rgba(16, 185, 129, 0.28);
   }
 
   .gradient-btn:active {
     transform: translateY(0);
-
     box-shadow:
-      0 6px 16px rgba(151, 47, 112, 0.22);
+      0 3px 10px rgba(16, 185, 129, 0.20);
   }
 
-  /* Dark theme — magenta / indigo shades */
-
+  /* Dark theme — unchanged */
   html.dark .gradient-btn {
-    background:
-      linear-gradient(
-        135deg,
-        #a83278 0%,
-        #c13d91 40%,
-        #b83b88 70%,
-        #d45a9f 100%
-      );
-
-    box-shadow:
-      0 12px 32px rgba(0, 0, 0, 0.4),
-      0 0 25px rgba(214, 79, 159, 0.14);
+    background: #0b8a63;
+    box-shadow: 0 5px 16px rgba(0, 0, 0, 0.25);
   }
 
   html.dark .gradient-btn:hover {
     filter: brightness(1.08);
-
-    box-shadow:
-      0 16px 38px rgba(0, 0, 0, 0.45),
-      0 0 30px rgba(214, 79, 159, 0.2);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
   }
 
   /* =======================================================
-     STATUS
+  STATUS
   ======================================================= */
 
   .status-pill {
-    background:
-      linear-gradient(
-        135deg,
-        rgba(214, 79, 159, 0.13),
-        rgba(125, 185, 239, 0.1)
-      );
-
-    color: rgb(4 120 87);
-
-    border: 1px solid rgba(220, 62, 155, 0.25);
-
-    box-shadow:
-      0 3px 12px rgba(220, 62, 155, 0.06);
+    background: rgba(5, 150, 105, 0.08);
+    color: rgb(6 95 70);
+    border: 1px solid rgba(5, 150, 105, 0.18);
   }
 
+  /* Dark theme — unchanged */
   html.dark .status-pill {
     background:
       linear-gradient(
         135deg,
-        rgba(220, 62, 155, 0.13),
-        rgba(91, 72, 163, 0.12)
+        rgba(20, 184, 166, 0.13),
+        rgba(37, 99, 235, 0.12)
       );
-
     color: rgb(110 231 183);
-
-    border-color: rgba(220, 62, 155, 0.22);
+    border-color: rgba(45, 212, 191, 0.22);
   }
 
   /* =======================================================
-     CHAT
+  CHAT
   ======================================================= */
 
   .user-bubble {
-    background:
-      linear-gradient(
-        135deg,
-        #9e3a78 0%,
-        #bd5aa4 48%,
-        #76afe0 100%
-      );
-
+    background: linear-gradient(
+      120deg,
+      #059669,
+      #10b981
+    );
     color: white;
-
     box-shadow:
-      0 10px 25px rgba(144, 48, 111, 0.2),
-      0 4px 15px rgba(91, 139, 202, 0.08);
-
+      0 4px 14px rgba(16, 185, 129, 0.18);
     border: 1px solid rgba(255, 255, 255, 0.12);
   }
 
   .assistant-bubble {
-    background:
-      linear-gradient(
-        135deg,
-        rgba(255, 255, 255, 0.9),
-        rgba(239, 250, 248, 0.86),
-        rgba(239, 247, 255, 0.82)
-      );
-
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-
-    border: 1px solid rgba(196, 103, 169, 0.2);
-
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(5, 150, 105, 0.12);
     box-shadow:
-      0 10px 28px rgba(99, 66, 115, 0.07),
-      0 4px 12px rgba(91, 72, 163, 0.04);
+      0 4px 14px rgba(8, 20, 14, 0.045);
   }
 
+  /* Dark theme — unchanged */
   html.dark .assistant-bubble {
-    background:
-      linear-gradient(
-        135deg,
-        rgba(11, 39, 37, 0.9),
-        rgba(9, 31, 43, 0.9)
-      );
-
-    border-color: rgba(220, 62, 155, 0.18);
-
-    box-shadow:
-      0 12px 32px rgba(0, 0, 0, 0.3),
-      0 0 20px rgba(125, 185, 239, 0.03);
+    background: rgba(11, 35, 33, 0.94);
+    border-color: rgba(45, 212, 191, 0.15);
+    box-shadow: 0 5px 18px rgba(0, 0, 0, 0.22);
   }
 
   /* =======================================================
-     MENU
+  MENU
   ======================================================= */
 
   .menu-dropdown {
-    background:
-      linear-gradient(
-        135deg,
-        rgba(255, 255, 255, 0.96),
-        rgba(240, 250, 248, 0.96),
-        rgba(240, 247, 255, 0.94)
-      );
-
-    border: 1px solid rgba(211, 184, 220, 0.65);
-
-    backdrop-filter: blur(22px);
-    -webkit-backdrop-filter: blur(22px);
-
+    background: rgba(255, 255, 255, 0.98);
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     box-shadow:
-      0 20px 50px rgba(20, 85, 75, 0.14),
-      0 6px 20px rgba(91, 72, 163, 0.06);
+      0 10px 28px rgba(8, 20, 14, 0.10);
   }
 
+  /* Dark theme — unchanged */
   html.dark .menu-dropdown {
-    background:
-      linear-gradient(
-        135deg,
-        rgba(23, 14, 45, 0.97),
-        rgba(13, 10, 34, 0.97)
-      );
-
-    border-color: rgba(220, 62, 155, 0.18);
-
-    box-shadow:
-      0 20px 55px rgba(0, 0, 0, 0.5),
-      0 0 30px rgba(125, 185, 239, 0.05);
+    background: rgba(10, 32, 31, 0.98);
+    border-color: rgba(45, 212, 191, 0.15);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
   }
 
   .menu-item {
     color: rgb(var(--ink));
-
-    border-radius: 10px;
-
+    border-radius: 8px;
     transition:
       background 0.2s ease,
       color 0.2s ease,
@@ -550,45 +347,25 @@ html.dark {
   }
 
   .menu-item:hover {
-    background:
-      linear-gradient(
-        90deg,
-        rgba(220, 62, 155, 0.12),
-        rgba(125, 185, 239, 0.1)
-      );
-
-    color: rgb(6 95 82);
-
+    background: rgba(5, 150, 105, 0.08);
+    color: rgb(6 95 70);
     transform: translateX(2px);
   }
 
+  /* Dark theme — unchanged */
   html.dark .menu-item:hover {
-    background:
-      linear-gradient(
-        90deg,
-        rgba(220, 62, 155, 0.14),
-        rgba(91, 72, 163, 0.12)
-      );
-
+    background: rgba(20, 184, 166, 0.11);
     color: rgb(94 234 212);
   }
 
   /* =======================================================
-     ACCOUNT BUTTON
+  ACCOUNT BUTTON
   ======================================================= */
 
   .account-menu-button {
-    background:
-      linear-gradient(
-        135deg,
-        rgba(229, 247, 242, 0.9),
-        rgba(234, 244, 255, 0.9)
-      );
-
+    background: rgba(250, 251, 250, 0.92);
     color: rgb(var(--mist));
-
-    border: 1px solid rgba(211, 184, 220, 0.4);
-
+    border: 1px solid rgba(148, 163, 184, 0.26);
     transition:
       background 0.2s ease,
       border-color 0.2s ease,
@@ -597,104 +374,85 @@ html.dark {
   }
 
   .account-menu-button:hover {
-    background:
-      linear-gradient(
-        135deg,
-        rgba(220, 62, 155, 0.14),
-        rgba(91, 72, 163, 0.12)
-      );
-
-    color: rgb(var(--cyan));
-
-    border-color: rgba(220, 62, 155, 0.35);
-
+    background: rgba(5, 150, 105, 0.08);
+    color: rgb(var(--iris));
+    border-color: rgba(5, 150, 105, 0.30);
     transform: translateY(-1px);
   }
 
+  /* Dark theme — unchanged */
   html.dark .account-menu-button {
-    background:
-      linear-gradient(
-        135deg,
-        rgba(28, 17, 49, 0.7),
-        rgba(19, 14, 43, 0.7)
-      );
-
-    border-color: rgba(220, 62, 155, 0.14);
+    background: rgba(14, 40, 38, 0.8);
+    border-color: rgba(45, 212, 191, 0.13);
   }
 
   /* =======================================================
-     NAYAK ORB
+  NAYAK ORB
   ======================================================= */
 
   .orb-glow {
     box-shadow:
-      0 0 25px rgba(220, 62, 155, 0.28),
-      0 0 55px rgba(125, 185, 239, 0.16),
-      0 0 100px rgba(91, 72, 163, 0.08);
+      0 0 20px rgba(16, 185, 129, 0.20);
   }
 
+  /* Dark theme — unchanged */
   html.dark .orb-glow {
-    box-shadow:
-      0 0 30px rgba(220, 62, 155, 0.3),
-      0 0 70px rgba(125, 185, 239, 0.18),
-      0 0 120px rgba(91, 72, 163, 0.1);
+    box-shadow: 0 0 26px rgba(45, 212, 191, 0.2);
   }
 
   /* =======================================================
-     EXTRA COLORFUL UTILITIES
+  GRADIENT TEXT
   ======================================================= */
 
   .nayak-gradient-text {
-    background:
-      linear-gradient(
-        90deg,
-        #c13d91,
-        #8f69bb,
-        #659fd2,
-        #5c4aa2
-      );
-
+    background: linear-gradient(
+      90deg,
+      #047857,
+      #10b981,
+      #a3e635
+    );
     -webkit-background-clip: text;
     background-clip: text;
-
     color: transparent;
   }
 
+  /* =======================================================
+  GRADIENT BORDER
+  ======================================================= */
+
   .nayak-gradient-border {
     border: 1px solid transparent;
-
     background:
       linear-gradient(
         rgb(var(--panel)),
         rgb(var(--panel))
-      )
-      padding-box,
+      ) padding-box,
       linear-gradient(
         135deg,
-        rgba(220, 62, 155, 0.55),
-        rgba(125, 185, 239, 0.45),
-        rgba(91, 72, 163, 0.35)
-      )
-      border-box;
+        rgba(16, 185, 129, 0.50),
+        rgba(163, 230, 53, 0.32)
+      ) border-box;
   }
+
+  /* =======================================================
+  GLOW
+  ======================================================= */
 
   .nayak-glow {
     box-shadow:
-      0 0 20px rgba(220, 62, 155, 0.12),
-      0 0 45px rgba(125, 185, 239, 0.08);
+      0 0 16px rgba(16, 185, 129, 0.12);
   }
 }
 
 /* =========================================================
-   SCROLLBAR
+SCROLLBAR
 ========================================================= */
 
 @layer utilities {
   .scroll-thin {
     scrollbar-width: thin;
-
     scrollbar-color:
-      rgba(185, 82, 156, 0.45)
+      rgba(5, 150, 105, 0.42)
       transparent;
   }
 
@@ -708,52 +466,32 @@ html.dark {
   }
 
   .scroll-thin::-webkit-scrollbar-thumb {
-    background:
-      linear-gradient(
-        180deg,
-        rgba(220, 62, 155, 0.55),
-        rgba(91, 72, 163, 0.45)
-      );
-
+    background: rgba(5, 150, 105, 0.42);
     border-radius: 999px;
   }
 
   .scroll-thin::-webkit-scrollbar-thumb:hover {
-    background:
-      linear-gradient(
-        180deg,
-        rgba(220, 62, 155, 0.8),
-        rgba(91, 72, 163, 0.7)
-      );
+    background: rgba(5, 150, 105, 0.68);
   }
 
+  /* Dark theme — unchanged */
   html.dark .scroll-thin {
     scrollbar-color:
-      rgba(220, 62, 155, 0.45)
+      rgba(45, 212, 191, 0.45)
       transparent;
   }
 
   html.dark .scroll-thin::-webkit-scrollbar-thumb {
-    background:
-      linear-gradient(
-        180deg,
-        rgba(220, 62, 155, 0.55),
-        rgba(105, 91, 190, 0.5)
-      );
+    background: rgba(45, 212, 191, 0.5);
   }
 
   html.dark .scroll-thin::-webkit-scrollbar-thumb:hover {
-    background:
-      linear-gradient(
-        180deg,
-        rgba(220, 62, 155, 0.8),
-        rgba(105, 91, 190, 0.75)
-      );
+    background: rgba(45, 212, 191, 0.72);
   }
 }
 
 /* =========================================================
-   REDUCED MOTION
+REDUCED MOTION
 ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
@@ -768,184 +506,719 @@ html.dark {
 }
 
 /* =========================================================
-   AUTOFILL
+AUTOFILL
 ========================================================= */
 
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
-  -webkit-text-fill-color: #241b43 !important;
-  caret-color: #241b43 !important;
+  -webkit-text-fill-color: #064e3b !important;
+  caret-color: #064e3b !important;
 
   -webkit-box-shadow:
-    0 0 0 1000px #fff2f8 inset !important;
+    0 0 0 1000px #f2fdf7 inset !important;
 
   box-shadow:
-    0 0 0 1000px #fff2f8 inset !important;
+    0 0 0 1000px #f2fdf7 inset !important;
 
-  background-color: #fff2f8 !important;
-  color: #241b43 !important;
+  background-color: #f2fdf7 !important;
+  color: #064e3b !important;
+}
+
+/* Dark theme — unchanged */
+html.dark input:-webkit-autofill,
+html.dark input:-webkit-autofill:hover,
+html.dark input:-webkit-autofill:focus,
+html.dark input:-webkit-autofill:active {
+  -webkit-text-fill-color: #e5faf6 !important;
+  caret-color: #e5faf6 !important;
+
+  -webkit-box-shadow:
+    0 0 0 1000px #09231f inset !important;
+
+  box-shadow:
+    0 0 0 1000px #09231f inset !important;
+
+  background-color: #09231f !important;
+  color: #e5faf6 !important;
+}
+
+/* =========================================================
+ROOT BACKGROUND
+========================================================= */
+
+#root {
+  background: transparent;
+}@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =========================================================
+   NAYAK — LEGAL ASSISTANT THEME
+   Inspired by the supplied Legal Mode light/dark reference
+   Palette: warm ivory + deep navy + antique gold
+   ========================================================= */
+
+/* =========================================================
+   THEME TOKENS
+   ========================================================= */
+
+:root {
+  /* ---------- Main surfaces ---------- */
+  --void: 247 245 239;
+  --panel: 255 254 250;
+  --panel-hi: 244 240 229;
+
+  /* ---------- Borders ---------- */
+  --line: 224 219 207;
+
+  /* ---------- Text ---------- */
+  --ink: 27 32 37;
+  --mist: 104 105 102;
+
+  /* ---------- Primary gold ---------- */
+  --iris: 166 125 45;
+  --jade: 193 151 65;
+
+  /* ---------- Secondary blue ---------- */
+  --cyan: 79 139 166;
+  --teal: 52 103 128;
+
+  /* ---------- Compatibility mappings ---------- */
+  --blue: 61 107 132;
+  --sky: 126 169 188;
+  --deep-blue: 19 48 67;
+
+  /* ---------- Warm accent ---------- */
+  --orange: 190 143 51;
+  --magenta: 139 103 37;
+
+  /* ---------- Header/sidebar ---------- */
+  --header-bg: rgba(255, 254, 250, 0.86);
+  --sidebar-bg: rgba(249, 247, 241, 0.96);
+}
+
+html.dark {
+  /* ---------- Main surfaces ---------- */
+  --void: 5 17 29;
+  --panel: 8 25 39;
+  --panel-hi: 14 37 53;
+
+  /* ---------- Borders ---------- */
+  --line: 43 61 74;
+
+  /* ---------- Text ---------- */
+  --ink: 239 237 228;
+  --mist: 158 169 177;
+
+  /* ---------- Primary gold ---------- */
+  --iris: 205 166 84;
+  --jade: 226 190 109;
+
+  /* ---------- Secondary blue ---------- */
+  --cyan: 94 157 184;
+  --teal: 67 124 151;
+
+  /* ---------- Compatibility mappings ---------- */
+  --blue: 67 119 150;
+  --sky: 103 167 194;
+  --deep-blue: 25 62 85;
+
+  /* ---------- Warm accent ---------- */
+  --orange: 222 177 83;
+  --magenta: 194 151 66;
+
+  /* ---------- Header/sidebar ---------- */
+  --header-bg: linear-gradient(
+    135deg,
+    rgba(6, 19, 32, 0.98) 0%,
+    rgba(7, 25, 40, 0.98) 55%,
+    rgba(10, 34, 50, 0.98) 100%
+  );
+  --sidebar-bg: rgba(5, 18, 30, 0.98);
+}
+
+/* =========================================================
+   HEADER + SIDEBAR
+   ========================================================= */
+
+main > header,
+aside {
+  background: var(--header-bg) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-color: rgba(166, 125, 45, 0.18);
+  transition:
+    background 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+html.dark main > header,
+html.dark aside {
+  border-color: rgba(205, 166, 84, 0.18);
+}
+
+/* =========================================================
+   BASE
+   ========================================================= */
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    @apply border-line;
+  }
+
+  html,
+  body,
+  #root {
+    width: 100%;
+    height: 100%;
+    min-height: 100%;
+  }
+
+  html {
+    background: rgb(var(--void));
+  }
+
+  body {
+    @apply text-ink;
+    margin: 0;
+    font-family: "Inter", sans-serif;
+    background: #f7f5ef;
+    color: rgb(var(--ink));
+    transition:
+      background 0.4s ease,
+      color 0.3s ease;
+  }
+
+  html.dark body {
+    background: #05111d;
+  }
+
+  ::selection {
+    background: rgba(166, 125, 45, 0.22);
+    color: rgb(var(--ink));
+  }
+
+  :focus-visible {
+    outline: 2px solid rgb(var(--iris));
+    outline-offset: 2px;
+  }
+}
+
+/* =========================================================
+   COMPONENTS
+   ========================================================= */
+
+@layer components {
+
+  /* =======================================================
+     GLASS
+     ======================================================= */
+
+  .glass {
+    background: rgba(255, 254, 250, 0.90);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(180, 168, 143, 0.24);
+    box-shadow:
+      0 4px 18px rgba(30, 30, 24, 0.045);
+    transition:
+      background 0.3s ease,
+      border-color 0.3s ease,
+      box-shadow 0.3s ease;
+  }
+
+  html.dark .glass {
+    background: rgba(8, 25, 39, 0.94);
+    border-color: rgba(205, 166, 84, 0.15);
+    box-shadow:
+      0 8px 28px rgba(0, 0, 0, 0.26);
+  }
+
+  /* =======================================================
+     SIDEBAR
+     ======================================================= */
+
+  .sidebar-shell {
+    background: var(--sidebar-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-right: 1px solid rgba(180, 168, 143, 0.25);
+    box-shadow:
+      4px 0 18px rgba(35, 32, 25, 0.035);
+  }
+
+  html.dark .sidebar-shell {
+    background: #061522;
+    border-right-color: rgba(205, 166, 84, 0.14);
+    box-shadow:
+      4px 0 22px rgba(0, 0, 0, 0.22);
+  }
+
+  .sidebar-card {
+    background: rgba(255, 254, 250, 0.82);
+    border: 1px solid rgba(180, 168, 143, 0.22);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow:
+      0 3px 14px rgba(35, 32, 25, 0.035);
+    transition:
+      background 0.3s ease,
+      border-color 0.3s ease,
+      transform 0.25s ease;
+  }
+
+  .sidebar-card:hover {
+    border-color: rgba(166, 125, 45, 0.38);
+    background: rgba(255, 254, 250, 0.96);
+  }
+
+  html.dark .sidebar-card {
+    background: rgba(12, 34, 50, 0.84);
+    border-color: rgba(205, 166, 84, 0.13);
+  }
+
+  html.dark .sidebar-card:hover {
+    background: rgba(16, 41, 58, 0.94);
+    border-color: rgba(205, 166, 84, 0.28);
+  }
+
+  .sidebar-text {
+    color: rgb(var(--ink));
+  }
+
+  .sidebar-muted {
+    color: rgb(var(--mist));
+  }
+
+  /* =======================================================
+     BUTTONS
+     ======================================================= */
+
+  .gradient-btn {
+    background: linear-gradient(
+      135deg,
+      #9b7227 0%,
+      #b78b36 55%,
+      #d1aa5a 100%
+    );
+    color: #fffdf7;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow:
+      0 5px 16px rgba(145, 104, 30, 0.18);
+    transition:
+      transform 0.25s ease,
+      box-shadow 0.25s ease,
+      filter 0.25s ease;
+  }
+
+  .gradient-btn:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.06);
+    box-shadow:
+      0 8px 22px rgba(145, 104, 30, 0.25);
+  }
+
+  .gradient-btn:active {
+    transform: translateY(0);
+    box-shadow:
+      0 3px 11px rgba(145, 104, 30, 0.18);
+  }
+
+  html.dark .gradient-btn {
+    background: linear-gradient(
+      135deg,
+      #9d762f,
+      #c49a4b
+    );
+    color: #07131e;
+    box-shadow:
+      0 5px 18px rgba(0, 0, 0, 0.28);
+  }
+
+  html.dark .gradient-btn:hover {
+    filter: brightness(1.08);
+    box-shadow:
+      0 8px 24px rgba(0, 0, 0, 0.34);
+  }
+
+  /* =======================================================
+     STATUS
+     ======================================================= */
+
+  .status-pill {
+    background: rgba(166, 125, 45, 0.08);
+    color: rgb(116 83 24);
+    border: 1px solid rgba(166, 125, 45, 0.20);
+  }
+
+  html.dark .status-pill {
+    background: rgba(205, 166, 84, 0.10);
+    color: rgb(226 190 109);
+    border-color: rgba(205, 166, 84, 0.22);
+  }
+
+  /* =======================================================
+     CHAT
+     ======================================================= */
+
+  .user-bubble {
+    background: linear-gradient(
+      135deg,
+      #8f6925,
+      #b48a38
+    );
+    color: #fffdf7;
+    box-shadow:
+      0 4px 14px rgba(145, 104, 30, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .assistant-bubble {
+    background: rgba(255, 254, 250, 0.92);
+    backdrop-filter: blur(9px);
+    -webkit-backdrop-filter: blur(9px);
+    border: 1px solid rgba(166, 125, 45, 0.13);
+    box-shadow:
+      0 4px 15px rgba(35, 32, 25, 0.045);
+  }
+
+  html.dark .user-bubble {
+    background: linear-gradient(
+      135deg,
+      #9f7830,
+      #c49a4b
+    );
+    color: #07131e;
+  }
+
+  html.dark .assistant-bubble {
+    background: rgba(10, 30, 45, 0.94);
+    border-color: rgba(205, 166, 84, 0.14);
+    box-shadow:
+      0 5px 20px rgba(0, 0, 0, 0.24);
+  }
+
+  /* =======================================================
+     MENU
+     ======================================================= */
+
+  .menu-dropdown {
+    background: rgba(255, 254, 250, 0.98);
+    border: 1px solid rgba(180, 168, 143, 0.28);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow:
+      0 12px 30px rgba(35, 32, 25, 0.11);
+  }
+
+  html.dark .menu-dropdown {
+    background: rgba(8, 25, 39, 0.98);
+    border-color: rgba(205, 166, 84, 0.16);
+    box-shadow:
+      0 14px 34px rgba(0, 0, 0, 0.36);
+  }
+
+  .menu-item {
+    color: rgb(var(--ink));
+    border-radius: 8px;
+    transition:
+      background 0.2s ease,
+      color 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .menu-item:hover {
+    background: rgba(166, 125, 45, 0.08);
+    color: rgb(116 83 24);
+    transform: translateX(2px);
+  }
+
+  html.dark .menu-item:hover {
+    background: rgba(205, 166, 84, 0.10);
+    color: rgb(226 190 109);
+  }
+
+  /* =======================================================
+     ACCOUNT BUTTON
+     ======================================================= */
+
+  .account-menu-button {
+    background: rgba(250, 248, 242, 0.92);
+    color: rgb(var(--mist));
+    border: 1px solid rgba(180, 168, 143, 0.26);
+    transition:
+      background 0.2s ease,
+      border-color 0.2s ease,
+      color 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .account-menu-button:hover {
+    background: rgba(166, 125, 45, 0.08);
+    color: rgb(var(--iris));
+    border-color: rgba(166, 125, 45, 0.30);
+    transform: translateY(-1px);
+  }
+
+  html.dark .account-menu-button {
+    background: rgba(12, 34, 50, 0.82);
+    border-color: rgba(205, 166, 84, 0.14);
+  }
+
+  /* =======================================================
+     NAYAK ORB
+     ======================================================= */
+
+  .orb-glow {
+    box-shadow:
+      0 0 20px rgba(166, 125, 45, 0.18);
+  }
+
+  html.dark .orb-glow {
+    box-shadow:
+      0 0 28px rgba(205, 166, 84, 0.18);
+  }
+
+  /* =======================================================
+     GRADIENT TEXT
+     ======================================================= */
+
+  .nayak-gradient-text {
+    background: linear-gradient(
+      90deg,
+      #806021,
+      #ad8230,
+      #d2ad5d
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  html.dark .nayak-gradient-text {
+    background: linear-gradient(
+      90deg,
+      #c49a4b,
+      #e0bd70,
+      #f0d18d
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* =======================================================
+     GRADIENT BORDER
+     ======================================================= */
+
+  .nayak-gradient-border {
+    border: 1px solid transparent;
+    background:
+      linear-gradient(
+        rgb(var(--panel)),
+        rgb(var(--panel))
+      ) padding-box,
+      linear-gradient(
+        135deg,
+        rgba(166, 125, 45, 0.48),
+        rgba(205, 166, 84, 0.22)
+      ) border-box;
+  }
+
+  /* =======================================================
+     GLOW
+     ======================================================= */
+
+  .nayak-glow {
+    box-shadow:
+      0 0 18px rgba(166, 125, 45, 0.12);
+  }
+
+  /* =======================================================
+     LEGAL MODE — REFERENCE-SPECIFIC HELPERS
+     ======================================================= */
+
+  .legal-mode {
+    background:
+      radial-gradient(
+        circle at 70% 20%,
+        rgba(166, 125, 45, 0.055),
+        transparent 30%
+      ),
+      rgb(var(--void));
+  }
+
+  html.dark .legal-mode {
+    background:
+      radial-gradient(
+        circle at 72% 18%,
+        rgba(205, 166, 84, 0.055),
+        transparent 28%
+      ),
+      linear-gradient(
+        135deg,
+        #05111d 0%,
+        #071827 55%,
+        #0a2131 100%
+      );
+  }
+
+  .legal-card {
+    background: rgba(255, 254, 250, 0.58);
+    border: 1px solid rgba(180, 168, 143, 0.20);
+    box-shadow:
+      0 6px 24px rgba(35, 32, 25, 0.035);
+    transition:
+      transform 0.25s ease,
+      background 0.25s ease,
+      border-color 0.25s ease,
+      box-shadow 0.25s ease;
+  }
+
+  .legal-card:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 254, 250, 0.82);
+    border-color: rgba(166, 125, 45, 0.30);
+    box-shadow:
+      0 10px 28px rgba(35, 32, 25, 0.065);
+  }
+
+  html.dark .legal-card {
+    background: rgba(10, 29, 44, 0.64);
+    border-color: rgba(205, 166, 84, 0.13);
+  }
+
+  html.dark .legal-card:hover {
+    background: rgba(14, 37, 54, 0.82);
+    border-color: rgba(205, 166, 84, 0.25);
+  }
+
+  .legal-badge {
+    background: rgba(166, 125, 45, 0.08);
+    border: 1px solid rgba(166, 125, 45, 0.22);
+    color: rgb(125 91 31);
+  }
+
+  html.dark .legal-badge {
+    background: rgba(205, 166, 84, 0.09);
+    border-color: rgba(205, 166, 84, 0.22);
+    color: rgb(226 190 109);
+  }
+
+  .legal-icon {
+    color: rgb(var(--iris));
+  }
+
+  .legal-gold {
+    color: #a67d2d;
+  }
+
+  html.dark .legal-gold {
+    color: #d5ad5d;
+  }
+}
+
+/* =========================================================
+   SCROLLBAR
+   ========================================================= */
+
+@layer utilities {
+  .scroll-thin {
+    scrollbar-width: thin;
+    scrollbar-color:
+      rgba(166, 125, 45, 0.42)
+      transparent;
+  }
+
+  .scroll-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scroll-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scroll-thin::-webkit-scrollbar-thumb {
+    background: rgba(166, 125, 45, 0.42);
+    border-radius: 999px;
+  }
+
+  .scroll-thin::-webkit-scrollbar-thumb:hover {
+    background: rgba(166, 125, 45, 0.68);
+  }
+
+  html.dark .scroll-thin {
+    scrollbar-color:
+      rgba(205, 166, 84, 0.45)
+      transparent;
+  }
+
+  html.dark .scroll-thin::-webkit-scrollbar-thumb {
+    background: rgba(205, 166, 84, 0.48);
+  }
+
+  html.dark .scroll-thin::-webkit-scrollbar-thumb:hover {
+    background: rgba(205, 166, 84, 0.72);
+  }
+}
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* =========================================================
+   AUTOFILL
+   ========================================================= */
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: #4a3920 !important;
+  caret-color: #4a3920 !important;
+  -webkit-box-shadow:
+    0 0 0 1000px #fbf8ef inset !important;
+  box-shadow:
+    0 0 0 1000px #fbf8ef inset !important;
+  background-color: #fbf8ef !important;
+  color: #4a3920 !important;
 }
 
 html.dark input:-webkit-autofill,
 html.dark input:-webkit-autofill:hover,
 html.dark input:-webkit-autofill:focus,
 html.dark input:-webkit-autofill:active {
-  -webkit-text-fill-color: #f7f1ff !important;
-  caret-color: #f7f1ff !important;
-
+  -webkit-text-fill-color: #eee9dc !important;
+  caret-color: #eee9dc !important;
   -webkit-box-shadow:
-    0 0 0 1000px #120b25 inset !important;
-
+    0 0 0 1000px #0a2030 inset !important;
   box-shadow:
-    0 0 0 1000px #120b25 inset !important;
-
-  background-color: #120b25 !important;
-  color: #f7f1ff !important;
+    0 0 0 1000px #0a2030 inset !important;
+  background-color: #0a2030 !important;
+  color: #eee9dc !important;
 }
 
 /* =========================================================
    ROOT BACKGROUND
-   Keeps the colorful gradient visible behind the app.
-========================================================= */
+   ========================================================= */
 
 #root {
   background: transparent;
-}
-
-/* =========================================================
-   FINAL THEME — SOFT SKY BLUE
-   ========================================================= */
-
-.gradient-btn {
-  background: linear-gradient(
-    135deg,
-    #a9d5f5 0%,
-    #b9dcf6 50%,
-    #c9e5f8 100%
-  ) !important;
-
-  color: #010101 !important;
-
-  border: 3px solid rgba(249, 183, 234, 0.853) !important;
-
-  box-shadow:
-    0 6px 16px rgba(120, 184, 232, 0.12),
-    0 2px 6px rgba(120, 184, 232, 0.08) !important;
-}
-
-.gradient-btn:hover {
-  filter: brightness(1.02) !important;
-
-  box-shadow:
-    0 8px 20px rgba(120, 184, 232, 0.16),
-    0 3px 8px rgba(120, 184, 232, 0.10) !important;
-}
-
-.gradient-btn:active {
-  box-shadow:
-    0 4px 12px rgba(120, 184, 232, 0.12) !important;
-}
-
-
-/* =========================================================
-   DARK THEME — SOFT MUTED SKY BLUE
-   ========================================================= */
-
-html.dark .gradient-btn {
-  background: linear-gradient(
-    135deg,
-    #2667a9 0%,
-    #3278b5 50%,
-    #1584df 100%
-  ) !important;
-  color: #f7f1ff !important;
-  border: 3px solid rgb(69, 0, 43) !important;
-  box-shadow:
-    0 8px 20px rgba(0, 0, 0, 0.25),
-    0 0 14px rgba(120, 184, 232, 0.08) !important;
-}
-
-html.dark .gradient-btn:hover {
-  box-shadow:
-    0 10px 24px rgba(0, 0, 0, 0.30),
-    0 0 18px rgba(120, 184, 232, 0.10) !important;
-}
-/* Blue-first body atmosphere */
-body {
-  background:
-    radial-gradient(
-      circle at 8% 8%,
-      rgba(126, 184, 236, 0.18),
-      transparent 26%
-    ),
-    radial-gradient(
-      circle at 85% 12%,
-      rgba(151, 205, 245, 0.18),
-      transparent 27%
-    ),
-    radial-gradient(
-      circle at 75% 80%,
-      rgba(91, 139, 202, 0.11),
-      transparent 28%
-    ),
-    radial-gradient(
-      circle at 25% 85%,
-      rgba(212, 116, 168, 0.08),
-      transparent 25%
-    ),
-    linear-gradient(
-      135deg,
-      #eef7ff 0%,
-      #f2f8ff 38%,
-      #fff0f7 72%,
-      #f8f4fc 100%
-    );
-}
-
-html.dark body {
-  background:
-    radial-gradient(
-      circle at 8% 8%,
-      rgba(105, 157, 220, 0.18),
-      transparent 28%
-    ),
-    radial-gradient(
-      circle at 88% 12%,
-      rgba(128, 180, 236, 0.15),
-      transparent 30%
-    ),
-    radial-gradient(
-      circle at 80% 80%,
-      rgba(91, 105, 181, 0.13),
-      transparent 30%
-    ),
-    radial-gradient(
-      circle at 20% 85%,
-      rgba(224, 120, 180, 0.08),
-      transparent 25%
-    ),
-    linear-gradient(
-      135deg,
-      #070914 0%,
-      #0b1020 38%,
-      #0e0b20 72%,
-      #090717 100%
-    );
-}
-
-/* Blue-dominant orb */
-.orb-glow {
-  box-shadow:
-    0 0 25px rgba(105, 173, 232, 0.30),
-    0 0 55px rgba(132, 197, 242, 0.18),
-    0 0 100px rgba(212, 116, 168, 0.07);
-}
-
-html.dark .orb-glow {
-  box-shadow:
-    0 0 30px rgba(105, 157, 220, 0.30),
-    0 0 70px rgba(128, 180, 236, 0.20),
-    0 0 120px rgba(224, 120, 180, 0.10);
 }

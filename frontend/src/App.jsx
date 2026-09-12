@@ -1,16 +1,4 @@
 import { useCallback, useEffect, useState } from 'react'
-import {
-  Menu,
-  User,
-  LogOut,
-  Download,
-  Sun,
-  Moon,
-  Pause,
-  Play,
-  Square,
-  FileText,
-} from 'lucide-react'
 import Scheme from './components/Scheme.jsx'
 import Sidebar from './components/Sidebar.jsx'
 import ChatView from './components/ChatView.jsx'
@@ -105,7 +93,6 @@ export default function App() {
   })()
   const canRaiseGrievance = currentUser?.user_type !== 'guest' && !currentUser?.isGuest
 
-  const [menuOpen, setMenuOpen] = useState(false)
 
   /* =========================
      THEME
@@ -451,7 +438,6 @@ export default function App() {
       'Preparing your assistant…',
     )
 
-    setMenuOpen(false)
   }, [stopSpeech])
 
   const downloadMarkdown = useCallback(() => {
@@ -521,14 +507,7 @@ export default function App() {
     [],
   )
 
-  const stateLabel = {
-    sleeping: 'idle',
-    listening: 'listening',
-    processing: 'processing',
-    thinking: 'thinking',
-    responding: 'responding',
-    error: 'error',
-  }[status]
+
 
   if (!isAuthenticated && showLogin) {
     return (
@@ -546,7 +525,6 @@ export default function App() {
     <div className="relative flex h-screen w-screen overflow-hidden bg-void font-body text-ink">
       <Sidebar
         history={messages}
-        status={status}
         onNewChat={() => {
           setShowScheme(false)
           handleNewChat()
@@ -559,6 +537,13 @@ export default function App() {
         onSchemes={() => setShowScheme(true)}
         schemeActive={showScheme}
         backendOnline={backendOnline}
+        onProfile={() => setShowProfile(true)}
+        onGrievance={() => setShowGrievance(true)}
+        onDownload={downloadMarkdown}
+        onToggleTheme={() => setDarkMode((prev) => !prev)}
+        darkMode={darkMode}
+        onLogout={handleLogout}
+        canRaiseGrievance={canRaiseGrievance}
       />
 
       {showProfile && (
@@ -574,122 +559,6 @@ export default function App() {
       )}
 
       <main className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center justify-between border-b border-line px-6 py-3">
-          <div className="flex items-center gap-2 px-5 pb-4 pt-6">
-            <div className="h-2 w-2 rounded-full bg-iris shadow-[0_0_10px_2px_rgba(20,83,45,0.35)]" />
-
-            <div>
-              <span className="block font-display text-lg font-semibold leading-none tracking-wide text-ink">
-                NAYAK
-              </span>
-
-              <span className="font-mono text-[10px] uppercase tracking-wider text-mist">
-                Legal Assistant
-              </span>
-            </div>
-          </div>
-
-          <div className="relative">
-            <button
-              onClick={() =>
-                setMenuOpen(
-                  (open) => !open,
-                )
-              }
-              aria-expanded={menuOpen}
-              aria-label="Open account menu"
-              title="Open menu"
-              className="account-menu-button flex h-10 w-10 items-center justify-center rounded-full border border-line bg-panel-hi text-mist transition hover:border-cyan/40 hover:bg-cyan/10 hover:text-cyan"
-            >
-              <Menu size={18} />
-            </button>
-
-            {menuOpen && (
-              <div className="menu-dropdown absolute right-0 top-12 z-20 w-52 rounded-lg border border-line bg-panel p-2 shadow-xl">
-                {/* Profile */}
-
-                <button
-                  onClick={() => {
-                    setShowProfile(true)
-                    setMenuOpen(false)
-                  }}
-                  className="menu-item flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left"
-                >
-                  <User size={18} />
-                  <span>Profile</span>
-                </button>
-
-                {canRaiseGrievance && (
-                  <button
-                    onClick={() => {
-                      setShowGrievance(true)
-                      setMenuOpen(false)
-                    }}
-                    className="menu-item flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left"
-                  >
-                    <FileText size={18} />
-                    <span>Raise grievance</span>
-                  </button>
-                )}
-
-                {/* Download chat */}
-
-                <button
-                  onClick={() => {
-                    downloadMarkdown()
-                    setMenuOpen(false)
-                  }}
-                  disabled={
-                    messages.length === 0
-                  }
-                  className="menu-item flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  <Download size={18} />
-                  <span>Download chat</span>
-                </button>
-
-                {/* Theme toggle */}
-
-                <button
-                  onClick={() => {
-                    setDarkMode((prev) => !prev)
-                    setMenuOpen(false)
-                  }}
-                  className="menu-item flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left"
-                >
-                  {darkMode ? (
-                    <Sun
-                      size={18}
-                      className="text-yellow-500"
-                    />
-                  ) : (
-                    <Moon
-                      size={18}
-                      className="text-indigo-500"
-                    />
-                  )}
-
-                  <span>
-                    {darkMode
-                      ? 'Light Mode'
-                      : 'Dark Mode'}
-                  </span>
-                </button>
-
-                {/* Logout */}
-
-                <button
-                  onClick={handleLogout}
-                  className="menu-item flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left hover:bg-red-500/10 hover:text-red-500"
-                >
-                  <LogOut size={18} />
-                  <span>Log out</span>
-                </button>
-              </div>
-            )}
-          </div>
-        </header>
-
         {!backendOnline && (
           <div className="border-b border-magenta/30 bg-magenta/10 px-6 py-2 text-center font-mono text-xs text-magenta">
             Backend unavailable — start the API server before
@@ -705,85 +574,60 @@ export default function App() {
           </div>
         )}
 
-        {/* Voice output controls */}
+        <div
+          className={
+            showScheme
+              ? 'hidden'
+              : 'relative flex min-h-0 flex-1 flex-col'
+          }
+          aria-hidden={showScheme}
+        >
+          <ChatView
+            messages={messages}
+            focusIndex={focusIndex}
+            interimText={interimText}
+            speechSpeaking={speechSpeaking}
+            speechPaused={speechPaused}
+            pauseSpeech={pauseSpeech}
+            resumeSpeech={resumeSpeech}
+            stopSpeech={stopSpeech}
+            micOn={micOn}
+          />
 
-        {speechSpeaking && (
-          <div className="flex shrink-0 items-center justify-center gap-2 pb-2 pt-3">
-            <button
-              onClick={
-                speechPaused
-                  ? resumeSpeech
-                  : pauseSpeech
-              }
-              title={
-                speechPaused
-                  ? 'Resume voice'
-                  : 'Pause voice'
-              }
-              aria-label={
-                speechPaused
-                  ? 'Resume voice'
-                  : 'Pause voice'
-              }
-              className="flex h-9 items-center gap-2 rounded-full border border-line bg-panel px-4 text-xs font-medium text-ink transition hover:border-cyan/40 hover:bg-cyan/10"
-            >
-              {speechPaused ? (
-                <Play size={15} />
-              ) : (
-                <Pause size={15} />
-              )}
-
-              <span>
-                {speechPaused
-                  ? 'Resume'
-                  : 'Pause'}
-              </span>
-            </button>
-
-            <button
-              onClick={stopSpeech}
-              title="Stop voice"
-              aria-label="Stop voice"
-              className="flex h-9 items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-4 text-xs font-medium text-red-500 transition hover:bg-red-500/20"
-            >
-              <Square size={14} />
-              <span>Stop</span>
-            </button>
-          </div>
-        )}
-
-        <div className="flex shrink-0 items-center justify-center pb-2 pt-6">
           {micOn && (
-            <VoiceInput
-              status={status}
-              micLevel={micLevel}
-              onStop={toggleMic}
-            />
+            <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex h-[360px] items-center justify-center">
+              <div className="pointer-events-auto">
+                <VoiceInput
+                  status={status}
+                  micLevel={micLevel}
+                  onStop={toggleMic}
+                />
+              </div>
+            </div>
           )}
+
+          <InputBar
+            onSend={sendTextCommand}
+            micActive={micOn}
+            onToggleMic={toggleMic}
+            micSupported={micSupported}
+            disabled={status === 'processing'}
+            language={language}
+            languages={LANGUAGES}
+            onLanguageChange={setLanguage}
+          />
         </div>
 
-        {showScheme ? (
+        <div
+          className={
+            showScheme
+              ? 'flex min-h-0 flex-1 flex-col'
+              : 'hidden'
+          }
+          aria-hidden={!showScheme}
+        >
           <Scheme />
-        ) : (
-          <>
-            <ChatView
-              messages={messages}
-              focusIndex={focusIndex}
-              interimText={interimText}
-            />
-
-            <InputBar
-              onSend={sendTextCommand}
-              micActive={micOn}
-              onToggleMic={toggleMic}
-              micSupported={micSupported}
-              disabled={status === 'processing'}
-              language={language}
-              languages={LANGUAGES}
-              onLanguageChange={setLanguage}
-            />
-          </>
-        )}
+        </div>
       </main>
     </div>
   )

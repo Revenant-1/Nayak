@@ -112,31 +112,21 @@ export default function Login({ onLoginSuccess, onAuthStatusChange, onCancel }) 
     <div className="relative flex h-screen w-screen items-center justify-center overflow-hidden bg-void px-4 font-body text-ink">
       {/* Background atmosphere */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -left-24 -top-24 h-72 w-72 rounded-full bg-pink-400/15 blur-3xl dark:bg-pink-500/10" />
+        <div className="absolute -left-24 -top-24 h-72 w-72 rounded-full bg-cyan/10 blur-3xl" />
 
-        <div className="absolute -right-24 top-10 h-80 w-80 rounded-full bg-sky-400/15 blur-3xl dark:bg-indigo-500/10" />
+        <div className="absolute -right-24 top-10 h-80 w-80 rounded-full bg-blue/10 blur-3xl" />
 
-        <div className="absolute bottom-[-120px] left-1/3 h-80 w-80 rounded-full bg-indigo-400/10 blur-3xl dark:bg-pink-500/10" />
+        <div className="absolute bottom-[-120px] left-1/3 h-80 w-80 rounded-full bg-jade/10 blur-3xl" />
       </div>
 
       {/* Login Card */}
       <div className="glass relative z-10 w-full max-w-md overflow-hidden rounded-3xl p-8">
-        <button
-          type="button"
-          onClick={handleCancel}
-          className="absolute right-3 top-3 inline-flex h-7 w-7 items-center justify-center rounded-full border border-line bg-panel-hi/80 text-xs font-semibold text-mist transition hover:border-pink-500/40 hover:text-ink"
-          aria-label="Cancel login"
-          title="Cancel"
-        >
-          ×
-        </button>
-
         {/* Accent line */}
-        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-pink-500 via-purple-500 to-sky-500" />
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-iris via-cyan to-sky" />
 
         {/* Header */}
         <div className="mb-6 text-center">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl border border-pink-500/25 bg-gradient-to-br from-pink-500/15 via-purple-500/10 to-sky-500/15 text-sky-600 shadow-lg shadow-pink-500/10 dark:text-sky-300">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan/25 bg-cyan/10 text-cyan shadow-lg shadow-cyan/10">
             <Lock size={22} />
           </div>
 
@@ -161,8 +151,8 @@ export default function Login({ onLoginSuccess, onAuthStatusChange, onCancel }) 
             }}
             className={`flex-1 rounded-md py-1.5 text-xs font-medium transition ${
               !isRegister
-                ? "gradient-btn shadow-md"
-                : "text-mist hover:bg-pink-500/5 hover:text-ink"
+                ? 'gradient-btn shadow-md'
+                : 'text-mist hover:bg-cyan/10 hover:text-ink'
             }`}
           >
             Sign In
@@ -176,8 +166,8 @@ export default function Login({ onLoginSuccess, onAuthStatusChange, onCancel }) 
             }}
             className={`flex-1 rounded-md py-1.5 text-xs font-medium transition ${
               isRegister
-                ? "gradient-btn shadow-md"
-                : "text-mist hover:bg-pink-500/5 hover:text-ink"
+                ? 'gradient-btn shadow-md'
+                : 'text-mist hover:bg-cyan/10 hover:text-ink'
             }`}
           >
             Register
@@ -186,7 +176,7 @@ export default function Login({ onLoginSuccess, onAuthStatusChange, onCancel }) 
 
         {/* Error */}
         {error && (
-          <div className="mb-4 flex items-center justify-between rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-400">
+          <div className="mb-4 flex items-center justify-between rounded-lg border border-orange/30 bg-orange/10 p-3 text-xs text-orange">
             <div className="flex items-center gap-2">
               <AlertCircle size={16} className="shrink-0" />
               <span>{error}</span>
@@ -197,7 +187,7 @@ export default function Login({ onLoginSuccess, onAuthStatusChange, onCancel }) 
                 type="button"
                 onClick={handleRetry}
                 disabled={loading}
-                className="ml-2 rounded-md border border-red-500/30 px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-red-400 transition hover:bg-red-500/20 disabled:opacity-50"
+                className="ml-2 rounded-md border border-orange/30 px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-orange transition hover:bg-orange/15 disabled:opacity-50"
                 title="Retry authentication"
               >
                 <RefreshCw size={12} className="inline" /> Retry
@@ -226,7 +216,7 @@ export default function Login({ onLoginSuccess, onAuthStatusChange, onCancel }) 
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="username"
-                className="w-full rounded-lg border border-line bg-panel-hi/70 py-2.5 pl-10 pr-3 text-sm text-ink outline-none transition placeholder:text-mist/50 focus:border-pink-500 focus:ring-2 focus:ring-pink-500/15"
+                className="w-full rounded-lg border border-line bg-panel-hi/70 py-2.5 pl-10 pr-3 text-sm text-ink outline-none transition placeholder:text-mist/50 focus:border-cyan focus:ring-2 focus:ring-cyan/15"
               />
             </div>
           </div>
@@ -250,7 +240,7 @@ export default function Login({ onLoginSuccess, onAuthStatusChange, onCancel }) 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@example.com"
-                  className="w-full rounded-lg border border-line bg-panel-hi/70 py-2.5 pl-10 pr-3 text-sm text-ink outline-none transition placeholder:text-mist/50 focus:border-pink-500 focus:ring-2 focus:ring-pink-500/15"
+                  className="w-full rounded-lg border border-line bg-panel-hi/70 py-2.5 pl-10 pr-3 text-sm text-ink outline-none transition placeholder:text-mist/50 focus:border-cyan focus:ring-2 focus:ring-cyan/15"
                 />
               </div>
             </div>
@@ -274,15 +264,17 @@ export default function Login({ onLoginSuccess, onAuthStatusChange, onCancel }) 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full rounded-lg border border-line bg-panel-hi/70 py-2.5 pl-10 pr-10 text-sm text-ink outline-none transition placeholder:text-mist/50 focus:border-pink-500 focus:ring-2 focus:ring-pink-500/15"
+                className="w-full rounded-lg border border-line bg-panel-hi/70 py-2.5 pl-10 pr-10 text-sm text-ink outline-none transition placeholder:text-mist/50 focus:border-cyan focus:ring-2 focus:ring-cyan/15"
               />
 
               <button
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-mist transition hover:text-ink focus:outline-none"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-mist transition hover:text-cyan focus:outline-none"
                 tabIndex={-1}
-                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-label={
+                  showPassword ? 'Hide password' : 'Show password'
+                }
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
@@ -299,7 +291,10 @@ export default function Login({ onLoginSuccess, onAuthStatusChange, onCancel }) 
               <Loader2 size={16} className="animate-spin" />
             ) : (
               <>
-                <span>{isRegister ? "Register & Enter" : "Sign In"}</span>
+                <span>
+                  {isRegister ? 'Register & Enter' : 'Sign In'}
+                </span>
+
                 <ArrowRight size={16} />
               </>
             )}
@@ -311,7 +306,29 @@ export default function Login({ onLoginSuccess, onAuthStatusChange, onCancel }) 
             </p>
           )}
         </form>
+
+        {/* Divider */}
+        <div className="relative my-6 text-center">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-line" />
+          </div>
+
+          <span className="relative bg-panel px-3 font-mono text-[11px] uppercase tracking-wider text-mist">
+            or
+          </span>
+        </div>
+
+        {/* Guest */}
+        <button
+          type="button"
+          onClick={handleGuestLogin}
+          disabled={loading}
+          className="flex w-full items-center justify-center gap-2 rounded-lg border border-line bg-panel-hi/50 py-2.5 text-sm font-medium text-mist transition hover:border-cyan/35 hover:bg-cyan/10 hover:text-ink disabled:opacity-50"
+        >
+          <UserCheck size={16} />
+          <span>Continue as Guest</span>
+        </button>
       </div>
     </div>
-  );
+  )
 }
