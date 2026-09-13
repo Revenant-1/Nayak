@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -48,6 +49,7 @@ export default function ChatView({
   onSchemes,
   onToggleMic,
 }) {
+  const { t } = useTranslation()
   const bottomRef = useRef(null)
   const itemRefs = useRef({})
   const documentInputRef = useRef(null)
@@ -156,29 +158,29 @@ export default function ChatView({
     const cards = [
       {
         Icon: Scale,
-        title: 'Legal Q&A',
-        description: 'Clear answers to everyday legal questions.',
+        title: t('legalQa'),
+        description: t('legalQaDescription'),
         color: 'bg-primary/10 text-primary',
         action: onLegalQA,
       },
       {
         Icon: Landmark,
-        title: 'Government Schemes',
-        description: 'Find support you may be eligible for.',
+        title: t('schemes'),
+        description: t('schemesDescription'),
         color: 'bg-secondary/10 text-secondary',
         action: onSchemes,
       },
       {
         Icon: FileText,
-        title: 'Document Explanation',
-        description: 'Upload a document to understand it simply.',
+        title: t('documentExplanation'),
+        description: t('documentDescription'),
         color: 'bg-accent/10 text-accent',
         action: () => documentInputRef.current?.click(),
       },
       {
         Icon: Mic,
-        title: 'Voice Assistant',
-        description: 'Ask naturally in your language.',
+        title: t('voiceAssistant'),
+        description: t('voiceDescription'),
         color: 'bg-primary/10 text-primary',
         action: onToggleMic,
       },
@@ -219,15 +221,15 @@ export default function ChatView({
           }}
         >
           <p className="font-mono text-[10px] font-semibold tracking-[0.2em] text-primary">
-            YOUR VOICE. YOUR RIGHTS. YOUR LANGUAGE.
+            {t('voiceTagline')}
           </p>
 
           <h2 className="mt-3 font-display text-3xl font-semibold text-ink">
-            Ask a legal question
+            {t('askLegalQuestion')}
           </h2>
 
           <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-mist">
-            Get simple, reliable legal information in your language.
+            {t('legalInformation')}
           </p>
 
           {/* Hidden document picker */}

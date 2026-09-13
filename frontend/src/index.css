@@ -267,3 +267,11 @@ input:-webkit-autofill:active {
     scroll-behavior: auto !important;
   }
 }
+body {
+  top: 0 !important;
+}
+
+.goog-te-banner-frame,
+.skiptranslate iframe {
+  display: none !important;
+}

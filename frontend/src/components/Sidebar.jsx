@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
 import {
   Plus,
@@ -27,6 +28,7 @@ export default function Sidebar({
   onProfile,
   onVoiceAssistant,
 }) {
+  const { t } = useTranslation();
   const entries = history
     .map((msg, i) => ({ ...msg, index: i }))
     .filter((msg) => msg.role === "user");
@@ -84,7 +86,7 @@ export default function Sidebar({
                 text-mist
               "
             >
-              Legal Assistant
+              {t("legalInformation")}
             </p>
           </div>
         </div>
@@ -100,7 +102,7 @@ export default function Sidebar({
             className="menu-item flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm transition-colors"
           >
             <User size={16} />
-            <span>Profile</span>
+            <span>{t("profile")}</span>
           </button>
           <button
             onClick={onSchemes}
@@ -109,14 +111,14 @@ export default function Sidebar({
             }`}
           >
             <Landmark size={16} />
-            <span>Schemes</span>
+            <span>{t("schemes")}</span>
           </button>
           <button
             onClick={""}
             className="menu-item flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm transition-colors"
           >
             <FileText size={16} />
-            <span>Document</span>
+            <span>{t("document")}</span>
           </button>
 
           <button
@@ -124,7 +126,7 @@ export default function Sidebar({
             className="menu-item flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm transition-colors"
           >
             <Mic size={16} />
-            <span>Voice Assistant</span>
+            <span>{t("voiceAssistant")}</span>
           </button>
 
           <button
@@ -132,7 +134,7 @@ export default function Sidebar({
             className="menu-item flex w-full items-center gap-3 rounded-md bg-primary/10 px-3 py-2.5 text-left text-sm font-medium text-primary"
           >
             <MessageSquare size={16} />
-            <span>Chat</span>
+            <span>{t("chat")}</span>
           </button>
         </div>
       </div>
@@ -171,7 +173,7 @@ export default function Sidebar({
           "
         >
           <Plus size={16} />
-          New chat
+          {t("newChat")}
         </button>
       </div>
 
@@ -180,12 +182,12 @@ export default function Sidebar({
           ===================================================== */}
       <div className="mt-5 flex-1 overflow-y-auto px-3 pb-3">
         <p className="px-2 pb-2 font-mono text-[10px] uppercase tracking-widest text-mist">
-          History
+          {t("history")}
         </p>
 
         {entries.length === 0 && (
           <p className="px-2 py-4 text-sm text-mist">
-            No conversations yet. Ask a legal query to begin.
+            {t("noConversations")}
           </p>
         )}
 
@@ -228,7 +230,7 @@ export default function Sidebar({
         />
 
         <span className="font-mono text-[11px] text-mist">
-          {backendOnline ? "backend connected" : "backend offline"}
+          {backendOnline ? t("backendConnected") : t("backendOffline")}
         </span>
       </div>
     </aside>

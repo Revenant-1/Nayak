@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Send, Mic } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 /**
  * InputBar
@@ -7,6 +8,7 @@ import { Send, Mic } from 'lucide-react'
  * Text fallback plus the cross-browser audio recorder toggle.
  */
 export default function InputBar({ onSend, micActive, onToggleMic, micSupported, disabled, language, languages, onLanguageChange }) {
+  const { t } = useTranslation()
   const [value, setValue] = useState('')
 
   const submit = (e) => {
@@ -25,8 +27,8 @@ export default function InputBar({ onSend, micActive, onToggleMic, micSupported,
         disabled={disabled || !micSupported}
         title={
           micSupported
-            ? micActive ? 'Use the orb to send the recording' : 'Start voice input'
-            : 'Voice input is not supported in this browser'
+            ? micActive ? t('useOrb') : t('startVoiceInput')
+            : t('unsupportedVoice')
         }
         className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-colors ${
           micActive
@@ -40,23 +42,24 @@ export default function InputBar({ onSend, micActive, onToggleMic, micSupported,
       <input
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        placeholder={disabled ? 'Nayak is processing…' : 'Ask a legal question or type a query…'}
+        placeholder={disabled ? t('processing') : t('askPlaceholder')}
         disabled={disabled}
         className="flex-1 rounded-full border border-line bg-panel-hi px-4 py-2.5 text-sm text-ink placeholder:text-mist focus-visible:outline-cyan disabled:opacity-50"
       />
 
-      <label className="sr-only" htmlFor="input-language">Voice language</label>
+      <label className="sr-only" htmlFor="input-language">{t('language')}</label>
       <select
         id="input-language"
         value={language}
         onChange={(event) => onLanguageChange(event.target.value)}
-        aria-label="Voice language"
-        title="Choose voice language or Auto"
-        className="max-w-28 rounded-lg border border-line bg-panel-hi px-2 py-2.5 text-xs text-ink outline-none focus:border-cyan"
+        aria-label={t('language')}
+        title={t('chooseVoiceLanguage')}
+        translate="no"
+        className="notranslate max-w-28 rounded-lg border border-line bg-panel-hi px-2 py-2.5 text-xs text-ink outline-none focus:border-cyan"
       >
         {languages.map((item) => (
           <option key={item.code} value={item.code}>
-            {item.label}
+            {item.code === 'auto' ? t('auto') : item.label}
           </option>
         ))}
       </select>

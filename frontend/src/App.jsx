@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import Scheme from './components/Scheme.jsx'
 import Sidebar from './components/Sidebar.jsx'
@@ -9,6 +10,7 @@ import VoiceInput from './components/voiceinput.jsx'
 import Profile from './components/Profile.jsx'
 import Grievance from './components/Grievance.jsx'
 import Login from './components/Login.jsx'
+import GoogleTranslate from './components/GoogleTranslate.jsx'
 import { api } from './lib/api.js'
 import bgIllustration from './assets/bg.png'
 
@@ -59,14 +61,32 @@ const initialSessionStatus = 'initializing'
 const LANGUAGES = [
   { code: 'auto', label: 'Auto', speechCode: null },
   { code: 'en', label: 'English', speechCode: 'en-IN' },
+  { code: 'as', label: 'অসমীয়া', speechCode: 'as-IN' },
+  { code: 'bn', label: 'বাংলা', speechCode: 'bn-IN' },
+  { code: 'brx', label: 'बड़ो', speechCode: 'brx-IN' },
+  { code: 'doi', label: 'डोगरी', speechCode: 'doi-IN' },
+  { code: 'gu', label: 'ગુજરાતી', speechCode: 'gu-IN' },
   { code: 'hi', label: 'हिन्दी', speechCode: 'hi-IN' },
+  { code: 'kn', label: 'ಕನ್ನಡ', speechCode: 'kn-IN' },
+  { code: 'ks', label: 'कॉशुर / کٲشُر', speechCode: 'ks-IN' },
+  { code: 'kok', label: 'कोंकणी', speechCode: 'kok-IN' },
+  { code: 'mai', label: 'मैथिली', speechCode: 'mai-IN' },
+  { code: 'ml', label: 'മലയാളം', speechCode: 'ml-IN' },
+  { code: 'mni', label: 'মৈতৈলোন্', speechCode: 'mni-IN' },
   { code: 'mr', label: 'मराठी', speechCode: 'mr-IN' },
+  { code: 'ne', label: 'नेपाली', speechCode: 'ne-NP' },
+  { code: 'or', label: 'ଓଡ଼ିଆ', speechCode: 'or-IN' },
+  { code: 'pa', label: 'ਪੰਜਾਬੀ', speechCode: 'pa-IN' },
+  { code: 'sa', label: 'संस्कृतम्', speechCode: 'sa-IN' },
+  { code: 'sat', label: 'संताली', speechCode: 'sat-IN' },
+  { code: 'sd', label: 'سنڌي', speechCode: 'sd-IN' },
   { code: 'ta', label: 'தமிழ்', speechCode: 'ta-IN' },
   { code: 'te', label: 'తెలుగు', speechCode: 'te-IN' },
-  { code: 'bn', label: 'বাংলা', speechCode: 'bn-IN' },
+  { code: 'ur', label: 'اردو', speechCode: 'ur-IN' },
 ]
 
 export default function App() {
+  const { t, i18n } = useTranslation()
   const [illustration] = useState(bgIllustration)
 
   const [authStatus, setAuthStatus] =
@@ -148,7 +168,9 @@ export default function App() {
       'nayak_language',
       language,
     )
-  }, [language])
+
+    i18n.changeLanguage(language === 'auto' ? 'en' : language)
+  }, [i18n, language])
 
   useEffect(() => {
     document.documentElement.classList.toggle(
@@ -596,6 +618,7 @@ export default function App() {
 
   return (
     <div className="relative flex h-screen w-screen overflow-hidden bg-void font-body text-ink">
+      <GoogleTranslate language={language} />
 
       <Sidebar
         history={messages}
@@ -632,26 +655,12 @@ export default function App() {
           className="watermark-illustration pointer-events-none absolute inset-0 z-0 h-full w-full object-contain opacity-[0.16] sm:opacity-[0.2] dark:opacity-[0.08]"
         />
 
-        <header className="relative z-20 flex h-14 shrink-0 items-center justify-end gap-2 border-b border-line bg-panel px-4">
-
-          <button
-            onClick={() =>
-              setDarkMode((prev) => !prev)
-            }
-            aria-label={
-              darkMode
-                ? 'Switch to light mode'
-                : 'Switch to dark mode'
-            }
-            className="rounded-lg border border-line p-2 text-mist transition hover:bg-panel-hi hover:text-ink"
-          >
-            {darkMode ? <Sun /> : <Moon />}
-          </button>
+        <div className="absolute right-4 top-4 z-20 flex items-center justify-end gap-2">
 
           <div className="relative">
 
             <button
-              aria-label="Open menu"
+              aria-label={t('openMenu')}
               onClick={() =>
                 setShowHeaderMenu((prev) => !prev)
               }
@@ -665,14 +674,32 @@ export default function App() {
 
                 <div className="border-b border-line px-3 pb-2.5 pt-2">
                   <p className="text-sm font-semibold text-ink">
-                    NAYAK menu
+                    {t('menu')}
                   </p>
 
                   <p className="mt-0.5 text-xs text-mist">
-                    Quick actions
+                    {t('quickActions')}
                   </p>
                 </div>
 
+                <button
+                  onClick={() => setDarkMode((prev) => !prev)}
+                  className="header-menu-item flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-ink transition"
+                >
+                  <span className="menu-icon bg-primary/15 text-primary">
+                    {darkMode ? <Sun size={16} /> : <Moon size={16} />}
+                  </span>
+
+                  <span>
+                    <b className="font-medium">
+                      {darkMode ? t('lightMode') : t('darkMode')}
+                    </b>
+
+                    <small className="block text-xs text-mist">
+                      {t('changeAppearance')}
+                    </small>
+                  </span>
+                </button>
                 <button
                   onClick={() => {
                     setShowHeaderMenu(false)
@@ -686,11 +713,11 @@ export default function App() {
 
                   <span>
                     <b className="font-medium">
-                      Grievance
+                      {t('grievance')}
                     </b>
 
                     <small className="block text-xs text-mist">
-                      Raise a citizen issue
+                      {t('raiseIssue')}
                     </small>
                   </span>
                 </button>
@@ -708,11 +735,11 @@ export default function App() {
 
                   <span>
                     <b className="font-medium">
-                      Download chat
+                      {t('downloadChat')}
                     </b>
 
                     <small className="block text-xs text-mist">
-                      Save this conversation
+                      {t('saveConversation')}
                     </small>
                   </span>
                 </button>
@@ -730,19 +757,37 @@ export default function App() {
 
                   <span>
                     <b className="font-medium">
-                      Logout
+                      {t('logout')}
                     </b>
 
                     <small className="block text-xs text-mist">
-                      End this session
+                      {t('endSession')}
                     </small>
                   </span>
                 </button>
 
+                <label className="notranslate flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-sm text-ink" translate="no">
+                  <span>{t('language')}</span>
+                  <select
+                    value={language}
+                    onChange={(event) => setLanguage(event.target.value)}
+                    aria-label={t('language')}
+                    className="rounded-lg border border-line bg-panel-hi px-2 py-1.5 text-xs text-ink outline-none"
+                  >
+                    {LANGUAGES.map((item) => (
+                      <option key={item.code} value={item.code}>
+                        {item.code === 'auto' ? t('auto') : item.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+
+
               </div>
             )}
           </div>
-        </header>
+        </div>
 
         {!backendOnline && (
           <div className="border-b border-magenta/30 bg-magenta/10 px-6 py-2 text-center font-mono text-xs text-magenta">
