@@ -86,7 +86,7 @@ export default function Sidebar({
                 text-mist
               "
             >
-              {t("legalInformation")}
+              
             </p>
           </div>
         </div>
