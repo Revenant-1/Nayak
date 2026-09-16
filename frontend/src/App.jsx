@@ -988,7 +988,7 @@ export default function App() {
                   (prev) => !prev,
                 )
               }
-              className="rounded-lg border border-line p-2 text-mist transition hover:bg-panel-hi hover:text-ink"
+              className="menu rounded-lg border border-line p-2 text-mist transition hover:bg-panel-hi hover:text-ink"
             >
               <Menu size={18} />
             </button>
