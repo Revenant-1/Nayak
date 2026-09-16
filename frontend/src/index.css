@@ -61,6 +61,7 @@ html.dark {
 }
 
 @layer base {
+
   *,
   *::before,
   *::after {
@@ -135,7 +136,7 @@ html.dark {
     border-radius: 0.7rem;
   }
 
-  main > header,
+  main>header,
   aside {
     background: var(--header-bg) !important;
     border-color: rgb(var(--line));
@@ -258,6 +259,7 @@ input:-webkit-autofill:active {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {
@@ -267,6 +269,7 @@ input:-webkit-autofill:active {
     scroll-behavior: auto !important;
   }
 }
+
 body {
   top: 0 !important;
 }
@@ -274,4 +277,12 @@ body {
 .goog-te-banner-frame,
 .skiptranslate iframe {
   display: none !important;
+}
+
+.menu {
+  background: rgb(var(--primary));
+  color: #fff;
+  border: 1px solid rgb(var(--primary) / 0.7);
+  box-shadow: 0 4px 12px rgb(var(--primary) / 0.18);
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }

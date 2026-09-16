@@ -11,6 +11,7 @@ import Profile from './components/Profile.jsx'
 import Grievance from './components/Grievance.jsx'
 import Login from './components/Login.jsx'
 import GoogleTranslate from './components/GoogleTranslate.jsx'
+import DocumentModal from './components/Document.jsx'
 import { api } from './lib/api.js'
 import bgIllustration from './assets/bg.png'
 
@@ -125,6 +126,11 @@ export default function App() {
   const [showScheme, setShowScheme] =
     useState(false)
 
+  const [showDocuments, setShowDocuments] = useState(false)
+  const [documents, setDocuments] = useState([])
+  const [documentsLoading, setDocumentsLoading] = useState(false)
+  const [documentsError, setDocumentsError] = useState(null)
+
   const [showHeaderMenu, setShowHeaderMenu] =
     useState(false)
 
@@ -153,6 +159,9 @@ export default function App() {
   const [sessionId, setSessionId] = useState(() =>
     localStorage.getItem('nayak_session_id'),
   )
+
+  const [uploadingDocument, setUploadingDocument] = useState(false)
+  const [uploadError, setUploadError] = useState(null)
 
   const [language, setLanguage] = useState(() =>
     localStorage.getItem('nayak_language') || 'en',
@@ -216,6 +225,29 @@ export default function App() {
     [],
   )
 
+  const {
+    status,
+    micOn,
+    micSupported,
+    micLevel,
+    interimText,
+    error,
+    toggleMic,
+    sendTextCommand,
+
+    // Speech controls
+    speechSpeaking,
+    speechPaused,
+    pauseSpeech,
+    resumeSpeech,
+    stopSpeech,
+  } = useNayak({
+    onExchange: appendExchange,
+    sessionId,
+    language: selectedLanguage.speechCode,
+  })
+
+
   const createSession = useCallback(async () => {
     setSessionStatus('creating-session')
 
@@ -247,15 +279,12 @@ export default function App() {
       setAuthError(null)
       setShowLogin(false)
 
+      // The authenticated-session effect below creates exactly one session.
+      // Keeping creation in one place prevents duplicate sessions after login.
       setSessionStatus('creating-session')
-
-      setSystemMessage(
-        'Signed in. Creating your chat session…',
-      )
-
-      await createSession()
+      setSystemMessage('Signed in. Creating your chat session…')
     },
-    [createSession],
+    [],
   )
 
   const handleCancelLogin = useCallback(() => {
@@ -281,28 +310,6 @@ export default function App() {
     },
     [],
   )
-
-  const {
-    status,
-    micOn,
-    micSupported,
-    micLevel,
-    interimText,
-    error,
-    toggleMic,
-    sendTextCommand,
-
-    // Speech controls
-    speechSpeaking,
-    speechPaused,
-    pauseSpeech,
-    resumeSpeech,
-    stopSpeech,
-  } = useNayak({
-    onExchange: appendExchange,
-    sessionId,
-    language: selectedLanguage.speechCode,
-  })
 
   // Track AI command errors separately
   const [commandError, setCommandError] =
@@ -389,95 +396,21 @@ export default function App() {
     }
   }, [])
 
-  // Load/create chat session
+  // Chat history is disabled. We only create a temporary session for
+  // the current conversation; previous chats are not loaded or indexed.
   useEffect(() => {
-    if (!isAuthenticated) return
+    if (!isAuthenticated || sessionId) return
 
-    if (!sessionId) {
-      setSessionStatus('creating-session')
+    setSessionStatus('creating-session')
 
-      createSession().catch((err) => {
-        console.warn(
-          '[App] could not create chat session:',
-          err.message,
-        )
-
-        setSystemMessage(
-          'Session creation failed. Check the backend connection.',
-        )
-
-        setSessionStatus('error')
-        setBackendOnline(false)
-        setLoading(false)
-      })
-
-      return
-    }
-
-    let cancelled = false
-
-    async function loadHistory() {
-      setSessionStatus('loading-history')
-
-      setSystemMessage(
-        'Loading your saved chat history…',
-      )
-
-      try {
-        const data =
-          await api.history(sessionId)
-
-        const list = Array.isArray(data)
-          ? data
-          : data.history ?? []
-
-        if (!cancelled) {
-          setMessages(list)
-          setBackendOnline(true)
-
-          setSessionStatus(
-            list.length
-              ? 'ready'
-              : 'empty-session',
-          )
-
-          setSystemMessage(
-            list.length
-              ? 'Chat history loaded.'
-              : 'No previous messages in this session.',
-          )
-        }
-      } catch (err) {
-        console.warn(
-          '[App] could not load chat history:',
-          err.message,
-        )
-
-        if (!cancelled) {
-          setBackendOnline(false)
-          setSessionStatus('error')
-
-          setSystemMessage(
-            'Backend unavailable — check the API server.',
-          )
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false)
-        }
-      }
-    }
-
-    loadHistory()
-
-    return () => {
-      cancelled = true
-    }
-  }, [
-    createSession,
-    isAuthenticated,
-    sessionId,
-  ])
+    createSession().catch((err) => {
+      console.warn('[App] could not create chat session:', err.message)
+      setSystemMessage('Session creation failed. Check the backend connection.')
+      setSessionStatus('error')
+      setBackendOnline(false)
+      setLoading(false)
+    })
+  }, [createSession, isAuthenticated, sessionId])
 
   useEffect(() => {
     if (error) {
@@ -547,23 +480,25 @@ export default function App() {
   const handleNewChat = useCallback(
     async () => {
       stopSpeech()
+      setShowScheme(false)
+      setShowDocuments(false)
+      setFocusIndex(null)
+      setUploadError(null)
 
       try {
-        const data =
-          await api.newChat()
+        const data = await api.createSession()
+        const newSessionId = data.session_id
 
-        setSessionId(data.session_id)
-
-        localStorage.setItem(
-          'nayak_session_id',
-          data.session_id,
-        )
-      } catch {
-        // Keep existing behavior.
+        setSessionId(newSessionId)
+        localStorage.setItem('nayak_session_id', newSessionId)
+        setMessages([])
+        setSessionStatus('empty-session')
+        setSystemMessage('New chat ready.')
+        setBackendOnline(true)
+      } catch (error) {
+        setBackendOnline(false)
+        setSystemMessage(error?.message || 'Could not create a new chat.')
       }
-
-      setMessages([])
-      setFocusIndex(null)
     },
     [stopSpeech],
   )
@@ -572,6 +507,85 @@ export default function App() {
     (index) => setFocusIndex(index),
     [],
   )
+
+  const handleDocuments = useCallback(async () => {
+    // Documents live in the authenticated user's backend account.
+    // Opening the sidebar item also refreshes the list so newly uploaded
+    // files are visible without reloading the whole application.
+    setShowScheme(false)
+    setShowDocuments(true)
+    setDocumentsLoading(true)
+    setDocumentsError(null)
+
+    try {
+      const data = await api.documents()
+      const items = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.documents)
+          ? data.documents
+          : Array.isArray(data?.items)
+            ? data.items
+            : []
+
+      setDocuments(items.map((document) => ({
+        ...document,
+        name: document.name ?? document.filename ?? document.file_name ?? 'Untitled document',
+      })))
+    } catch (error) {
+      console.error('[App] failed to load documents:', error)
+      setDocumentsError(error.message)
+      setDocuments([])
+    } finally {
+      setDocumentsLoading(false)
+    }
+  }, [])
+
+  const handleUploadDocument = useCallback(async (file) => {
+    if (!file) return
+
+    const allowedExtensions = [
+      'pdf', 'doc', 'docx', 'txt', 'csv', 'xls', 'xlsx',
+      'jpg', 'jpeg', 'png',
+    ]
+    const extension = file.name.split('.').pop()?.toLowerCase()
+
+    if (!allowedExtensions.includes(extension)) {
+      setUploadError(
+        'Unsupported file type. Please upload PDF, DOCX, TXT, CSV, XLSX, JPG, or PNG.',
+      )
+      return
+    }
+
+    setUploadingDocument(true)
+    setUploadError(null)
+
+    try {
+      await api.uploadDocument(file)
+      const data = await api.documents()
+      const items = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.documents)
+          ? data.documents
+          : Array.isArray(data?.items)
+            ? data.items
+            : []
+
+      setDocuments(items.map((document) => ({
+        ...document,
+        name:
+          document.name ??
+          document.filename ??
+          document.file_name ??
+          'Untitled document',
+      })))
+    } catch (error) {
+      console.error('[App] failed to upload document:', error)
+      setUploadError(error?.message || 'Could not upload the document.')
+    } finally {
+      setUploadingDocument(false)
+    }
+  }, [handleDocuments])
+
 
   /*
    * =========================================================
@@ -599,6 +613,12 @@ export default function App() {
 
   // Voice Assistant card
   const handleVoiceAssistant = useCallback(() => {
+    // Voice Assistant always belongs to ChatView. If the user is on the
+    // Schemes page, leave that view before starting/listening in chat.
+    setShowScheme(false)
+    setShowDocuments(false)
+    setFocusIndex(null)
+
     if (micSupported) {
       toggleMic()
     }
@@ -621,21 +641,16 @@ export default function App() {
       <GoogleTranslate language={language} />
 
       <Sidebar
-        history={messages}
-        onNewChat={() => {
-          setShowScheme(false)
-          handleNewChat()
-        }}
-        activeIndex={focusIndex}
-        onSelectEntry={(index) => {
-          setShowScheme(false)
-          handleSelectEntry(index)
-        }}
+        sessions={[]}
+        activeSessionId={sessionId}
+        onNewChat={handleNewChat}
+        onSelectChat={undefined}
         onSchemes={() => setShowScheme(true)}
         schemeActive={showScheme}
         backendOnline={backendOnline}
         onProfile={() => setShowProfile(true)}
-        onVoiceAssistant={toggleMic}
+        onVoiceAssistant={handleVoiceAssistant}
+        onDocuments={handleDocuments}
       />
 
       {showProfile && (
@@ -645,6 +660,16 @@ export default function App() {
           }
         />
       )}
+      <DocumentModal
+        open={showDocuments}
+        onClose={() => setShowDocuments(false)}
+        documents={documents}
+        loading={documentsLoading}
+        error={documentsError}
+        onRefresh={handleDocuments}
+        onUploadDocument={handleUploadDocument}
+        uploadingDocument={uploadingDocument}
+      />
 
       <main className="main-canvas relative flex min-w-0 flex-1 flex-col overflow-hidden">
 
@@ -664,7 +689,8 @@ export default function App() {
               onClick={() =>
                 setShowHeaderMenu((prev) => !prev)
               }
-              className="rounded-lg border border-line p-2 text-mist transition hover:bg-panel-hi hover:text-ink"
+              className="menu rounded-lg border border-line p-2 text-mist transition hover:bg-panel-hi hover:text-ink"
+              
             >
               <Menu size={18} />
             </button>
@@ -826,6 +852,9 @@ export default function App() {
             onLegalQA={handleLegalQA}
             onSchemes={handleSchemes}
             onToggleMic={handleVoiceAssistant}
+            onUploadDocument={handleUploadDocument}
+            uploadingDocument={uploadingDocument}
+            uploadError={uploadError}
           />
 
           {micOn && (
@@ -851,6 +880,9 @@ export default function App() {
             language={language}
             languages={LANGUAGES}
             onLanguageChange={setLanguage}
+            onUploadDocument={handleUploadDocument}
+            uploadingDocument={uploadingDocument}
+            uploadError={uploadError}
           />
         </div>
 

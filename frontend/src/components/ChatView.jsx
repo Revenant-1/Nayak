@@ -48,6 +48,9 @@ export default function ChatView({
   onLegalQA,
   onSchemes,
   onToggleMic,
+  onUploadDocument,
+  uploadingDocument = false,
+  uploadError = null,
 }) {
   const { t } = useTranslation()
   const bottomRef = useRef(null)
@@ -241,14 +244,26 @@ export default function ChatView({
             onChange={(e) => {
               const file = e.target.files?.[0]
 
-              if (file) {
-                console.log('Selected document:', file.name)
+              if (file && onUploadDocument) {
+                onUploadDocument(file)
               }
 
               // Allow selecting the same file again.
               e.target.value = ''
             }}
           />
+
+          {uploadingDocument && (
+            <p className="mx-auto mt-5 max-w-md rounded-lg border border-primary/20 bg-primary/10 px-3 py-2 text-xs text-primary">
+              Uploading and processing your document…
+            </p>
+          )}
+
+          {uploadError && (
+            <p className="mx-auto mt-3 max-w-md rounded-lg border border-error/30 bg-error/10 px-3 py-2 text-xs text-error">
+              {uploadError}
+            </p>
+          )}
 
           {/* Interactive cards */}
           <div className="mt-9 grid grid-cols-1 gap-3 text-left sm:grid-cols-2 lg:grid-cols-4">

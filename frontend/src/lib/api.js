@@ -29,6 +29,12 @@ export const api = {
   newChat: () => request('/api/new-chat', { method: 'POST' }),
   history: (sessionId) => request(`/api/history?session_id=${encodeURIComponent(sessionId)}`),
   command: (body) => request('/api/command', { method: 'POST', body: JSON.stringify(body) }),
+  documents: () => request('/api/documents', { method: 'GET' }),
+  uploadDocument: (file) => {
+    const body = new FormData()
+    body.append('file', file)
+    return request('/api/documents', { method: 'POST', body })
+  },
   createGrievance: (body) => request('/api/grievances', { method: 'POST', body: JSON.stringify(body) }),
   transcribe: (audio, language) => {
     const body = new FormData()

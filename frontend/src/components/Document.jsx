@@ -1,10 +1,18 @@
-import { X, FileText, Upload } from "lucide-react";
+import { useRef } from 'react';
+import { X, FileText, Upload, Loader2 } from "lucide-react";
 
 export default function DocumentModal({
   open,
   onClose,
   documents = [],
+  loading = false,
+  error = null,
+  onRefresh,
+  onUploadDocument,
+  uploadingDocument = false,
 }) {
+  const inputRef = useRef(null)
+
   if (!open) return null;
 
   return (
@@ -38,7 +46,25 @@ export default function DocumentModal({
 
         {/* Documents */}
         <div className="max-h-[400px] overflow-y-auto p-4">
-          {documents.length === 0 ? (
+          {loading ? (
+            <div className="flex items-center justify-center py-12 text-sm text-mist">
+              Loading your documents…
+            </div>
+          ) : error ? (
+            <div className="py-10 text-center">
+              <p className="text-sm font-medium text-error">Could not load documents</p>
+              <p className="mt-1 text-xs text-mist">{error}</p>
+              {onRefresh && (
+                <button
+                  type="button"
+                  onClick={onRefresh}
+                  className="mt-4 rounded-lg border border-line px-3 py-2 text-xs font-medium text-ink hover:bg-panel-hi"
+                >
+                  Try again
+                </button>
+              )}
+            </div>
+          ) : documents.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <FileText size={36} className="mb-3 text-mist" />
 
@@ -80,11 +106,29 @@ export default function DocumentModal({
 
         {/* Footer */}
         <div className="border-t border-line px-5 py-3">
+          <input
+            ref={inputRef}
+            type="file"
+            accept=".pdf,.doc,.docx,.txt,.csv,.xls,.xlsx,.jpg,.jpeg,.png"
+            className="hidden"
+            onChange={(event) => {
+              const file = event.target.files?.[0]
+              event.target.value = ''
+              if (file && onUploadDocument) onUploadDocument(file)
+            }}
+          />
           <button
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white transition-colors hover:opacity-90"
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            disabled={uploadingDocument}
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <Upload size={16} />
-            Upload document
+            {uploadingDocument ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : (
+              <Upload size={16} />
+            )}
+            {uploadingDocument ? 'Uploading…' : 'Upload document'}
           </button>
         </div>
       </div>
