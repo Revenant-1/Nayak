@@ -29,10 +29,6 @@ dependencies = [
  "tqdm>=4.70.0",
 ]
 
-[build-system]
-requires = []
-build-backend = "setuptools.build_meta"
-
 [dependency-groups]
 dev = [
  "pytest>=9.1.1",
