@@ -10,13 +10,13 @@ Unified React-Vite + FastAPI voice-first interface with Python AI back-end.
 **Clone & navigate to backend directory:**
 ```bash
 git clone https://github.com/Revenant-1/Nayak.git
-cd Nayak/backend
+cd Nayak
 
 ```
 
 ```bash
 # Run Backend
-cd Nayak/backend && 
+cd Nayak/backend && uv run uvicorn app.api_server:app --reload
 
 # Run Frontend
 cd Nayak/frontend && npm install && npm run dev
@@ -118,7 +118,7 @@ Nayak/
     ├─ index.html
     ├─ package.json
     ├─ vite.config.js
-    └─ README.md
+    └─ README.mduv run uvicorn app.api_server:app --reload
 
 ```
 Tree command to get repo layout: 
