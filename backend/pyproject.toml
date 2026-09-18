@@ -4,32 +4,42 @@ version = "0.1.0"
 description = "Nayak your legal Sahayak"
 readme = "README.md"
 authors = [
- { name = "Revenant", email = "Revenat@gmail.com" }
+    { name = "Revenant", email = "Revenat@gmail.com" }
 ]
 requires-python = ">=3.13"
 dependencies = [
- "fastapi[standard]>=0.141.1",
- "uvicorn>=0.30.0",
- "google-genai>=2.18.1",
- "groq>=1.6.0",
- "huggingface-hub>=1.27.0",
- "python-dotenv>=1.0.0",
- "pydantic>=2.0.0",
- "sqlalchemy>=2.0.52",
- "qdrant-client>=1.19.0",
- "fastembed>=0.8.0",
- "pypdf>=6.16.1",
- "python-jose[cryptography]>=3.5.0",
- "bcrypt>=5.0.0",
- "psycopg[binary]>=3.3.4",
- "alembic>=1.19.1",
- "beautifulsoup4>=4.15.0",
- "pymupdf4llm>=1.28.2",
- "langchain-text-splitters>=1.1.2",
- "tqdm>=4.70.0",
+    "fastapi[standard]>=0.141.1",
+    "uvicorn>=0.30.0",
+    "google-genai>=2.18.1",
+    "groq>=1.6.0",
+    "huggingface-hub>=1.27.0",
+    "python-dotenv>=1.0.0",
+    "pydantic>=2.0.0",
+    "sqlalchemy>=2.0.52",
+    "qdrant-client>=1.19.0",
+    "fastembed>=0.8.0",
+    "pypdf>=6.16.1",
+    "python-jose[cryptography]>=3.5.0",
+    "bcrypt>=5.0.0",
+    "psycopg[binary]>=3.3.4",
+    "alembic>=1.19.1",
+    "beautifulsoup4>=4.15.0",
+    "pymupdf4llm>=1.28.2",
+    "langchain-text-splitters>=1.1.2",
+    "tqdm>=4.70.0",
 ]
+
+[tool.uv.extra-build-dependencies]
+app = ["setuptools"]
+
+[project.scripts]
+app = "app:main"
+
+[build-system]
+requires = ["uv_build>=0.12.3,<0.13.0"]
+app = "uv_build"
 
 [dependency-groups]
 dev = [
- "pytest>=9.1.1",
+    "pytest>=9.1.1",
 ]
