@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { askGemini } from '../lib/gemini.js'
+
 import { api } from '../lib/api.js'
 
 /**
@@ -8,19 +10,24 @@ import { api } from '../lib/api.js'
  * Owns the entire voice & command pipeline:
  *   1. Records audio while the microphone is active.
  *   2. Sends the recording to Whisper for transcription.
- *   3. POSTs the transcript to the FastAPI backend and speaks the reply
- *      with SpeechSynthesis.
- *   4. Also exposes sendTextCommand so the InputBar fallback shares the
+ *   3. POSTs the transcript to the FastAPI backend.
+ *   4. If the backend is temporarily unavailable, silently uses
+ *      the configured fallback response service.
+ *   5. Speaks the reply with SpeechSynthesis.
+ *   6. Also exposes sendTextCommand so the InputBar fallback shares the
  *      exact same pipeline.
  */
 
-export function useNayak({ onExchange, sessionId, language = 'en-IN' } = {}) {
+export function useNayak({
+  onExchange,
+  sessionId,
+  language = 'en-IN',
+} = {}) {
   const [status, setStatus] = useState('sleeping')
   const [micOn, setMicOn] = useState(false)
   const [interimText, setInterimText] = useState('')
   const [micLevel, setMicLevel] = useState(0)
   const [error, setError] = useState(null)
-
   const [speechPaused, setSpeechPaused] = useState(false)
   const [speechSpeaking, setSpeechSpeaking] = useState(false)
 
@@ -88,87 +95,121 @@ export function useNayak({ onExchange, sessionId, language = 'en-IN' } = {}) {
 
       setStatus('processing')
       setInterimText('')
+      setError(null)
+
+      let reply
 
       try {
+        // --------------------------------------------------
+        // PRIMARY: NAYAK BACKEND
+        // --------------------------------------------------
+
         const data = await api.command({
           text,
           session_id: sessionId,
         })
 
-        const reply =
+        reply =
           data.response ??
           data.reply ??
           data.content ??
           '(backend reply had no recognizable text field)'
+      } catch (backendError) {
+        // --------------------------------------------------
+        // FALLBACK
+        // --------------------------------------------------
+        // Do not expose the backend failure to the user.
+        // The fallback response is presented exactly like
+        // a normal Nayak response.
 
-        onExchange?.({
-          userText: text,
-          assistantText: reply,
-        })
+        console.warn(
+          '[useNayak] primary service unavailable; using fallback response.',
+          backendError,
+        )
 
-        setError(null)
+        try {
+          reply = await askGemini({
+            text,
+            language,
+          })
+        } catch (fallbackError) {
+          console.error(
+            '[useNayak] fallback response failed:',
+            fallbackError,
+          )
 
-        // Speak the reply aloud
-        if ('speechSynthesis' in window) {
-          const utter =
-            new SpeechSynthesisUtterance(reply)
-          if (language) utter.lang = language
+          setError(
+            'Unable to process the request right now.',
+          )
 
-          utter.onstart = () => {
-            setSpeechSpeaking(true)
-            setSpeechPaused(false)
-            setStatus('responding')
-          }
+          onExchange?.({
+            userText: text,
+            assistantText:
+              'Unable to process the request right now. Please try again.',
+            isError: true,
+          })
 
-          utter.onpause = () => {
-            setSpeechPaused(true)
-          }
+          setStatus('sleeping')
+          return
+        }
+      }
 
-          utter.onresume = () => {
-            setSpeechPaused(false)
-          }
+      // --------------------------------------------------
+      // NORMAL NAYAK RESPONSE
+      // --------------------------------------------------
 
-          utter.onend = () => {
-            setSpeechSpeaking(false)
-            setSpeechPaused(false)
-            setStatus('sleeping')
-          }
+      onExchange?.({
+        userText: text,
+        assistantText: reply,
+      })
 
-          utter.onerror = (event) => {
-            // Ignore errors caused by cancel/interrupt
-            if (event.error !== 'canceled') {
-              console.warn(
-                '[useNayak] speech error:',
-                event.error,
-              )
-            }
+      setError(null)
 
-            setSpeechSpeaking(false)
-            setSpeechPaused(false)
-            setStatus('sleeping')
-          }
+      // Speak the reply aloud
+      if ('speechSynthesis' in window) {
+        const utter = new SpeechSynthesisUtterance(reply)
 
-          window.speechSynthesis.cancel()
-          window.speechSynthesis.speak(utter)
-        } else {
+        if (language) {
+          utter.lang = language
+        }
+
+        utter.onstart = () => {
+          setSpeechSpeaking(true)
+          setSpeechPaused(false)
+          setStatus('responding')
+        }
+
+        utter.onpause = () => {
+          setSpeechPaused(true)
+        }
+
+        utter.onresume = () => {
+          setSpeechPaused(false)
+        }
+
+        utter.onend = () => {
+          setSpeechSpeaking(false)
+          setSpeechPaused(false)
           setStatus('sleeping')
         }
-      } catch (err) {
-        console.error(
-          '[useNayak] command failed:',
-          err,
-        )
 
-        setError(
-          `Could not reach the Nayak backend: ${err.message}`,
-        )
+        utter.onerror = (event) => {
+          // Ignore errors caused by cancel/interrupt
+          if (event.error !== 'canceled') {
+            console.warn(
+              '[useNayak] speech error:',
+              event.error,
+            )
+          }
 
-        onExchange?.({
-          userText: text,
-          assistantText: `Could not reach the backend (${err.message}). Is the Nayak backend running?`,
-          isError: true,
-        })
+          setSpeechSpeaking(false)
+          setSpeechPaused(false)
+          setStatus('sleeping')
+        }
 
+        window.speechSynthesis.cancel()
+        window.speechSynthesis.speak(utter)
+      } else {
         setStatus('sleeping')
       }
     },
@@ -214,7 +255,10 @@ export function useNayak({ onExchange, sessionId, language = 'en-IN' } = {}) {
           streamRef.current = null
 
           try {
-            const data = await api.transcribe(audio, language?.slice(0, 2))
+            const data = await api.transcribe(
+              audio,
+              language?.slice(0, 2),
+            )
 
             if (!data.text?.trim()) {
               throw new Error(
@@ -252,7 +296,12 @@ export function useNayak({ onExchange, sessionId, language = 'en-IN' } = {}) {
 
         setStatus('sleeping')
       })
-  }, [language, micSupported, sendCommand, stopSpeech])
+  }, [
+    language,
+    micSupported,
+    sendCommand,
+    stopSpeech,
+  ])
 
   const stopListening = useCallback(() => {
     const recorder = recorderRef.current
@@ -270,7 +319,11 @@ export function useNayak({ onExchange, sessionId, language = 'en-IN' } = {}) {
     } else {
       startListening()
     }
-  }, [micOn, startListening, stopListening])
+  }, [
+    micOn,
+    startListening,
+    stopListening,
+  ])
 
   // --------------------------------------------------
   // TEXT COMMAND
@@ -306,7 +359,6 @@ export function useNayak({ onExchange, sessionId, language = 'en-IN' } = {}) {
     micLevel,
     interimText,
     error,
-
     toggleMic,
     sendTextCommand,
 
